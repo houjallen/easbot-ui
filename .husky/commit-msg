@@ -1,0 +1,46 @@
+#!/usr/bin/env sh
+
+# 验证提交消息格式
+commit_message_file=$1
+
+# 基本格式验证：<type>(<scope>): <description>
+# scope 可以是任意模块名，如: button, dialog, toast, storybook 等
+if ! grep -qE '^(feat|fix|docs|test|chore|refactor|perf|ci)\(([a-z][a-z0-9-]*)(,[a-z][a-z0-9-]*)*\): ' "$commit_message_file"; then
+  echo "错误: 提交消息不符合规范"
+  echo "格式: <type>(<scope>): <description>"
+  echo ""
+  echo "type 类型:"
+  echo "  feat     - 新功能"
+  echo "  fix      - 修复错误"
+  echo "  docs     - 文档更新"
+  echo "  test     - 测试相关"
+  echo "  chore    - 构建或工具变动"
+  echo "  refactor - 代码重构"
+  echo "  perf     - 性能优化"
+  echo "  ci       - CI/CD 相关"
+  echo ""
+  echo "scope 示例 (根据修改的组件选择):"
+  echo "  button        - Button 组件"
+  echo "  dialog        - Dialog 组件"
+  echo "  toast         - Toast 组件"
+  echo "  form          - Form 组件"
+  echo "  select        - Select 组件"
+  echo "  storybook     - Storybook 配置"
+  echo "  build         - 构建配置 (tsup / tailwind)"
+  echo "  test          - 测试相关"
+  echo "  ci            - CI/CD 相关"
+  echo "  deps          - 依赖调整"
+  echo "  docs          - 文档更新"
+  echo ""
+  echo "多 scope 用逗号分隔, 例如: feat(button,dialog): ..."
+  exit 1
+fi
+
+# 校验 summary 长度不超过 72 字符
+summary=$(head -n 1 "$commit_message_file")
+if [ ${#summary} -gt 72 ]; then
+  echo "错误: 提交消息 summary 超过 72 字符 (当前 ${#summary})"
+  exit 1
+fi
+
+exit 0

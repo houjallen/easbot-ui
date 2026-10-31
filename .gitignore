@@ -1,0 +1,100 @@
+# Dependencies (only for transient CI / local quick-validate run)
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Storybook static site
+storybook-static/
+
+# Test coverage
+coverage/
+
+# Environment variables
+.env*
+!.env.example
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+# Commit message drafts (§7.3)
+*.commit-msg.txt
+.commit-msg.txt
+
+# Editor-specific working directories (local-only, never part of skills/)
+.agents/
+.local/
+.claude/
+.qoder/
+.opencode/
+.easbot/
+.windsurf/
+.trae/
+.cursor/
+.kiro/
+.omc/
+.claude-flow/
+.swarm/
+.adal/
+.aider-desk/
+.augment/
+.autohand/
+.bob/
+.codeartsdoer/
+.codebuddy/
+.codemaker/
+.codestudio/
+.commandcode/
+.continue/
+.cortex/
+.crush/
+.devin/
+.factory/
+.forge/
+.goose/
+.hermes/
+.iflow/
+.inferencesh/
+.jazz/
+.junie/
+.kilocode/
+.kode/
+.lingma/
+.mcpjam/
+.moxby/
+.mux/
+.neovate/
+.ona/
+.openclaw/
+.openhands/
+.pi/
+.pochi/
+.qwen/
+.reasonix/
+.roo/
+.rovodev/
+.tabnine/
+.terramind/
+.tinycloud/
+.vibe/
+.zencoder/
+.zed/
+
+# Others files

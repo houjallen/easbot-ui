@@ -1,0 +1,254 @@
+name: 发布版本
+
+on:
+  push:
+    tags:
+      - 'easbot-ui@*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '版本号 (例如: 0.3.32)'
+        required: true
+        type: string
+      prerelease:
+        description: '预发布版本'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  NODE_VERSION: '22'
+  PNPM_VERSION: '10'
+
+jobs:
+  # 验证版本
+  validate:
+    name: 验证版本
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 确定版本
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "prerelease=${{ github.event.inputs.prerelease }}" >> $GITHUB_OUTPUT
+          else
+            VERSION=${GITHUB_REF#refs/tags/easbot-ui@}
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            if [[ "$VERSION" =~ -(alpha|beta|rc|pre) ]]; then
+              echo "prerelease=true" >> $GITHUB_OUTPUT
+            else
+              echo "prerelease=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: 验证版本格式
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.-]+)?$ ]]; then
+            echo "❌ 版本号格式无效: $VERSION"
+            exit 1
+          fi
+          echo "✅ 版本号格式有效: $VERSION"
+
+      - name: 检查版本变更
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if grep -q "\"version\": \"$VERSION\"" package.json; then
+            echo "✅ package.json 版本号已更新"
+          else
+            echo "❌ package.json 版本号未更新"
+            exit 1
+          fi
+
+  # 生成变更日志
+  changelog:
+    name: 生成变更日志
+    runs-on: ubuntu-latest
+    needs: validate
+    outputs:
+      changelog: ${{ steps.changelog.outputs.changelog }}
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 生成变更日志
+        id: changelog
+        run: |
+          pnpm exec tsx scripts/generate-changelog.ts "${{ needs.validate.outputs.version }}" || echo "生成失败，跳过"
+
+          CHANGELOG=$(pnpm exec tsx scripts/generate-changelog.ts "${{ needs.validate.outputs.version }}" 2>/dev/null | tail -n 40 || echo "")
+          echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
+
+  # 测试与质量检查
+  test:
+    name: 测试与质量检查
+    runs-on: ubuntu-latest
+    needs: [validate, changelog]
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 运行代码质量检查
+        run: |
+          pnpm lint
+          pnpm type-check
+
+      - name: 运行测试
+        run: pnpm test
+
+      - name: 上传测试结果
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: coverage/
+          retention-days: 7
+
+  # 构建与打包
+  build:
+    name: 构建和打包
+    runs-on: ubuntu-latest
+    needs: [validate, changelog]
+    outputs:
+      checksums: ${{ steps.checksums.outputs.checksums }}
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 构建项目
+        run: pnpm build
+
+      - name: 创建发布包
+        run: |
+          pnpm pack
+          mv easbot-ui-*.tgz "easbot-ui-${{ needs.validate.outputs.version }}.tgz"
+
+      - name: 生成校验和
+        id: checksums
+        run: |
+          sha256sum "easbot-ui-${{ needs.validate.outputs.version }}.tgz" > "easbot-ui-${{ needs.validate.outputs.version }}.tgz.sha256"
+          echo "checksums=$(cat "easbot-ui-${{ needs.validate.outputs.version }}.tgz.sha256")" >> $GITHUB_OUTPUT
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            dist/
+            *.tgz
+            *.sha256
+          retention-days: 7
+
+  # 创建 GitHub Release
+  create-release:
+    name: 创建 GitHub 发布
+    runs-on: ubuntu-latest
+    needs: [test, build, validate, changelog]
+    permissions:
+      contents: write
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 下载构建产物
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+
+      - name: 创建发布
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: easbot-ui@${{ needs.validate.outputs.version }}
+          release_name: easbot-ui@${{ needs.validate.outputs.version }}
+          body: |
+            ## 🎉 版本 ${{ needs.validate.outputs.version }} 发布
+
+            ${{ needs.changelog.outputs.changelog }}
+
+            ## 📦 安装
+
+            ```bash
+            npm install @easbot/ui@${{ needs.validate.outputs.version }}
+            ```
+
+            ## 📝 使用
+
+            ```tsx
+            import { Button } from '@easbot/ui';
+            import '@easbot/ui/styles.css';
+            ```
+
+            ## 🔐 校验和
+
+            ```
+            ${{ needs.build.outputs.checksums }}
+            ```
+
+            ## 🐛 反馈
+
+            - 📧 Email: support@easbot.cn
+            - 🐛 Issue: [创建 Issue](https://github.com/houjallen/easbot-ui/issues/new)
+          files: |
+            easbot-ui-${{ needs.validate.outputs.version }}.tgz
+            easbot-ui-${{ needs.validate.outputs.version }}.tgz.sha256
+          draft: false
+          prerelease: ${{ needs.validate.outputs.prerelease == 'true' }}
+
+  # 发布通知
+  notify:
+    name: 发布通知
+    runs-on: ubuntu-latest
+    needs: [create-release]
+    if: always()
+    steps:
+      - name: 发布成功通知
+        if: ${{ needs.create-release.result == 'success' }}
+        run: |
+          echo "✅ 版本 ${{ needs.validate.outputs.version }} GitHub Release 已发布！"
+          echo "🚀 GitHub Release: https://github.com/houjallen/easbot-ui/releases/tag/easbot-ui@${{ needs.validate.outputs.version }}"
+          echo "📦 npm 发布为手动操作：本地运行 pnpm publish:npm"
+
+      - name: 发布失败通知
+        if: ${{ needs.create-release.result == 'failure' }}
+        run: |
+          echo "❌ 版本 ${{ needs.validate.outputs.version }} GitHub Release 发布失败！"
+          echo "请检查 GitHub Actions 日志以获取详细信息。"

@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    // vitest/globals 提供 describe/it/expect 的全局类型
+    // @testing-library/jest-dom 提供 toBeInTheDocument 等 matcher 类型
+    "types": ["node", "vitest/globals", "@testing-library/jest-dom"],
+    "resolveJsonModule": true
+  },
+  "include": [".storybook/**/*", "scripts/**/*", "src/**/*", "tests/**/*", "*.config.ts"],
+  "exclude": ["node_modules", "dist", "storybook-static"]
+}
