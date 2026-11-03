@@ -1,0 +1,34 @@
+/*
+ * officefont 演示类 —— Storybook 的 `officefont` story 使用
+ *
+ * ⚠️ 字体家族与 `src/theme/styles/iconfont/officefont.css` 声明的一致
+ * （`Wingdings` / `Symbol`），由 `preview.tsx` 全局引入。
+ *
+ * ⚠️ `.officefont` 必须显式声明 `font-family` —— 否则 `<i class="officefont icon-excel">`
+ * 会退回默认字体，**只显示一个方块**（content 码点不在默认字体的字符集里）。
+ */
+.officefont {
+  font-family: 'Wingdings', 'Symbol', sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.officefont.icon-excel:before {
+  content: '\e001';
+}
+
+.officefont.icon-word:before {
+  content: '\e002';
+}
+
+.officefont.icon-ppt:before {
+  content: '\e003';
+}
+
+.officefont.icon-pdf:before {
+  content: '\e004';
+}
+
+/* 这里只是示例，具体 content 需根据实际字体映射调整 */

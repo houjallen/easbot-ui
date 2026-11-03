@@ -37,7 +37,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['node_modules/', 'dist/', 'tests/', '**/*.stories.tsx', '**/*.test.tsx', 'src/index.ts', 'src/styles.css'],
+      exclude: ['node_modules/', 'dist/', 'tests/', '**/*.stories.tsx', '**/*.test.tsx', 'src/index.ts', 'src/theme/styles.css'],
     },
   },
   resolve: {

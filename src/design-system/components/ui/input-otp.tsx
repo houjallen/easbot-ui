@@ -1,0 +1,68 @@
+﻿'use client';
+
+import { OTPInput } from 'input-otp';
+import { OTPInputContext } from 'input-otp';
+import * as React from 'react';
+
+import { cn } from '../../lib/utils';
+
+function InputOTP({
+  className,
+  containerClassName,
+  ...props
+}: React.ComponentProps<typeof OTPInput> & {
+  containerClassName?: string;
+}) {
+  return (
+    <OTPInput
+      data-slot="input-otp"
+      containerClassName={cn('flex items-center gap-2 has-disabled:opacity-50', containerClassName)}
+      className={cn('disabled:cursor-not-allowed', className)}
+      {...props}
+    />
+  );
+}
+
+function InputOTPGroup({ className, ...props }: React.ComponentProps<'div'>) {
+  return <div data-slot="input-otp-group" className={cn('flex items-center', className)} {...props} />;
+}
+
+function InputOTPSlot({
+  index,
+  className,
+  ...props
+}: React.ComponentProps<'div'> & {
+  index: number;
+}) {
+  const inputOTPContext = React.useContext(OTPInputContext);
+  const { char, hasFakeCaret, isActive } = inputOTPContext?.slots[index] ?? {};
+
+  return (
+    <div
+      data-slot="input-otp-slot"
+      data-active={isActive}
+      className={cn(
+        'relative flex h-9 w-9 items-center justify-center border-input border-y border-r text-sm shadow-xs outline-none transition-all first:rounded-l-md first:border-l last:rounded-r-md aria-invalid:border-destructive data-[active=true]:z-10 data-[active=true]:border-ring data-[active=true]:ring-[3px] data-[active=true]:ring-ring/50 data-[active=true]:aria-invalid:border-destructive data-[active=true]:aria-invalid:ring-destructive/20 dark:bg-input-background/30 dark:data-[active=true]:aria-invalid:ring-destructive/40',
+        className,
+      )}
+      {...props}
+    >
+      {char}
+      {hasFakeCaret && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="h-4 w-px animate-caret-blink bg-foreground duration-1000" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InputOTPSeparator({ ...props }: React.ComponentProps<'hr'>) {
+  return (
+    // 纯装饰性分隔线：使用语义化 hr 元素表达结构语义，且不可聚焦
+    // （聚焦版 separator 需要 aria-valuenow，装饰用途不需要）
+    <hr data-slot="input-otp-separator" {...props} />
+  );
+}
+
+export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator };

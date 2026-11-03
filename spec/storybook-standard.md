@@ -17,7 +17,7 @@ related:
 # EASBot UI Storybook 规范 (Storybook Standard)
 
 > **真值源**：本规范以 [`.storybook/main.ts`](../.storybook/main.ts)、[`.storybook/preview.tsx`](../.storybook/preview.tsx)
-> 与 `src/**/*.stories.tsx` 的 34 个 story 文件为唯一执行真值；规范与实现冲突时**规范改**。
+> 与 `src/ui/<component>/__tests__/*.stories.tsx` 的 story 文件为唯一执行真值；规范与实现冲突时**规范改**。
 >
 > **与其它规范的分工**（三者**不重复**）：
 >
@@ -29,6 +29,8 @@ related:
 > | lint / 构建              | [`code-quality.md`](./code-quality.md)             | §2（仅命令）       |
 >
 > **历史基准**：v1.0.0 锁定 2026-10-31 数据，详见 §M+1。**规范条文本身不过期**，只有数据基准会过期。
+>
+> **目录约定**：story 文件统一放在组件目录的 `__tests__/` 子目录中，Storybook 的 `stories` glob 仍为 `../src/**/*.stories.@(ts|tsx)`，因此不会影响加载。
 
 ---
 
@@ -43,7 +45,7 @@ Storybook 是本库的**可视化文档与人工验收场**。它与单测的分
 
 **核心约束**：
 
-- ✅ story 文件**必须**在 `src/<component>/<component>.stories.tsx`
+- ✅ story 文件**必须**在 `src/ui/<component>/__tests__/<component>.stories.tsx`
 - ✅ **必须**用 **CSF3** 写法（`const meta: Meta<typeof X> = {...}; export default meta; type Story = StoryObj<typeof X>;`）
 - ✅ meta `title` **必须**是 `EASAI/<Component>`
 - ✅ meta **必须**声明 `tags: ['autodocs']`
@@ -61,16 +63,17 @@ Storybook 是本库的**可视化文档与人工验收场**。它与单测的分
 ### 1.1 story 文件位置
 
 ```
-src/<component>/<component>.stories.tsx
+src/ui/<component>/__tests__/<component>.stories.tsx
 ```
 
-**与组件源码同目录**，与测试文件并列：
+**与测试文件同目录**（`__tests__/`），与组件源码分离：
 
 ```
-src/button/
+src/ui/button/
 ├── button.tsx
-├── button.test.tsx
-├── button.stories.tsx
+├── __tests__/
+│   ├── button.test.tsx
+│   └── button.stories.tsx
 └── index.ts
 ```
 
@@ -121,7 +124,7 @@ const preview: Preview = {
 
 | #   | 规则                                                                             |
 | --- | -------------------------------------------------------------------------------- |
-| 1   | **必须** `import '../src/styles.css';` —— 否则 story 里样式全无                  |
+| 1   | **必须** `import '../src/theme/styles.css';` —— 否则 story 里样式全无            |
 | 2   | **必须**有主题装饰器（设置 `<html data-theme>`）                                 |
 | 3   | ❌ **禁止** import 本仓库不存在的模块（原配置引用了 5 个孤儿模块，导致启动即崩） |
 
@@ -181,8 +184,8 @@ type Story = StoryObj<typeof Spinner>;
 > 该结论由 4 变体矩阵实测得出（`satisfies` × `StoryObj<typeof meta>` / `StoryObj<typeof Component>`），
 > 唯一全绿写法即为「meta 显式标注 + Story 标注组件本体」。
 
-> 📌 **真值源**：[`src/spinner/spinner.stories.tsx:8-47`](../src/spinner/spinner.stories.tsx)（标准骨架）、
-> [`src/form/form.stories.tsx:21-31`](../src/form/form.stories.tsx)（含必填 props 的组件范例）。
+> 📌 **真值源**：[`src/ui/spinner/spinner.stories.tsx:8-47`](../src/ui/spinner/spinner.stories.tsx)（标准骨架）、
+> [`src/ui/form/form.stories.tsx:21-31`](../src/ui/form/form.stories.tsx)（含必填 props 的组件范例）。
 
 ### 2.2 meta 必填字段
 
@@ -199,16 +202,16 @@ type Story = StoryObj<typeof Spinner>;
 
 **必须** PascalCase，**必须**表达「这个 story 展示什么」。
 
-| 用途     | 命名                           | 真值源                                   |
-| -------- | ------------------------------ | ---------------------------------------- |
-| 默认形态 | `Default`                      | `src/spinner/spinner.stories.tsx:50`     |
-| 变体集合 | `Variants`                     | `src/spinner/spinner.stories.tsx:72`     |
-| 尺寸集合 | `Sizes`                        | `src/spinner/spinner.stories.tsx:58`     |
-| 状态     | `Loading` / `Disabled`         | `src/button/button.stories.tsx:151`      |
-| 组合     | `Combination` / `Combinations` | `src/spinner/spinner.stories.tsx:87`     |
-| 尺寸变体 | `SizeVariants`                 | `src/dialog/dialog.stories.tsx:58`       |
-| 主题变体 | `ThemeVariants`                | `src/dialog/dialog.stories.tsx:86`       |
-| 复杂交互 | `Playground`                   | `src/use-toast/use-toast.stories.tsx:53` |
+| 用途     | 命名                           | 真值源                                      |
+| -------- | ------------------------------ | ------------------------------------------- |
+| 默认形态 | `Default`                      | `src/ui/spinner/spinner.stories.tsx:50`     |
+| 变体集合 | `Variants`                     | `src/ui/spinner/spinner.stories.tsx:72`     |
+| 尺寸集合 | `Sizes`                        | `src/ui/spinner/spinner.stories.tsx:58`     |
+| 状态     | `Loading` / `Disabled`         | `src/ui/button/button.stories.tsx:151`      |
+| 组合     | `Combination` / `Combinations` | `src/ui/spinner/spinner.stories.tsx:87`     |
+| 尺寸变体 | `SizeVariants`                 | `src/ui/dialog/dialog.stories.tsx:58`       |
+| 主题变体 | `ThemeVariants`                | `src/ui/dialog/dialog.stories.tsx:86`       |
+| 复杂交互 | `Playground`                   | `src/ui/use-toast/use-toast.stories.tsx:53` |
 
 **规则**：
 
@@ -224,12 +227,12 @@ type Story = StoryObj<typeof Spinner>;
 **优先**用 `args` 覆盖（让 controls 可交互）；**需要组合展示**时用 `render`。
 
 ```tsx
-// ✅ 正例 —— args 覆盖（src/spinner/spinner.stories.tsx:50-55）
+// ✅ 正例 —— args 覆盖（src/ui/spinner/spinner.stories.tsx:50-55）
 export const Default: Story = {
   args: { size: 'md', variant: 'default' },
 };
 
-// ✅ 正例 —— render 组合展示（src/spinner/spinner.stories.tsx:58-69）
+// ✅ 正例 —— render 组合展示（src/ui/spinner/spinner.stories.tsx:58-69）
 export const Sizes: Story = {
   parameters: { controls: { exclude: ['size'] } },
   render: () => (
@@ -245,7 +248,7 @@ export const Sizes: Story = {
 **受控组件**（如 `Select` 的多选）**必须**在 `render` 内用 `useState` 管理：
 
 ```tsx
-// ✅ 正例（src/select/select.stories.tsx:75-78）
+// ✅ 正例（src/ui/select/select.stories.tsx:75-78）
 render: (args) => {
   const [value, setValue] = React.useState<string[]>([]);
   return <Select {...args} value={value} onChange={setValue} />;
@@ -259,7 +262,7 @@ render: (args) => {
 变体类组件**必须**声明 `argTypes`，让文档页能展示可用取值。
 
 ```tsx
-// ✅ 正例（src/spinner/spinner.stories.tsx:20-38）
+// ✅ 正例（src/ui/spinner/spinner.stories.tsx:20-38）
 argTypes: {
   size: {
     control: 'select',
@@ -285,7 +288,7 @@ argTypes: {
 **回调桩规范**：
 
 ```tsx
-// ✅ 正例（src/select/select.stories.tsx:11,57-58）
+// ✅ 正例（src/ui/select/select.stories.tsx:11,57-58）
 import { fn } from 'storybook/test';
 
 args: { onSearch: fn(), onChange: fn() },
@@ -318,7 +321,7 @@ args: { onSearch: fn(), onChange: fn() },
 需要在 story 里限定**容器尺寸 / 布局**时**必须**用 `decorators`（**不要**在 `render` 里套无意义的 `div`）。
 
 ```tsx
-// ✅ 正例（src/select/select.stories.tsx:27-33）
+// ✅ 正例（src/ui/select/select.stories.tsx:27-33）
 decorators: [
   (Story) => (
     <div style={{ width: '300px' }}>
@@ -337,7 +340,7 @@ decorators: [
 ### 4.3 story 级 parameters
 
 ```tsx
-// ✅ 正例（src/button/button.stories.tsx:247-256）
+// ✅ 正例（src/ui/button/button.stories.tsx:247-256）
 parameters: {
   docs: { description: { story: '...' } },
   viewport: { defaultViewport: 'mobile1' },
@@ -394,7 +397,7 @@ rg -n "^\s{2}title:\s*'(?!EASAI/)" -g "src/**/*.stories.tsx" -P
 // ❌ 违规
 const meta = { title: 'Button', component: Button } satisfies Meta<typeof Button>;
 
-// ✅ 修正（src/button/button.stories.tsx:19）
+// ✅ 修正（src/ui/button/button.stories.tsx:19）
 const meta: Meta<typeof Button> = { title: 'EASAI/Button', component: Button };
 ```
 
@@ -490,7 +493,7 @@ rg -n "^export const [a-z]" -g "src/**/*.stories.tsx"
 // ❌ 违规
 export const default: Story = { args: {} };
 
-// ✅ 修正（src/spinner/spinner.stories.tsx:50）
+// ✅ 修正（src/ui/spinner/spinner.stories.tsx:50）
 export const Default: Story = { args: { size: 'md' } };
 ```
 
@@ -516,7 +519,7 @@ args: {
   onChange: () => console.log('changed');
 }
 
-// ✅ 修正（src/select/select.stories.tsx:11,57-58）
+// ✅ 修正（src/ui/select/select.stories.tsx:11,57-58）
 import { fn } from 'storybook/test';
 args: {
   onChange: fn();
@@ -537,7 +540,7 @@ rg -n "#[0-9a-fA-F]{3,8}\b" -g "src/**/*.stories.tsx"
 
 - ❌ 违规：story 里硬编码颜色（主题变量已提供，改主题时不生效）
 - ✅ 合规：0 命中
-- ⚠️ **例外**：`src/badge/badge.stories.tsx:262` 的 `'#ff00ff'` 是**演示 `style` 透传自定义色值**的能力，属正当用途
+- ⚠️ **例外**：`src/ui/badge/badge.stories.tsx:262` 的 `'#ff00ff'` 是**演示 `style` 透传自定义色值**的能力，属正当用途
 
 **修正模式**：
 
@@ -556,13 +559,13 @@ rg -n "#[0-9a-fA-F]{3,8}\b" -g "src/**/*.stories.tsx"
 ```bash
 # 检查 stories glob 与 framework
 rg -n "stories:|framework:|@storybook/react" .storybook/main.ts
-# 检查 preview 是否引入样式
-rg -n "styles\.css" .storybook/preview.tsx
+# 检查 preview 是否引入样式（入口 = src/theme/styles.css）
+rg -n "src/theme/style\.css" .storybook/preview.tsx
 ```
 
 **判定规则**：
 
-- ❌ 违规：`stories` glob 不指向 `../src/**/*.stories.@(ts|tsx)`；或 framework 不是 `@storybook/react-vite`；或 preview 未 `import '../src/styles.css'`
+- ❌ 违规：`stories` glob 不指向 `../src/**/*.stories.@(ts|tsx)`；或 framework 不是 `@storybook/react-vite`；或 preview 未 `import '../src/theme/styles.css'`
 - ✅ 合规：三条均满足
 
 **修正模式**：
@@ -608,20 +611,18 @@ rg -n "addon-vitest" package.json .storybook/main.ts
 
 ---
 
-## M+1. 历史基准（2026-10-31 实测）
+## M+1. 历史基准（2026-11-01 实测）
 
 > **作用域**：本节是**历史快照**。数据会过期，条文不过期。
 
 | 指标                                     | 数值                        |
 | ---------------------------------------- | --------------------------- |
-| story 文件数                             | 34                          |
-| Storybook 总 stories 数                  | **237**                     |
-| `title` 前缀全部为 `EASAI/`              | 34/34                       |
-| 声明 `autodocs` 的文件                   | **34/34**                   |
-| 显式标注 `Meta<typeof X>` 的文件         | **34/34**                   |
-| `StoryObj<typeof X>`（非 `typeof meta`） | **34/34**                   |
-| 声明 `argTypes` 的文件                   | 9                           |
-| 声明 `decorators` 的文件                 | 2                           |
+| story 文件数                             | **82**                      |
+| story 文件全部在 `__tests__/` 下         | **82 / 82（100%）**         |
+| `title` 前缀全部为 `EASAI/`              | 82/82                       |
+| 声明 `autodocs` 的文件                   | 82/82                       |
+| 显式标注 `Meta<typeof X>` 的文件         | 82/82                       |
+| `StoryObj<typeof X>`（非 `typeof meta`） | 82/82                       |
 | `pnpm storybook:build` 产物              | `storybook-static/`，exit 0 |
 
 ### 重测命令
@@ -634,12 +635,12 @@ pnpm storybook:build
 
 ## M+2. 豁免清单
 
-| 对象                                                               | 豁免依据                                                                                                                                      |
-| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/badge/badge.stories.tsx:262` 的 `'#ff00ff'`                   | **演示用途**：展示 `style` 属性透传自定义色值的能力（维度 ⑦ 例外）                                                                            |
-| `src/button/button.stories.tsx:23-29` 的 `parameters.themes`       | **并存写法**：与全局 `withThemeByClassName` 并行使用，不冲突；**新增** story 不必重复声明                                                     |
-| `src/alert-dialog/alert-dialog-modal.tsx` 无 story                 | **已知缺口**：该文件是 `alert-dialog` 目录内的第二实现，未纳入 barrel、也无 test / stories。补齐需单独排期（见 `component-standard.md` §M+2） |
-| `src/button/button.stories.tsx:26-27` 的 `'#ffffff'` / `'#1a1a1a'` | **工具栏色板声明**：Storybook 主题切换器的颜色预览值，属**工具配置**而非组件样式（维度 ⑦ 例外）                                               |
+| 对象                                                                      | 豁免依据                                                                                                                                      |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/ui/badge/__tests__/badge.stories.tsx` 的 `'#ff00ff'`                 | **演示用途**：展示 `style` 属性透传自定义色值的能力（维度 ⑦ 例外）                                                                            |
+| `src/ui/button/__tests__/button.stories.tsx` 的 `parameters.themes`       | **并存写法**：与全局 `withThemeByClassName` 并行使用，不冲突；**新增** story 不必重复声明                                                     |
+| `src/ui/alert-dialog/alert-dialog-modal.tsx` 无 story                     | **已知缺口**：该文件是 `alert-dialog` 目录内的第二实现，未纳入 barrel、也无 test / stories。补齐需单独排期（见 `component-standard.md` §M+2） |
+| `src/ui/button/__tests__/button.stories.tsx` 的 `'#ffffff'` / `'#1a1a1a'` | **工具栏色板声明**：Storybook 主题切换器的颜色预览值，属**工具配置**而非组件样式（维度 ⑦ 例外）                                               |
 
 ---
 
@@ -648,9 +649,9 @@ pnpm storybook:build
 | #   | 冲突点            | 旧规范声明（easbot monorepo 版） | 实际情况（本库）                                               | 裁决                                            |
 | --- | ----------------- | -------------------------------- | -------------------------------------------------------------- | ----------------------------------------------- |
 | C1  | Storybook builder | `addon-vitest`（浏览器模式）     | `addon-docs` / `a11y` / `themes` / `links` / `onboarding`      | **不装 `addon-vitest`**（维度 ⑨）               |
-| C2  | story 文件位置    | 未涉及                           | `src/<component>/<component>.stories.tsx`                      | **与源码同目录**（§1.1）                        |
+| C2  | story 文件位置    | 未涉及                           | `src/ui/<component>/__tests__/<component>.stories.tsx`         | **与测试文件同目录**（§1.1）                    |
 | C3  | 主题机制          | 未涉及                           | `data-theme` attribute + `withThemeByClassName`                | **两者并存**（§4.1）                            |
-| C4  | meta 类型标注     | 未涉及                           | 全库 34/34 用 `Meta<typeof X>` 显式标注 + `StoryObj<typeof X>` | **必须显式标注 + Story 标注组件本体**（维度 ④） |
+| C4  | meta 类型标注     | 未涉及                           | 全库 82/82 用 `Meta<typeof X>` 显式标注 + `StoryObj<typeof X>` | **必须显式标注 + Story 标注组件本体**（维度 ④） |
 
 ---
 
@@ -660,7 +661,7 @@ pnpm storybook:build
 
 ### 新增组件 story 时
 
-- [ ] 文件在 `src/<component>/<component>.stories.tsx`
+- [ ] 文件在 `src/ui/<component>/__tests__/<component>.stories.tsx`
 - [ ] 用 CSF3 写法（`const meta: Meta<typeof X> = {...}` + `export default meta` + `type Story = StoryObj<typeof X>`）
 - [ ] `title` 是 `EASAI/<Component>`
 - [ ] `tags: ['autodocs']`

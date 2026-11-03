@@ -1,0 +1,9 @@
+# Prettier 忽略清单
+
+# 构建产物
+dist/
+storybook-static/
+
+# 依赖与缓存
+node_modules/
+coverage/

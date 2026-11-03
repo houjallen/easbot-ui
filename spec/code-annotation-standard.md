@@ -1,4 +1,4 @@
----
+﻿---
 name: code-annotation-standard
 description: 该规范定义 easbot-ui 组件库源代码内注释与 JSDoc 注解的编写与评审标准，含注解四要素（描述现状 / 功能 / 约束 / 步骤）、⛔ 7 类禁止内容（人称称呼 / 决策编号引用 / 外部文档引用 / 过程性表述 / 变更纪要 / 未来时态承诺 / spec 路径引用）、组件库 3 类代码的头部注解模板（组件实现 / 测试文件 / Story 文件）、符号级 JSDoc 标签最小集、props 字段注解规范、核心步骤注解三形态、内联注释规则、TODO 格式、9 项扫描维度（每项含命令 + 判定 + 修正模式）、豁免清单与现状基线。当编写或评审组件源码注释、修复注解腐化问题时参考。
 category: specification
@@ -16,7 +16,7 @@ related:
 
 # EASBot UI 代码注解规范 (Code Annotation Standard)
 
-> **真值源**：本规范以 `src/` 下 34 个组件实现文件、34 个测试文件、34 个 story 文件的实际注解为唯一执行真值；
+> **真值源**：本规范以 `src/` 下 87 个组件实现文件、89 个测试文件、82 个 story 文件的实际注解为唯一执行真值；
 > 规范与实现冲突时**规范改**。
 >
 > **与其它规范的分工**（三者**不重复**）：
@@ -237,15 +237,15 @@ related:
 
 > **判定顺序**：按文件**职责**选唯一一类模板，从上往下匹配，先命中先适用。
 >
-> | #   | 类型           | 判定特征                                             | 模板小节 |
-> | --- | -------------- | ---------------------------------------------------- | -------- |
-> | 1   | **组件实现**   | `src/<component>/<component>.tsx`（导出 React 组件） | §3.1     |
-> | 2   | **测试文件**   | `*.test.tsx`                                         | §3.2     |
-> | 3   | **Story 文件** | `*.stories.tsx`                                      | §3.3     |
+> | #   | 类型           | 判定特征                                                | 模板小节 |
+> | --- | -------------- | ------------------------------------------------------- | -------- |
+> | 1   | **组件实现**   | `src/ui/<component>/<component>.tsx`（导出 React 组件） | §3.1     |
+> | 2   | **测试文件**   | `*.test.tsx`                                            | §3.2     |
+> | 3   | **Story 文件** | `*.stories.tsx`                                         | §3.3     |
 
 ### 3.1 组件实现模板
 
-**适用**：`src/<component>/<component>.tsx`。
+**适用**：`src/ui/<component>/<component>.tsx`。
 
 **必填**：`@description`（做什么）+ 特性列表（有什么能力）+ 可选 `@example`。
 
@@ -265,7 +265,7 @@ related:
  */
 ```
 
-**正例**（取自 [`src/button/button.tsx:1-19`](../src/button/button.tsx)）：
+**正例**（取自 [`src/ui/button/button.tsx:1-19`](../src/ui/button/button.tsx)）：
 
 ```tsx
 /**
@@ -308,13 +308,13 @@ related:
  */
 ````
 
-**正例**：[`src/button/button.tsx:110-139`](../src/button/button.tsx)
+**正例**：[`src/ui/button/button.tsx:110-139`](../src/ui/button/button.tsx)
 
 > 📌 **要点**：能力列表用**编号 + 短横线**，每项一行；复杂能力用二级缩进展开子项。
 
 ### 3.2 测试文件模板
 
-**适用**：`src/<component>/<component>.test.tsx`。
+**适用**：`src/ui/<component>/__tests__/<component>.test.tsx`。
 
 **必填**：`@description` + 覆盖类别清单。
 
@@ -333,13 +333,13 @@ related:
  */
 ```
 
-**正例**：[`src/button/button.test.tsx:1-14`](../src/button/button.test.tsx)
+**正例**：[`src/ui/button/button.test.tsx:1-14`](../src/ui/button/button.test.tsx)
 
 > 📌 **更详细的测试注解规则见** [`testing-guidelines.md`](./testing-guidelines.md) §3.1 —— 本节不重复。
 
 ### 3.3 Story 文件模板
 
-**适用**：`src/<component>/<component>.stories.tsx`。
+**适用**：`src/ui/<component>/__tests__/<component>.stories.tsx`。
 
 **必填**：一句话说明这个 story 文件展示什么。
 
@@ -349,14 +349,14 @@ related:
  */
 ```
 
-**正例**：[`src/spinner/spinner.stories.tsx:1-3`](../src/spinner/spinner.stories.tsx)
+**正例**：[`src/ui/spinner/spinner.stories.tsx:1-3`](../src/ui/spinner/spinner.stories.tsx)
 
 ### 3.4 props 字段注解
 
 **props 的每个字段 MUST** 有**单行** JSDoc；有默认值时**必须**带 `@default`。
 
 ```tsx
-// ✅ 正例（src/alert/alert.tsx:55-64）
+// ✅ 正例（src/ui/alert/alert.tsx:55-64）
 export interface AlertProps
   extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof alertVariants> {
   /** 是否可关闭 @default false */
@@ -384,7 +384,7 @@ export interface AlertProps
 组件文件内的**子组件**（如 `CardHeader` / `DialogTitle`）**必须**有单行职责 JSDoc：
 
 ```tsx
-// ✅ 正例（src/card/card.tsx:220-222）
+// ✅ 正例（src/ui/card/card.tsx:220-222）
 /**
  * Card 头部组件
  */
@@ -761,19 +761,19 @@ rg -n --pcre2 '(TODO|FIXME|HACK)(?!\(#ISSUE-\d+\):\s*\[[A-Z]+\])' src -g '*.ts' 
 | TODO 格式不合规命中                           | 0       |
 | `console.*` 命中（均在 JSDoc 示例 / stories） | 9       |
 
-> ⚠️ **注意**：`src/button/button.tsx:133-134` 与 `src/alert/alert.tsx:98` 的 `console.log` 出现在 **`@example` 代码块**里 ——
+> ⚠️ **注意**：`src/ui/button/button.tsx:133-134` 与 `src/ui/alert/alert.tsx:98` 的 `console.log` 出现在 **`@example` 代码块**里 ——
 > 那是**演示用法**，不是运行时日志，属合规。
 
 ---
 
 ## M+2. 豁免清单
 
-| 对象                                                                        | 豁免依据                                                                                                       |
-| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| 6 个实现文件缺文件头块注释（维度 ⑧）                                        | **存量豁免**：**新增**文件 MUST 达标；**改动**既有文件时 MUST 顺手补齐该文件的注解（§1.4「改动即补」原则）     |
-| `src/button/button.tsx:133-134` / `src/alert/alert.tsx:98` 的 `console.log` | **豁免**：`@example` 代码块内的**演示用法**，非运行时日志                                                      |
-| `src/**/*.stories.tsx` 不参与维度 ⑧                                         | Story 文件头注解规则**不同**（§3.3，简化版）—— 由 [`storybook-standard.md`](./storybook-standard.md) §2.1 管辖 |
-| 真实外链登记（形态 B）                                                      | **登记表初始为空** —— 当前无任何登记项。真实外链想留在注解里，MUST 先登记（§2.3）                              |
+| 对象                                                                              | 豁免依据                                                                                                       |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 6 个实现文件缺文件头块注释（维度 ⑧）                                              | **存量豁免**：**新增**文件 MUST 达标；**改动**既有文件时 MUST 顺手补齐该文件的注解（§1.4「改动即补」原则）     |
+| `src/ui/button/button.tsx:133-134` / `src/ui/alert/alert.tsx:98` 的 `console.log` | **豁免**：`@example` 代码块内的**演示用法**，非运行时日志                                                      |
+| `src/**/*.stories.tsx` 不参与维度 ⑧                                               | Story 文件头注解规则**不同**（§3.3，简化版）—— 由 [`storybook-standard.md`](./storybook-standard.md) §2.1 管辖 |
+| 真实外链登记（形态 B）                                                            | **登记表初始为空** —— 当前无任何登记项。真实外链想留在注解里，MUST 先登记（§2.3）                              |
 
 ---
 

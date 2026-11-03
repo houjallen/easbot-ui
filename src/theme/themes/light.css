@@ -1,0 +1,952 @@
+:root[data-theme='light'] {
+  /* 基础色调 */
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(240 10% 4%);
+
+  /* 渐变效果 */
+  --gradient-from: hsl(210 40% 96%);
+  --gradient-to: hsl(0 0% 100%);
+
+  /* 灰度变量 */
+  --gray-50: 240 5% 98%;
+  --gray-100: 240 5% 96%;
+  --gray-200: 240 4% 90%;
+  --gray-300: 240 4% 84%;
+  --gray-400: 240 4% 70%;
+  --gray-500: 240 4% 50%;
+  --gray-600: 240 4% 30%;
+  --gray-700: 240 4% 16%;
+  --gray-800: 240 4% 9%;
+  --gray-900: 240 6% 5%;
+
+  /* 圆角变量 */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-full: 9999px;
+  --radius: 0.5rem;
+
+  /* 主色调 */
+  --primary: hsl(240 6% 5%);
+  --primary-foreground: hsl(0 0% 100%);
+
+  /* 次要色调 */
+  --secondary: hsl(240 5% 96%);
+  --secondary-foreground: hsl(240 6% 5%);
+
+  /* 破坏性操作 */
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(0 0% 100%);
+
+  /* 状态颜色 - 更现代的色调 */
+  --success: hsl(145 80% 42%);
+  --success-foreground: hsl(145 80% 20%);
+  --warning: hsl(45 93% 47%);
+  --warning-foreground: hsl(45 93% 25%);
+  --error: hsl(0 84% 60%);
+  --error-foreground: hsl(0 84% 20%);
+  --info: hsl(210 92% 45%);
+  --info-foreground: hsl(210 92% 20%);
+
+  /* 卡片弹出层 */
+  --popover: var(--background);
+  --popover-foreground: var(--foreground);
+  
+  /* 遮罩层 */
+  --overlay: hsla(var(--gray-900), 0.8);
+
+  /* 强调色 */
+  --accent: hsl(var(--gray-100));
+  --accent-foreground: hsl(var(--gray-900));
+
+  /* 静音/禁用状态 */
+  --muted: hsl(var(--gray-100));
+  --muted-foreground: hsl(var(--gray-500));
+  --muted-background: hsl(var(--gray-100));
+  --muted-border: hsl(var(--gray-100));
+
+  /* 边框和输入框 */
+  --border: hsl(var(--gray-200));
+  /* 输入类控件（Input / Select / Combobox / Textarea）的**边框色**。
+   *
+   * ⚠️ 此前是 `color-mix(in srgb, hsl(var(--gray-100)) 40%, transparent)`
+   *    —— 96% 亮色 × 40% 透明度，铺在 `--background` 上**几乎不可见**，
+   *    表现为「默认样式没生效 / 没有边框」。
+   *    现改为与 `--input-border-color` 一致的 `gray-400`（不透明），边界清晰。
+   *
+   * 📌 淡背景用途请改用 `--input-background`（原 `--input` 的语义）。 */
+  --input: var(--input-border-color);
+  /* 输入类控件的淡背景（对应原 `--input` 的半透明值） */
+  --input-background: color-mix(in srgb, hsl(var(--gray-100)) 40%, transparent);
+  --input-hover: color-mix(in srgb, hsl(var(--gray-100)) 60%, transparent);
+  --input-focus: var(--primary);
+  --input-border-width: 1px;
+  --input-border-color: hsl(var(--gray-400));
+  --input-border-hover-color: hsl(var(--gray-500));
+  --input-border-focus-color: var(--primary);
+  --input-disabled: hsl(var(--gray-100));
+  --input-readonly: hsl(var(--gray-100));
+  --input-disabled-foreground: hsl(var(--gray-500));
+  --ring: var(--primary);
+
+  /* 品牌色 */
+  --brand-black: hsl(var(--gray-900));
+  --brand-white: hsl(var(--gray-50));
+  --brand-neutrals-100: hsl(var(--gray-100));
+  --brand-neutrals-300: hsl(var(--gray-300));
+  --brand-neutrals-600: hsl(var(--gray-600));
+  --brand-neutrals-700: hsl(var(--gray-700));
+  --brand-neutrals-800: hsl(var(--gray-800));
+
+  /* 环形效果 */
+  --ring-offset: hsl(0 0% 98%);
+
+  /* 按钮样式 */
+  --button-default: var(--primary);
+  --button-default-foreground: var(--primary-foreground);
+  --button-default-hover: color-mix(in srgb, var(--primary) 95%, transparent);
+  --button-default-active: color-mix(in srgb, var(--primary) 90%, transparent);
+  --button-default-disabled: color-mix(in srgb, var(--primary) 50%, transparent);
+  --button-default-disabled-foreground: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+  --button-primary: var(--primary);
+  --button-primary-foreground: var(--primary-foreground);
+  --button-primary-hover: color-mix(in srgb, var(--primary) 90%, transparent);
+  --button-primary-active: color-mix(in srgb, var(--primary) 80%, transparent);
+  --button-primary-disabled: color-mix(in srgb, var(--primary) 50%, transparent);
+  --button-primary-disabled-foreground: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+  --button-secondary: var(--secondary);
+  --button-secondary-foreground: var(--secondary-foreground);
+  --button-secondary-hover: color-mix(in srgb, var(--secondary) 95%, transparent);
+  --button-secondary-active: color-mix(in srgb, var(--secondary) 90%, transparent);
+  --button-secondary-disabled: color-mix(in srgb, var(--secondary) 50%, transparent);
+  --button-secondary-disabled-foreground: color-mix(in srgb, var(--secondary-foreground) 50%, transparent);
+  --button-accent: var(--accent);
+  --button-accent-foreground: var(--accent-foreground);
+  --button-accent-active: color-mix(in srgb, hsl(var(--gray-100)) 80%, transparent);
+  --button-accent-disabled: color-mix(in srgb, hsl(var(--gray-100)) 50%, transparent);
+  --button-accent-disabled-foreground: color-mix(in srgb, hsl(var(--gray-900)) 50%, transparent);
+  --button-destructive: var(--destructive);
+  --button-destructive-foreground: var(--destructive-foreground);
+  --button-destructive-disabled: color-mix(in srgb, var(--destructive) 50%, transparent);
+  --button-destructive-disabled-foreground: color-mix(in srgb, var(--destructive-foreground) 50%, transparent);
+  --button-focus-ring: var(--primary);
+  --button-focus-ring-offset: var(--background);
+
+  /* 按钮悬浮和激活状态 */
+  --button-destructive-hover: color-mix(in srgb, var(--destructive) 95%, transparent);
+  --button-destructive-active: color-mix(in srgb, var(--destructive) 90%, transparent);
+  --button-success-hover: color-mix(in srgb, var(--success) 95%, transparent);
+  --button-success-active: color-mix(in srgb, var(--success) 90%, transparent);
+  --button-warning-hover: color-mix(in srgb, var(--warning) 95%, transparent);
+  --button-warning-active: color-mix(in srgb, var(--warning) 90%, transparent);
+  --button-accent-hover: color-mix(in srgb, hsl(var(--gray-100)) 90%, transparent);
+
+  /* 复选框样式 */
+  --checkbox-default: var(--primary);
+  --checkbox-default-foreground: var(--primary-foreground);
+  --checkbox-border: var(--border);
+  --checkbox-disabled: hsl(var(--gray-100));
+  --checkbox-disabled-foreground: hsl(var(--gray-500));
+  --checkbox-hover-overlay: color-mix(in srgb, black 8%, transparent);
+  --checkbox-active-overlay: color-mix(in srgb, black 15%, transparent);
+  --checkbox-focus-ring: var(--primary);
+  --checkbox-focus-ring-offset: var(--background);
+  --checkbox-checked-bg: var(--primary);
+  --checkbox-checked-border: var(--primary);
+
+  /* 表单和输入框状态 */
+  --form-error: var(--error);
+  --form-error-foreground: var(--error-foreground);
+  --form-success: var(--success);
+  --form-success-foreground: var(--success-foreground);
+  --form-warning: var(--warning);
+  --form-warning-foreground: var(--warning-foreground);
+  --form-info: var(--info);
+  --form-info-foreground: var(--info-foreground);
+  --form-label: var(--foreground);
+  --form-description: var(--muted-foreground);
+  --form-placeholder: var(--muted-foreground);
+  --form-error-message: var(--error);
+  --form-success-message: var(--success);
+  --form-warning-message: var(--warning);
+  --form-info-message: var(--info);
+
+  /* 标签样式 */
+  --label-text: var(--foreground);
+  --label-disabled: hsl(var(--gray-500));
+  --label-required: var(--destructive);
+  --label-description: var(--muted-foreground);
+
+  /* 卡片样式 */
+  --card: var(--background);
+  --card-background: var(--background);
+  --card-foreground: var(--foreground);
+  --card-border: var(--border);
+  --card-hover: var(--accent);
+  --card-hover-foreground: var(--accent-foreground);
+  --card-active: color-mix(in srgb, hsl(var(--gray-100)) 80%, transparent);
+  --card-active-foreground: var(--accent-foreground);
+  --card-description: hsl(var(--gray-600));
+  --card-content: var(--foreground);
+  --card-title: var(--foreground);
+  --card-hover-shadow: 0 4px 12px hsl(var(--gray-900) / 12%);
+  --card-disabled-opacity: 0.5;
+  --card-ripple-color: var(--foreground);
+
+  /* 导航菜单 */
+  --navigation-menu-item-hover-bg: var(--accent);
+  --navigation-menu-item-hover-fg: var(--accent-foreground);
+  --navigation-menu-item-active-bg: color-mix(in srgb, var(--accent) 80%, transparent);
+  --navigation-menu-item-active-fg: var(--accent-foreground);
+  --navigation-menu-item-selected-bg: var(--primary);
+  --navigation-menu-item-selected-fg: var(--primary-foreground);
+  --navigation-menu-item-disabled-opacity: 0.5;
+  --navigation-menu-separator-color: var(--border);
+  --navigation-menu-trigger-color: var(--foreground);
+
+  /* Menubar 组件样式 */
+  --menubar-height: 2.5rem;
+  --menubar-radius: var(--radius-md);
+  --menubar-item-radius: var(--radius-sm);
+  --menubar-item-font-size: 0.875rem;
+  --menubar-content-min-width: 12rem;
+  --menubar-content-radius: var(--radius-md);
+  --menubar-submenu-radius: var(--radius-md);
+  --menubar-padding: 0.25rem;
+  --menubar-item-spacing: 0.25rem;
+  --menubar-item-padding-x: 0.75rem;
+  --menubar-item-padding-y: 0.375rem;
+  --menubar-submenu-min-width: 8rem;
+  --menubar-submenu-padding: 0.25rem;
+  --menubar-content-padding: 0.25rem;
+
+  /* Avatar */
+  --avatar-border-width: 2px;
+  --avatar-border-color: var(--background);
+  --avatar-background: var(--muted);
+  --avatar-foreground: var(--muted-foreground);
+
+  /* Avatar Sizes */
+  --avatar-size-sm: 2rem;
+  --avatar-size-md: 2.5rem;
+  --avatar-size-lg: 3rem;
+
+  /* Avatar Shapes */
+  --avatar-radius-circle: 9999px;
+  --avatar-radius-square: var(--radius-md);
+
+  /* Avatar 状态指示器 */
+  --avatar-status-size: 0.75rem;
+  --avatar-status-border: 2px solid var(--background);
+  --avatar-status-online: var(--success);
+  --avatar-status-offline: var(--muted);
+  --avatar-status-busy: var(--destructive);
+  --avatar-status-away: var(--warning);
+
+  /* Avatar Fallback */
+  --avatar-fallback-background: var(--muted);
+  --avatar-fallback-foreground: var(--muted-foreground);
+  --avatar-fallback-font-size: var(--text-sm);
+  --avatar-fallback-font-weight: 500;
+
+  /* Sheet 样式 */
+  --sheet-overlay: color-mix(in srgb, black 80%, transparent);
+  --sheet-background: var(--background);
+  --sheet-foreground: var(--foreground);
+  --sheet-border: var(--border);
+  --sheet-shadow: 0 4px 6px -1px color-mix(in srgb, black 10%, transparent), 0 2px 4px -1px color-mix(in srgb, black 6%, transparent);
+  --sheet-close-button-border-radius: 2px;
+  --sheet-close-button-size: 16px;
+
+  /* Slider滑块样式 */
+  --slider-thumb-size: 1.25rem;
+  --slider-track-height: 0.5rem;
+  --slider-track-background: var(--muted);
+  --slider-range-background: var(--primary);
+  --slider-thumb-background: var(--background);
+  --slider-thumb-border: var(--primary);
+  --slider-thumb-focus-ring: var(--ring);
+  --slider-disabled-opacity: 0.5;
+
+  /* Spinner 样式 */
+  --spinner-primary: var(--primary);
+  --spinner-primary-foreground: var(--primary-foreground);
+  --spinner-destructive: var(--destructive);
+  --spinner-success: var(--success);
+  --spinner-warning: var(--warning);
+  --spinner-size-sm: 1rem;
+  --spinner-size-md: 1.5rem;
+  --spinner-size-lg: 2rem;
+
+  /* Skeleton 样式 */
+  --skeleton-background: var(--muted);
+  --skeleton-highlight: color-mix(in srgb, var(--muted) 80%, white);
+  --skeleton-border-radius: var(--radius-md);
+  --skeleton-animation-duration: 1.5s;
+
+  /* Switch 样式
+   *
+   * 📌 **thumb 与 track 的反差契约**
+   *
+   * 参考 Material Design 1「Selection controls / Switch」：
+   *   Light → Thumb Off: Grey 50 #FAFAFA 100% | Track Off: #000000 38%
+   *   Dark  → Thumb Off: Grey 400 #BDBDBD 100% | Track Off: #FFFFFF 30%
+   *
+   * 关键点：**unchecked 的 thumb 不是背景色**，而是一个**不透明的中灰**，
+   * 轨道是**半透明**的 —— 二者叠加才有清晰边界。
+   *
+   * ⚠️ 若把 unchecked thumb 写成 `bg-background`：
+   *    light 下 = 白（可接受），dark 下 = 近黑 → 落在深色轨道上**完全看不出滑块**。
+   *    故此处用独立的 `--switch-thumb-unchecked` token（不透明中灰），
+   *    由 light / dark 分别赋值，组件侧无需 `dark:` 变体。
+   */
+  --switch-checked-background: var(--primary);
+  --switch-unchecked-background: var(--input-background);
+  /* checked 态 thumb：与 track（primary）互为反色 */
+  --switch-thumb-checked-background: var(--primary-foreground);
+  /* unchecked 态 thumb：不透明中灰（Material: Grey 400）——
+     在 light 下比轨道亮，在 dark 下比轨道亮，两种主题都能看清滑块位置 */
+  --switch-thumb-unchecked-background: hsl(var(--gray-400));
+  --switch-thumb-background: var(--switch-thumb-unchecked-background);
+  --switch-focus-ring: var(--ring);
+  --switch-disabled-opacity: 0.5;
+  --switch-thumb-shadow: 0 1px 2px color-mix(in srgb, black 10%, transparent);
+  --switch-focus-ring-offset: var(--ring-offset);
+  --switch-hover-background: color-mix(in srgb, var(--accent) 20%, transparent);
+  --switch-hover-border: hsl(var(--gray-600));
+  --switch-active-background: color-mix(in srgb, var(--accent) 30%, transparent);
+  --switch-checked-hover-background: color-mix(in srgb, var(--primary) 90%, transparent);
+
+  /* Switch 尺寸变量 */
+  --switch-sm-height: 0.875rem;
+  --switch-sm-width: 1.5rem;
+  --switch-sm-thumb-size: 0.5rem;
+
+  --switch-md-height: 1.5rem;
+  --switch-md-width: 2.75rem;
+  --switch-md-thumb-size: 1rem;
+
+  --switch-lg-height: 1.75rem;
+  --switch-lg-width: 3.25rem;
+  --switch-lg-thumb-size: 1.25rem;
+
+  /* 默认使用中等尺寸 */
+  --switch-height: var(--switch-md-height);
+  --switch-width: var(--switch-md-width);
+  --switch-thumb-size: var(--switch-md-thumb-size);
+
+  /* Table 样式 */
+  --table-border: var(--border);
+  --table-header-background: var(--background);
+  --table-header-foreground: var(--foreground);
+  --table-row-hover: var(--muted);
+  --table-row-selected: var(--muted);
+  --table-row-striped: color-mix(in srgb, var(--muted-foreground) 5%, transparent);
+  --table-footer-background: var(--muted);
+  --table-caption-foreground: var(--muted-foreground);
+  --table-font-size: var(--text-sm);
+
+  /* Tabs 样式 */
+  --tabs-border: var(--border);
+  --tabs-text: var(--muted-foreground);
+  --tabs-text-active: var(--foreground);
+  --tabs-text-hover: var(--foreground);
+  --tabs-indicator: var(--primary);
+  --tabs-gap: 1.5rem;
+  --tabs-border-width: 1px;
+  --tabs-indicator-height: 2px;
+  --tabs-ring: var(--ring);
+  --tabs-ring-offset: var(--background);
+
+  /* Textarea 样式 */
+  --textarea-border: var(--input);
+  --textarea-background: var(--background);
+  --textarea-foreground: var(--foreground);
+  --textarea-placeholder: var(--muted-foreground);
+  --textarea-ring: var(--ring);
+  --textarea-ring-offset: var(--background);
+  --textarea-disabled-opacity: 0.5;
+  --textarea-min-height: 80px;
+  --textarea-padding: 0.5rem 0.75rem;
+
+  /* Toggle 样式 */
+  --toggle-background: transparent;
+  --toggle-hover-background: var(--muted);
+  --toggle-hover-foreground: var(--muted-foreground);
+  --toggle-active-background: var(--accent);
+  --toggle-active-foreground: var(--accent-foreground);
+  --toggle-outline-border: var(--input);
+  --toggle-outline-hover-background: var(--accent);
+  --toggle-outline-hover-foreground: var(--accent-foreground);
+  --toggle-ring: var(--ring);
+  --toggle-ring-offset: var(--background);
+  --toggle-disabled-opacity: 0.5;
+
+  /* Toast 样式 */
+  --toast-background: var(--background);
+  --toast-foreground: var(--foreground);
+  --toast-border: var(--border);
+  --toast-destructive-background: var(--destructive);
+  --toast-destructive-border: var(--destructive);
+  --toast-destructive-foreground: var(--destructive-foreground);
+  --toast-success-border: var(--success);
+  --toast-success-background: var(--success);
+  --toast-success-foreground: var(--success-foreground);
+  --toast-warning-border: var(--warning);
+  --toast-warning-background: var(--warning);
+  --toast-warning-foreground: var(--warning-foreground);
+  --toast-info-border: var(--info);
+  --toast-info-background: var(--info);
+  --toast-info-foreground: var(--info-foreground);
+  --toast-error-border: var(--destructive);
+  --toast-error-background: color-mix(in srgb, var(--destructive) 10%, transparent);
+
+  --toast-error-foreground: var(--destructive);
+  --toast-padding: 0.75rem;
+  --toast-gap: 0.5rem;
+  --toast-shadow: 0 4px 12px color-mix(in srgb, black 10%, transparent);
+  --toast-z-index: 50;
+
+  /* Toast **宽度区间** —— 通知的最小 / 最大宽度。
+   *
+   * 📌 **区间 [240px, 350px]** ——
+   *    - 下限 240px：短文案（如「成功」）不缩成窄条，
+   *      保证「标题 + 关闭按钮」有舒适排版空间；
+   *    - 上限 350px：兼顾移动端（375px 小屏不溢出、不贴边）
+   *      与桌面端阅读行长（标题 + 描述两行不超长）。
+   */
+  --toast-min-width: 240px;
+  --toast-max-width: 350px;
+
+  /* 下拉菜单样式 */
+  --select-border: var(--border);
+  --select-hover-foreground: var(--accent-foreground);
+  --select-selected-background: var(--primary);
+  --select-selected-foreground: var(--primary-foreground);
+  --select-placeholder: var(--muted-foreground);
+  --select-search-icon: var(--muted-foreground);
+  --select-search-border: var(--border);
+  --select-empty-text: var(--muted-foreground);
+  --select-group-label: var(--muted-foreground);
+  --select-item-height: 36px;
+
+  /* 选择器基础样式 */
+  --select-height: 2.5rem;
+  --select-padding-x: 0.75rem;
+  --select-padding-y: 0.5rem;
+  --select-font-size: var(--text-sm);
+  --select-line-height: 1.25;
+  --select-border-width: 1px;
+  --select-border-style: solid;
+  --select-border-radius: var(--radius-md);
+  --select-icon-size: 1rem;
+  --select-icon-color: var(--muted-foreground);
+  --select-border-color: var(--border);
+  --select-background: var(--background);
+  --select-foreground: var(--foreground);
+  --select-placeholder-color: var(--muted-foreground);
+
+  /* Select 动画 */
+  --select-transition-duration: 150ms;
+  --select-transition-timing: ease-in-out;
+
+  /* 选择器状态 */
+  --select-focus-border-color: var(--primary);
+  --select-focus-ring: var(--primary);
+  --select-focus-ring-offset: var(--ring-offset);
+  --select-disabled-foreground: var(--input-disabled-foreground);
+  --select-hover-border-color: var(--form-input-hover-border);
+  --select-hover-background: var(--form-input-hover-bg);
+  --select-disabled-background: var(--input-disabled);
+  --select-disabled-border-color: var(--border);
+
+  /* 下拉框样式 */
+  --select-dropdown-border-color: var(--border);
+  --select-dropdown-shadow: var(--shadow-md);
+  --select-dropdown-max-height: 300px;
+  --select-dropdown-background: var(--popover);
+
+  /* 选项样式 */
+  --select-option-height: 2.25rem;
+  --select-option-padding-x: 0.75rem;
+  --select-option-padding-y: 0.375rem;
+  --select-option-background: transparent;
+  --select-option-hover-background: var(--accent);
+  --select-option-hover-foreground: var(--accent-foreground);
+  --select-option-selected-background: var(--primary);
+  --select-option-selected-foreground: var(--primary-foreground);
+  --select-option-disabled-opacity: 0.5;
+  --select-option-disabled-background: transparent;
+  --select-option-disabled-foreground: var(--muted-foreground);
+
+  /* 搜索框样式 */
+  --select-search-height: 2.25rem;
+  --select-search-background: transparent;
+  --select-search-border-color: var(--border);
+  --select-search-border-width: 0 0 1px 0;
+  --select-search-placeholder-color: var(--muted-foreground);
+  --select-search-icon-color: var(--muted-foreground);
+  --select-empty-text-color: var(--muted-foreground);
+
+  /* 分组标签样式 */
+  --select-group-label-color: var(--muted-foreground);
+  --select-group-label-font-size: var(--text-sm);
+  --select-group-label-font-weight: 500;
+  --select-group-label-line-height: 1.25;
+  --select-group-label-padding-y: 0.375rem;
+
+  /* 进度条样式 */
+  --progress-indicator: var(--primary);
+  --progress-indicator-success: var(--success);
+  --progress-indicator-warning: var(--warning);
+  --progress-indicator-error: var(--destructive);
+  --progress-height: 0.5rem;
+  --progress-border-radius: var(--radius-full);
+  --progress-background: var(--muted);
+  --progress-transition-duration: 300ms;
+  --progress-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 单选框样式 */
+  --radio-indicator: var(--primary);
+  --radio-disabled-opacity: 0.5;
+  --radio-focus-ring: var(--ring);
+  --radio-gap: 0.5rem;
+  --radio-size: 1.25rem;
+  --radio-background: transparent;
+  --radio-border: hsl(var(--gray-400));
+  --radio-hover-border: hsl(var(--gray-600));
+  --radio-hover-bg: color-mix(in srgb, var(--accent) 20%, transparent);
+  --radio-focus-border: var(--primary);
+  --radio-checked-border: var(--primary);
+  --radio-checked-bg: transparent;
+  --radio-indicator-size: 0.75rem;
+  --radio-focus-ring-offset: var(--background);
+
+  /* 提示框样式 */
+  --tooltip-background: var(--popover);
+  --tooltip-foreground: var(--popover-foreground);
+  --tooltip-border: var(--border);
+  --tooltip-z-index: 50;
+  --tooltip-shadow: 0 2px 4px -2px color-mix(in srgb, black 20%, transparent);
+  --tooltip-padding-x: 0.75rem;
+  --tooltip-padding-y: 0.5rem;
+  --tooltip-slide-offset: 2px;
+  --tooltip-font-size: var(--text-sm);
+  
+  /* Toast关闭按钮样式 */
+  --toast-close-text: var(--foreground);
+  --toast-close-hover-text: var(--foreground);
+  --toast-close-destructive-text: hsl(0, 84%, 80%);
+  --toast-close-destructive-hover-text: hsl(0, 84%, 95%);
+  --toast-close-destructive-ring: hsl(0, 84%, 65%);
+  --toast-close-destructive-ring-offset: hsl(0, 84%, 40%);
+
+  /* 滚动区域样式 */
+  --scroll-bar-width: 0.625rem;
+  --scroll-bar-padding: 1px;
+  --scroll-bar-thumb-radius: 9999px;
+  --scroll-bar-thumb-color: hsl(var(--gray-400));
+  --scroll-bar-thumb-max-size: 25%;
+  --scroll-bar-transition: all 150ms ease;
+  --scroll-bar-hover-bg: rgba(0, 0, 0, 0.05);
+  --scroll-bar-thumb-hover-color: color-mix(in srgb, var(--scroll-bar-thumb-color) 70%, black);
+
+  --alert-border-radius: var(--radius);
+  --alert-padding: 16px;
+  --alert-icon-size: 16px;
+  --alert-icon-margin: 16px;
+  --alert-close-button-size: 16px;
+  --alert-close-button-opacity: 0.7;
+  --alert-close-button-hover-opacity: 1;
+  --alert-title-font-size: 14px;
+  --alert-title-font-weight: 500;
+  --alert-title-margin-bottom: 4px;
+  --alert-description-font-size: 14px;
+  --alert-description-line-height: 1.5;
+  --alert-close-button-focus-ring: var(--ring);
+  --alert-close-button-focus-ring-offset: var(--ring-offset);
+  --alert-close-button-focus-ring-width: 2px;
+  --alert-close-button-focus-ring-offset-width: 2px;
+  --alert-border-width: 1px;
+  --alert-shadow: 0 1px 2px color-mix(in srgb, black 10%, transparent);
+
+  /* 不同状态的样式 */
+  --alert-default-border: var(--border);
+  --alert-default-background: var(--background);
+  --alert-default-foreground: var(--foreground);
+  --alert-default-icon: var(--muted-foreground);
+
+  --alert-destructive-border: var(--destructive);
+  --alert-destructive-background: color-mix(in srgb, var(--destructive) 10%, transparent);
+  --alert-destructive-foreground: var(--destructive);
+  --alert-destructive-icon: var(--destructive);
+
+  --alert-success-border: var(--success);
+  --alert-success-background: color-mix(in srgb, var(--success) 10%, transparent);
+  --alert-success-foreground: var(--success);
+  --alert-success-icon: var(--success);
+
+  --alert-warning-border: var(--warning);
+  --alert-warning-background: color-mix(in srgb, var(--warning) 10%, transparent);
+  --alert-warning-foreground: var(--warning);
+  --alert-warning-icon: var(--warning);
+
+  --alert-info-border: var(--info);
+  --alert-info-background: color-mix(in srgb, var(--info) 10%, transparent);
+  --alert-info-foreground: var(--info);
+  --alert-info-icon: var(--info);
+
+  /* 分隔线样式 */
+  --separator-background: var(--border);
+  --separator-horizontal-height: 1px;
+  --separator-vertical-width: 1px;
+
+  /* 阴影 - 更精致的阴影效果 */
+  --shadow-sm: 0 1px 2px 0 color-mix(in srgb, black 5%, transparent);
+  --shadow: 0 1px 3px 0 color-mix(in srgb, black 10%, transparent), 0 1px 2px -1px color-mix(in srgb, black 10%, transparent);
+  --shadow-md: 0 4px 6px -1px color-mix(in srgb, black 10%, transparent), 0 2px 4px -2px color-mix(in srgb, black 10%, transparent);
+  --shadow-lg: 0 10px 15px -3px color-mix(in srgb, black 10%, transparent), 0 4px 6px -4px color-mix(in srgb, black 10%, transparent);
+  --shadow-xl: 0 20px 25px -5px color-mix(in srgb, black 10%, transparent), 0 8px 10px -6px color-mix(in srgb, black 10%, transparent);
+  --shadow-2xl: 0 25px 50px -12px color-mix(in srgb, black 25%, transparent);
+  --shadow-inner: inset 0 2px 4px 0 color-mix(in srgb, black 5%, transparent);
+
+  /* AlertDialog 基础样式 */
+  --alert-dialog-overlay-z-index: 50;
+  --alert-dialog-content-z-index: 51;
+  --alert-dialog-overlay-background: color-mix(in srgb, black 90%, transparent);
+  --alert-dialog-shadow: 0 4px 6px -1px color-mix(in srgb, black 10%, transparent), 0 2px 4px -1px color-mix(in srgb, black 6%, transparent);
+  --alert-dialog-transition: all 150ms ease-in-out;
+  --alert-dialog-content-min-width: 20rem;
+  --alert-dialog-content-max-width: 28rem;
+  --alert-dialog-content-border-width: 1px;
+  --alert-dialog-backdrop-filter: blur(4px);
+
+  /* AlertDialog 尺寸 */
+  --alert-dialog-sm-max-width: 24rem;
+  --alert-dialog-sm-padding: 1rem 1.25rem;
+  --alert-dialog-sm-gap: 0.75rem;
+
+  --alert-dialog-default-max-width: 28rem;
+  --alert-dialog-default-padding: 1.25rem 1.5rem;
+  --alert-dialog-default-gap: 1rem;
+
+  --alert-dialog-lg-max-width: 36rem;
+  --alert-dialog-lg-padding: 1.5rem 2rem;
+  --alert-dialog-lg-gap: 1.25rem;
+
+  /* AlertDialog 变体样式 */
+  --alert-dialog-default-border: var(--border);
+  --alert-dialog-default-background: var(--background);
+  --alert-dialog-default-foreground: var(--foreground);
+
+  --alert-dialog-destructive-border: color-mix(in srgb, var(--destructive) 80%, transparent);
+  --alert-dialog-destructive-background: color-mix(in srgb, var(--destructive) 5%, var(--background));
+  --alert-dialog-destructive-foreground: var(--destructive);
+
+  --alert-dialog-success-border: var(--success);
+  --alert-dialog-success-background: var(--background);
+  --alert-dialog-success-foreground: var(--success);
+
+  /* AlertDialog 布局 */
+  --alert-dialog-header-gap: 0.5rem;
+  --alert-dialog-footer-gap: 0.5rem;
+
+  /* AlertDialog 文字样式 */
+  --alert-dialog-title-font-size: 1.125rem;
+  --alert-dialog-title-font-weight: 600;
+  --alert-dialog-title-line-height: 1.5;
+  --alert-dialog-description-font-size: 0.875rem;
+  --alert-dialog-description-color: var(--muted-foreground);
+  --alert-dialog-description-line-height: 1.5;
+
+  /* Help Dialog 样式 */
+  --help-dialog-icon-color: var(--info);
+  --help-dialog-list-indent: 1.5rem;
+  --help-dialog-list-gap: 0.75rem;
+
+  /* Input 组件样式 */
+  --input-radius: var(--radius-md);
+  --input-focus-ring-width: 1.5px;
+
+  /* Input 尺寸 */
+  --input-sm-height: 2.25rem;
+  --input-md-height: 2.75rem;
+  --input-lg-height: 3rem;
+  --input-sm-padding-x: 0.75rem;
+  --input-md-padding-x: 1rem;
+  --input-lg-padding-x: 1.25rem;
+  --input-sm-font-size: 0.875rem;
+  --input-lg-font-size: 1.125rem;
+
+  /* Input 状态样式 */
+  --input-error-bg: color-mix(in srgb, var(--destructive) 10%, transparent);
+  --input-error-fg: var(--destructive);
+  --input-error-hover-bg: color-mix(in srgb, var(--destructive) 20%, transparent);
+  --input-success-bg: color-mix(in srgb, var(--success) 10%, transparent);
+  --input-success-fg: var(--success);
+  --input-success-hover-bg: color-mix(in srgb, var(--success) 20%, transparent);
+
+  /* Navigation Menu 组件样式 */
+  --nav-menu-z-index: 10;
+  --nav-menu-item-spacing: 0.25rem;
+
+  --nav-menu-trigger-height: 2.5rem;
+  --nav-menu-trigger-radius: var(--radius-md);
+  --nav-menu-trigger-padding-x: 1rem;
+  --nav-menu-trigger-padding-y: 0.5rem;
+  --nav-menu-trigger-font-size: 0.875rem;
+
+  --nav-menu-viewport-margin: 0.375rem;
+  --nav-menu-viewport-radius: var(--radius-md);
+  --nav-menu-viewport-shadow: var(--shadow-lg);
+
+  /* Popover 组件样式 */
+  --popover-z-index: 50;
+  --popover-width: 18rem;
+  --popover-radius: var(--radius-md);
+  --popover-padding: 1rem;
+  --popover-shadow: var(--shadow-md);
+  --popover-input-bg: var(--background);
+  --popover-input-border: var(--border);
+  --popover-input-text: var(--foreground);
+  --popover-input-focus-border: var(--primary);
+  --popover-input-focus-ring: color-mix(in srgb, var(--primary) 30%, transparent);
+
+  /* Form 组件样式 */
+  --form-label-font-size: 0.875rem;
+  --form-label-font-weight: 500;
+  --form-label-line-height: 1;
+  --form-description-font-size: 0.875rem;
+  --form-description-color: var(--muted-foreground);
+  --form-message-font-size: 0.875rem;
+  --form-message-font-weight: 400;
+  --form-message-error-color: hsl(0 84% 40%);
+  --form-message-error-bg: hsl(0 100% 97%);
+  --form-message-error-border: hsl(0 84% 80%);
+  --form-input-bg: var(--background);
+  --form-input-border: var(--border);
+  --form-input-text: var(--foreground);
+  --form-input-placeholder: var(--muted-foreground);
+  --form-input-hover-bg: var(--background);
+  --form-input-hover-border: var(--border);
+  --form-input-focus-bg: var(--background);
+  --form-input-focus-border: var(--primary);
+  --form-input-focus-text: var(--foreground);
+  --form-input-radius: var(--radius-md);
+  --form-input-error-bg: hsl(0 100% 97%);
+  --form-input-error-border: hsl(0 84% 80%);
+  --form-input-error-text: hsl(0 84% 40%);
+  --form-input-success-bg: hsl(145 80% 95%);
+  --form-input-success-border: hsl(145 80% 80%);
+  --form-input-success-text: hsl(145 80% 42%);
+
+  /* HoverCard 组件样式 */
+  --hover-card-radius: var(--radius-md);
+  --hover-card-border: var(--border);
+  --hover-card-bg: var(--popover);
+  --hover-card-fg: var(--popover-foreground);
+  --hover-card-padding: 1rem;
+  --hover-card-shadow: var(--shadow-md);
+
+  /* HoverCard 尺寸 */
+  --hover-card-sm-width: 12rem;
+  --hover-card-md-width: 16rem;
+  --hover-card-lg-width: 20rem;
+
+  /* HoverCard 暗色主题 */
+  --hover-card-dark-bg: hsl(var(--gray-800));
+  --hover-card-dark-fg: hsl(var(--gray-100));
+
+  /* Command 组件样式 */
+  --command-border: var(--border);
+  --command-input-height: 2.5rem;
+  --command-input-bg: transparent;
+  --command-input-placeholder: var(--muted-foreground);
+  --command-item-bg: transparent;
+  --command-item-disabled-opacity: 0.5;
+  --command-item-padding: 0.75rem;
+  --command-empty-text: var(--muted-foreground);
+  --command-group-heading-color: var(--muted-foreground);
+  --command-separator-color: var(--border);
+  --command-background: var(--background);
+  --command-foreground: var(--foreground);
+  --command-item-hover-bg: var(--accent);
+  --command-item-hover-fg: var(--accent-foreground);
+  --command-item-hover-shadow: 0 0 0 1px var(--accent);
+  --command-dialog-content-padding: 0;
+  --command-dialog-shadow: var(--shadow-md);
+  --command-loading-bg: var(--overlay);
+  --command-loading-bg-opacity: 0.7;
+  --command-item-transition-duration: 100ms;
+  --command-item-transition-timing: ease;
+  --command-input-focus-ring: transparent;
+
+  /* DropdownMenu 组件样式 */
+  --dropdown-menu-min-width: 8rem;
+  --dropdown-menu-bg: var(--popover);
+  --dropdown-menu-fg: var(--popover-foreground);
+  --dropdown-menu-border: var(--border);
+  --dropdown-menu-radius: var(--radius-md);
+  --dropdown-menu-padding: 0.25rem;
+  --dropdown-menu-shadow: var(--shadow-md);
+
+  /* DropdownMenu 尺寸 */
+  --dropdown-menu-sm-min-width: 6rem;
+  --dropdown-menu-md-min-width: 8rem;
+  --dropdown-menu-lg-min-width: 10rem;
+  --dropdown-menu-sm-font-size: 0.75rem;
+  --dropdown-menu-md-font-size: 0.875rem;
+  --dropdown-menu-lg-font-size: 1rem;
+
+  /* DropdownMenu 项目样式 */
+  --dropdown-menu-item-padding-x: 0.5rem;
+  --dropdown-menu-item-padding-y: 0.375rem;
+  --dropdown-menu-item-radius: var(--radius-sm);
+  --dropdown-menu-item-hover-bg: var(--accent);
+  --dropdown-menu-item-hover-fg: var(--accent-foreground);
+  --dropdown-menu-item-disabled-opacity: 0.5;
+
+  /* DropdownMenu 标签和分隔线 */
+  --dropdown-menu-label-font-weight: 600;
+  --dropdown-menu-separator-bg: var(--muted);
+  --dropdown-menu-shortcut-opacity: 0.6;
+  --dropdown-menu-shortcut-font-size: 0.75rem;
+
+  /* DropdownMenu 子菜单 */
+  --dropdown-menu-sub-trigger-icon-size: 1rem;
+  --dropdown-menu-sub-content-shadow: var(--shadow-lg);
+
+  /* Dialog 组件样式 */
+  --dialog-overlay-bg: rgb(0 0 0);
+  --dialog-overlay-opacity: 0.5;
+  --dialog-content-bg: var(--background);
+  --dialog-content-fg: var(--foreground);
+  --dialog-content-border: var(--border);
+  --dialog-content-shadow: var(--shadow-lg);
+  --dialog-content-gap: 1rem;
+  --dialog-content-padding: 1.5rem;
+  --dialog-content-radius: var(--radius-lg);
+
+  /* Dialog 尺寸 */
+  --dialog-sm-max-width: 400px;
+  --dialog-md-max-width: 600px;
+  --dialog-lg-max-width: 800px;
+
+  /* Dialog 动画 */
+  --dialog-transition-duration: 200ms;
+  --dialog-transition-timing: ease-in-out;
+
+  /* Dialog 控制按钮 */
+  --dialog-close-opacity: 0.7;
+  --dialog-close-hover-opacity: 1;
+  --dialog-close-focus-ring: var(--ring);
+  --dialog-close-focus-ring-offset: var(--ring-offset);
+
+  /* Dialog 标题和描述 */
+  --dialog-title-font-size: 1.125rem;
+  --dialog-title-font-weight: 600;
+  --dialog-title-line-height: 1;
+  --dialog-title-tracking: -0.025em;
+  --dialog-description-color: var(--muted-foreground);
+  --dialog-description-font-size: 0.875rem;
+
+  /* Dialog 输入框样式 */
+  --dialog-input-bg: var(--background);
+  --dialog-input-border: var(--border);
+  --dialog-input-text: var(--foreground);
+  --dialog-input-placeholder: var(--muted-foreground);
+  --dialog-input-focus-bg: var(--background);
+  --dialog-input-focus-border: var(--ring);
+  --dialog-input-focus-text: var(--foreground);
+  --dialog-input-radius: var(--radius-md);
+
+  /* Dialog dark主题 */
+  --dialog-dark-bg: hsl(var(--gray-900));
+  --dialog-dark-fg: hsl(var(--gray-50));
+
+  /* Dialog light主题 */
+  --dialog-light-bg: hsl(var(--gray-50));
+  --dialog-light-fg: hsl(var(--gray-900));
+
+  /* Badge 基础样式 */
+  --badge-font-weight: 500;
+  --badge-border-radius: var(--radius);
+  --badge-border-radius-sm: var(--radius-sm);
+  --badge-border-radius-lg: var(--radius-lg);
+
+  /* Badge 尺寸 */
+  --badge-sm-height: 1.25rem;
+  --badge-sm-min-width: 1.25rem;
+  --badge-sm-padding-x: 0.375rem;
+  --badge-sm-padding-y: 0;
+  --badge-sm-font-size: 0.75rem;
+
+  --badge-default-height: 1.5rem;
+  --badge-default-min-width: 1.5rem;
+  --badge-default-padding-x: 0.5rem;
+  --badge-default-padding-y: 0;
+  --badge-default-font-size: 0.875rem;
+
+  --badge-lg-height: 1.75rem;
+  --badge-lg-min-width: 1.75rem;
+  --badge-lg-padding-x: 0.75rem;
+  --badge-lg-padding-y: 0;
+  --badge-lg-font-size: 1rem;
+
+  /* Badge 变体样式 */
+  --badge-default-border: hsl(var(--gray-300));
+  --badge-default-bg: hsl(var(--gray-100));
+  --badge-default-text: hsl(var(--gray-800));
+
+  --badge-secondary-border: transparent;
+  --badge-secondary-bg: var(--secondary);
+  --badge-secondary-text: var(--secondary-foreground);
+
+  --badge-destructive-border: transparent;
+  --badge-destructive-bg: var(--destructive);
+  --badge-destructive-text: var(--destructive-foreground);
+
+  --badge-outline-border: hsl(var(--gray-400));
+  --badge-outline-bg: transparent;
+  --badge-outline-text: var(--foreground);
+
+  --badge-success-border: transparent;
+  --badge-success-bg: var(--success);
+  --badge-success-text: var(--success-foreground);
+
+  --badge-warning-border: transparent;
+  --badge-warning-bg: var(--warning);
+  --badge-warning-text: var(--warning-foreground);
+
+  --badge-info-border: transparent;
+  --badge-info-bg: var(--info);
+  --badge-info-text: var(--info-foreground);
+
+  /* Badge 点状标记 */
+  --badge-dot-size: 0.5rem;
+  --badge-dot-border-width: 2px;
+  --badge-dot-border-color: var(--background);
+  --badge-dot-default-color: var(--primary);
+
+  /* Badge 基础样式 */
+  --badge-transition: all 150ms ease-in-out;
+
+  /* Badge Animation */
+  --badge-transition-duration: 150ms;
+  --badge-transition-timing: ease-in-out;
+
+  /* ============ Sidebar 侧边栏 ============ */
+  /* 侧边栏配色 —— 亮色主题下与主色调保持一致的中性灰调 */
+  --sidebar: hsl(0 0% 100%);
+  --sidebar-foreground: hsl(240 10% 4%);
+  --sidebar-primary: hsl(240 6% 5%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 5% 96%);
+  --sidebar-accent-foreground: hsl(240 6% 5%);
+  --sidebar-border: hsl(240 4% 90%);
+  --sidebar-ring: hsl(240 4% 70%);
+
+  /* Sidebar 尺寸 —— 折叠态宽度由 --sidebar-width-icon 控制 */
+  --sidebar-width: 16rem;
+  --sidebar-width-icon: 3rem;
+}

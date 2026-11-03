@@ -64,11 +64,12 @@ allowBuilds:
 # 用 catalogs 统一管理依赖版本，overrides 引用 'catalog:default'。
 catalogs:
   default:
-    '@biomejs/biome': 2.5.5
+    '@biomejs/biome': 2.6.4
     '@types/node': ^25.9.5
     esbuild: ^0.28.2
     typescript: ^6.0.3
     tsup: ^8.5.1
+    zod: ^4.6.7
 
 overrides:
   '@biomejs/biome': 'catalog:default'
@@ -76,8 +77,10 @@ overrides:
   esbuild: 'catalog:default'
   typescript: 'catalog:default'
   tsup: 'catalog:default'
+  zod: 'catalog:default'
 
 # 注：已通过 minimumReleaseAgeStrict: false 关闭 24h 冷静期
 # 此白名单保留仅为紧急绕过特定版本发布审核（按需取消注释）
 minimumReleaseAgeExclude:
-  - lucide-react@1.65.0
+  - lucide-react@1.65.0 || 1.66.0
+  - react-resizable-panels@4.15.3

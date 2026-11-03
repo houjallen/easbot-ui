@@ -1,6 +1,5 @@
 import type { StorybookConfig } from '@storybook/react-vite';
 import tailwindcss from '@tailwindcss/vite';
-import path from 'node:path';
 
 /**
  * Storybook 配置（组件库模式）
@@ -28,6 +27,23 @@ import path from 'node:path';
  *      页面只剩浏览器默认样式（表现为「组件没有边框、没有圆角、样式全丢」）。
  *
  *    注册插件后由 Tailwind 编译器接管，产物与 `pnpm build:css`（CLI）一致。
+ *
+ * 5. **`staticDirs` 映射 `public/`** —— 字体资源（`public/font/`、`public/icon/`）
+ *    由消费方自行放置（**不随 npm 包发布**），本库 CSS 按约定路径 `/font/xxx`
+ *    与 `/icon/xxx` 引用它们。Storybook 需把 `public/` 映射到站点根路径，
+ *    否则 `iconfont` / `officefont` 两个 story 的图标**全是空白**。
+ *    （消费方侧：Vite / Next.js 默认把 `public/` 映射到根路径，无需额外配置。）
+ *
+ * 6. **保留 `@storybook/addon-themes`** —— 提供工具栏主题选择器，
+ *    配合 `preview.tsx` 的 `withThemeByClassName` 使用。
+ *    ⚠️ 该 addon 切的是 `<html>` 上的 **class**，而本库主题 CSS 用的是
+ *    `:root[data-theme='dark']`（**属性**）—— 两者需同时生效，
+ *    故 `preview.tsx` 里额外同步了 `data-theme` 属性。
+ *
+ * 7. **不注册 `@` 路径别名** —— 项目规范明确要求**禁止** `@/` 别名、
+ *    一律用相对路径（见 `AGENTS.md` 规则 11）。原配置注册的 `@` 别名
+ *    与该规范冲突，且实际**无任何文件**使用它（story 全部走相对路径），
+ *    故直接移除，避免"别名可用"的错觉引导后续代码违规。
  */
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.@(ts|tsx)'],
@@ -39,17 +55,14 @@ const config: StorybookConfig = {
   docs: {
     defaultName: 'Docs',
   },
+  // 静态资源目录 —— `public/font/` → `/font/xxx`、`public/icon/` → `/icon/xxx`
+  // （与消费方的 `public/` 约定保持一致，使 Storybook 与线上一致）
+  staticDirs: ['../public'],
   viteFinal: async (viteConfig) => {
     // 启用 Tailwind v4 编译（见文件头注释第 4 条）
     viteConfig.plugins = viteConfig.plugins ?? [];
     viteConfig.plugins.push(tailwindcss());
 
-    if (viteConfig.resolve) {
-      viteConfig.resolve.alias = {
-        ...viteConfig.resolve.alias,
-        '@': path.resolve(import.meta.dirname, '../src'),
-      };
-    }
     return viteConfig;
   },
 };

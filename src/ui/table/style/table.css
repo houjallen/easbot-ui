@@ -1,0 +1,1363 @@
+/* EAS UI Table Component Styles */
+/* 基于 Tailwind CSS 官方变量和现有主题变量，减少重复定义 */
+
+/* ========================== */
+/* 表格基础样式 */
+/* ========================== */
+
+/* 表格基础样式 - 应用到table标签 */
+table.eas-table {
+  border-collapse: collapse;
+  width: 100%;
+  caption-side: bottom;
+  font-size: inherit;
+  border-spacing: 0;
+  /* 确保表格使用border-box盒模型 */
+  box-sizing: border-box;
+}
+
+/* 确保所有表格元素使用border-box */
+table.eas-table *,
+table.eas-table *::before,
+table.eas-table *::after {
+  box-sizing: border-box;
+}
+
+
+/* fillContainer模式下的表格容器样式 */
+.eas-table-container.eas-table-fill-container {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+}
+
+/* 表格尺寸变体 - 统一使用 text-sm，符合 Design System 规范 */
+.eas-table-container.eas-table-sm {
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致 */
+  line-height: 1.25rem;
+}
+
+.eas-table-container.eas-table-sm .eas-table-cell {
+  padding: 0.375rem 0.5rem; /* py-1.5 px-2 */
+}
+
+.eas-table-container.eas-table-md {
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致 */
+  line-height: 1.25rem;
+}
+
+.eas-table-container.eas-table-md .eas-table-cell {
+  padding: 0.5rem 0.75rem; /* py-2 px-3 */
+}
+
+.eas-table-container.eas-table-lg {
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致，不使用 text-base */
+  line-height: 1.25rem;
+}
+
+.eas-table-container.eas-table-lg .eas-table-cell {
+  padding: 0.75rem 1rem; /* py-3 px-4 */
+}
+
+/* 表格密度变体 */
+.eas-table-density-compact .eas-table-cell {
+  padding: 0.25rem 0.5rem; /* py-1 px-2 */
+}
+
+.eas-table-density-comfortable .eas-table-cell {
+  padding: 0.75rem 1rem; /* py-3 px-4 */
+}
+
+.eas-table-density-default .eas-table-cell {
+  padding: 0.5rem 0.75rem; /* py-2 px-3 */
+}
+
+/* 边框变体 */
+.eas-table-bordered {
+  border: 1px solid var(--border);
+}
+
+.eas-table-bordered .eas-table-cell {
+  border-right: 1px solid color-mix(in oklch, var(--border), transparent 50%);
+  border-bottom: 1px solid color-mix(in oklch, var(--border), transparent 50%);
+}
+
+.eas-table-bordered .eas-table-cell:last-child {
+  border-right: none;
+}
+
+.eas-table-bordered .eas-table-row:last-child .eas-table-cell {
+  border-bottom: none;
+}
+
+/* 条纹变体 - 参考GitHub/Ant Design的最佳实践 */
+.eas-table-container.eas-table-striped tbody .eas-table-row:nth-child(even) {
+  background-color: color-mix(in oklch, var(--muted), transparent 88%) !important;
+}
+
+.eas-table-container.eas-table-striped tbody .eas-table-row:nth-child(even):hover {
+  background-color: color-mix(in oklch, var(--muted), transparent 80%) !important;
+}
+
+/* 选中状态下的斑马纹 */
+.eas-table-container.eas-table-striped tbody .eas-table-row:nth-child(even)[data-selected="true"] {
+  background-color: color-mix(in oklch, var(--accent), transparent 82%) !important;
+  border-left-color: var(--accent); /* 只改变颜色，不添加新边框 */
+}
+
+.eas-table-container.eas-table-striped tbody .eas-table-row:nth-child(even)[data-selected="true"]:hover {
+  background-color: color-mix(in oklch, var(--accent), transparent 75%) !important;
+}
+
+/* 粘性表头变体 */
+.eas-table-sticky-header .eas-table-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  /*box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); !* shadow-sm *!*/
+}
+
+/* ========================== */
+/* 表格容器样式 */
+/* ========================== */
+
+.eas-table-container {
+  position: relative;
+  width: 100%;
+  background-color: var(--background);
+  color: var(--foreground);
+  display: flex;
+  flex-direction: column;
+}
+
+.eas-table-container.eas-table-bordered {
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); /* shadow-sm */
+}
+
+/* 统一使用 .eas-table-container.eas-table-${size} 命名 */
+
+/* 密度变体 - 使用 Tailwind 标准间距 */
+.eas-table-container.eas-table-compact .eas-table-cell {
+  padding: 0.25rem 0.5rem; /* py-1 px-2 */
+}
+
+.eas-table-container.eas-table-density .eas-table-cell {
+  padding: 0.5rem 0.75rem; /* py-2 px-3 */
+}
+
+.eas-table-container.eas-table-comfortable .eas-table-cell {
+  padding: 0.75rem 1rem; /* py-3 px-4 */
+}
+
+/* 边框变体 */
+.eas-table-container.eas-table-bordered {
+  border: 1px solid var(--border);
+  /* 确保边框不会增加容器总宽度 */
+  box-sizing: border-box;
+}
+
+/* 为带边框的表格添加内部列边框 */
+.eas-table-container.eas-table-bordered th:not(:last-child),
+.eas-table-container.eas-table-bordered td:not(:last-child) {
+  border-right: 1px solid color-mix(in oklch, var(--border), transparent 50%);
+}
+
+.eas-table-container.eas-table-bordered .eas-table {
+  border-radius: calc(var(--radius) - 1px);
+}
+
+/* 全屏样式 */
+.eas-table-container.eas-table-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 50; /* z-50 */
+  background-color: var(--background);
+}
+
+/* 滚动容器 */
+.eas-table-container.eas-table-scroll {
+  overflow: auto;
+}
+
+/* ========================== */
+/* 表格网格样式 */
+/* ========================== */
+
+/* .eas-table-grid 样式已合并到 table.eas-table 中 */
+
+/* ========================== */
+/* 表格头部样式 */
+/* ========================== */
+
+.eas-table-header {
+  background-color: color-mix(in oklch, var(--muted), transparent 70%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* 粘性表头的增强样式 */
+.eas-table-header.sticky {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid color-mix(in oklch, var(--border), transparent 20%);
+}
+
+.eas-table-header.eas-table-bordered {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); /* shadow-sm */
+}
+
+.eas-table-header tr {
+  border-bottom: 1px solid color-mix(in oklch, var(--border), transparent 70%);
+}
+
+.eas-table-header th {
+  height: 3rem; /* h-12 */
+  padding: 0.75rem 1rem; /* py-3 px-4 */
+  text-align: left;
+  font-weight: 500; /* font-medium */
+  color: var(--muted-foreground);
+  border-bottom: 1px solid color-mix(in oklch, var(--border), transparent 70%);
+  position: relative;
+}
+
+/* 表头列分隔线 */
+.eas-table-header th:not(:last-child) {
+  border-right: 1px solid color-mix(in oklch, var(--border), transparent 70%);
+}
+
+/* 表头排序指示器 */
+.eas-table-header th[data-sortable="true"] {
+  cursor: pointer;
+  transition: background-color 150ms ease-in-out;
+}
+
+.eas-table-header th[data-sortable="true"]:hover {
+  background-color: color-mix(in oklch, var(--muted), transparent 50%);
+}
+
+/* 头部单元格对齐 */
+.eas-table-header .eas-table-cell.text-left {
+  text-align: left;
+}
+
+.eas-table-header .eas-table-cell.text-center {
+  text-align: center;
+}
+
+.eas-table-header .eas-table-cell.text-right {
+  text-align: right;
+}
+
+/* ========================== */
+/* 表格主体样式 */
+/* ========================== */
+
+.eas-table-body tr:last-child {
+  border-bottom: none;
+}
+
+/* ========================== */
+/* 表格行样式 */
+/* ========================== */
+
+/* 表格行基础样式 */
+.eas-table-row {
+  transition: all 200ms ease-in-out;
+  border-bottom: 1px solid color-mix(in oklch, var(--border), transparent 70%);
+  /* 确保边框不会增加总宽度 */
+  box-sizing: border-box;
+}
+
+/* 斑马纹行的悬停效果 */
+div.eas-table-container.eas-table-striped tbody.eas-table-body tr.eas-table-row:nth-child(even):hover {
+  background-color: color-mix(in oklch, var(--muted), transparent 65%) !important;
+}
+
+/* 选中状态 - 参考优秀产品的选中效果 */
+div.eas-table-container tr.eas-table-row[data-selected="true"] {
+  background-color: color-mix(in oklch, var(--accent), transparent 88%) !important;
+  border-color: color-mix(in oklch, var(--accent), transparent 50%) !important;
+  position: relative;
+  border-left-color: var(--accent); /* 只改变颜色，不添加新边框 */
+}
+
+/* 选中行的悬停效果 - 只在hoverable时生效 */
+div.eas-table-container.eas-table-hoverable tr.eas-table-row[data-selected="true"]:hover {
+  background-color: color-mix(in oklch, var(--accent), transparent 82%) !important;
+}
+
+/* 普通行悬停效果 - 增强对比度 - 只在hoverable时生效，排除表头行 */
+.eas-table-container.eas-table-hoverable .eas-table-body .eas-table-row:hover:not([data-selected="true"]),
+.eas-table-container.eas-table-hoverable tbody .eas-table-row:hover:not([data-selected="true"]) {
+  background-color: color-mix(in oklch, var(--muted), transparent 82%) !important;
+}
+
+/* 展开状态 */
+.eas-table-container .eas-table-row[data-expanded="true"]:not([data-selected="true"]) {
+  background-color: color-mix(in oklch, var(--muted), transparent 85%) !important;
+}
+
+/* 展开行的悬停效果 - 只在hoverable时生效 */
+.eas-table-container.eas-table-hoverable .eas-table-row[data-expanded="true"]:not([data-selected="true"]):hover {
+  background-color: color-mix(in oklch, var(--muted), transparent 75%) !important;
+}
+
+/* 可点击行样式 */
+.eas-table-container .eas-table-row.cursor-pointer {
+  cursor: pointer;
+  user-select: none;
+}
+
+.eas-table-container .eas-table-row.cursor-pointer:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  z-index: 2;
+  background-color: color-mix(in oklch, var(--accent), transparent 95%) !important;
+}
+
+/* 最后一行移除边框 */
+.eas-table-container .eas-table-row:last-child {
+  border-bottom: 1px solid color-mix(in oklch, var(--border), transparent 70%) !important;
+}
+
+/* ========================== */
+/* 表格单元格样式 */
+/* ========================== */
+
+.eas-table-cell {
+  vertical-align: middle;
+  background-color: inherit;
+  transition: background-color 150ms ease-in-out;
+}
+
+/* 头部单元格特殊样式 */
+[data-slot="table-head"].eas-table-cell {
+  height: 2.5rem; /* h-10 */
+  padding: 0 0.5rem; /* px-2 */
+  text-align: left;
+  font-weight: 500; /* font-medium */
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+/* 普通单元格样式 */
+[data-slot="table-cell"].eas-table-cell {
+  padding: 0.5rem; /* p-2 */
+  white-space: nowrap;
+}
+
+/* 表格密度控制 */
+.eas-table-container.eas-table-compact [data-slot="table-head"].eas-table-cell,
+.eas-table-container.eas-table-compact [data-slot="table-cell"].eas-table-cell {
+  padding: 0.25rem 0.5rem; /* py-1 px-2 */
+}
+
+.eas-table-container.eas-table-density [data-slot="table-head"].eas-table-cell,
+.eas-table-container.eas-table-density [data-slot="table-cell"].eas-table-cell {
+  padding: 0.5rem 0.75rem; /* py-2 px-3 */
+}
+
+.eas-table-container.eas-table-comfortable [data-slot="table-head"].eas-table-cell,
+.eas-table-container.eas-table-comfortable [data-slot="table-cell"].eas-table-cell {
+  padding: 0.75rem 1rem; /* py-3 px-4 */
+}
+
+/* 单元格对齐 */
+.eas-table-cell.text-left {
+  text-align: left;
+}
+
+.eas-table-cell.text-center {
+  text-align: center;
+}
+
+.eas-table-cell.text-right {
+  text-align: right;
+}
+
+/* ========================== */
+/* 复选框样式优化 */
+/* ========================== */
+
+/* 不同尺寸表格的复选框样式 */
+.eas-table-container.eas-table-sm .eas-table-cell input[type="checkbox"],
+.eas-table-container.eas-table-sm [data-slot="table-head"] input[type="checkbox"] {
+  width: 0.75rem; /* w-3 */
+  height: 0.75rem; /* h-3 */
+}
+
+.eas-table-container.eas-table-md .eas-table-cell input[type="checkbox"],
+.eas-table-container.eas-table-md [data-slot="table-head"] input[type="checkbox"] {
+  width: 1rem; /* w-4 */
+  height: 1rem; /* h-4 */
+}
+
+.eas-table-container.eas-table-lg .eas-table-cell input[type="checkbox"],
+.eas-table-container.eas-table-lg [data-slot="table-head"] input[type="checkbox"] {
+  width: 1.25rem; /* w-5 */
+  height: 1.25rem; /* h-5 */
+}
+
+/* 固定列样式 */
+.eas-table-cell.sticky {
+  position: sticky;
+  background-color: var(--background);
+  z-index: 10;
+}
+
+.eas-table-cell.sticky.left-0 {
+  left: 0;
+  border-right: 1px solid color-mix(in oklch, var(--border), transparent 70%);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); /* shadow-sm */
+}
+
+.eas-table-cell.sticky.right-0 {
+  right: 0;
+  border-left: 1px solid color-mix(in oklch, var(--border), transparent 70%);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); /* shadow-sm */
+  transform: scaleX(-1);
+}
+
+.eas-table-cell.sticky.right-0 > * {
+  transform: scaleX(-1);
+}
+
+/* 选中行的固定列背景 */
+.eas-table-row[data-selected="true"] .eas-table-cell.sticky {
+  background-color: color-mix(in oklch, var(--muted), transparent 70%);
+}
+
+/* 悬停行的固定列背景 - 只在hoverable时生效 */
+.eas-table-container.eas-table-hoverable .eas-table-row:hover .eas-table-cell.sticky {
+  background-color: color-mix(in oklch, var(--muted), transparent 80%);
+}
+
+/* 截断文本 */
+.eas-table-cell.truncate {
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 可调整大小的列 */
+.eas-table-cell.relative {
+  position: relative;
+}
+
+.eas-table-cell .resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 0.25rem; /* w-1 */
+  cursor: col-resize;
+  opacity: 0;
+  transition: opacity 200ms ease-in-out;
+}
+
+.eas-table-cell .resize-handle:hover,
+.eas-table-cell:hover .resize-handle {
+  opacity: 1;
+  background-color: color-mix(in oklch, var(--primary), transparent 80%);
+}
+
+.eas-table-cell .resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1px;
+  height: 1rem; /* h-4 */
+  background-color: var(--border);
+}
+
+/* ========================== */
+/* 表格状态样式 */
+/* ========================== */
+
+/* 加载状态 */
+.eas-table-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 8rem; /* h-32 */
+  color: var(--muted-foreground);
+}
+
+.eas-table-loading .spinner {
+  width: 1rem; /* w-4 */
+  height: 1rem; /* h-4 */
+  border: 2px solid var(--primary);
+  border-top-color: transparent;
+  border-radius: 9999px; /* rounded-full */
+  animation: spin 1s linear infinite;
+}
+
+/* 错误状态 */
+.eas-table-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 8rem; /* h-32 */
+  color: var(--destructive);
+  text-align: center;
+}
+
+/* 空数据状态 */
+.eas-table-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 8rem; /* h-32 */
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+/* ========================== */
+/* 展开行样式 */
+/* ========================== */
+
+/* 展开按钮样式 */
+.eas-table-expand-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem; /* w-5 */
+  height: 1.25rem; /* h-5 */
+  border-radius: calc(var(--radius) - 4px); /* rounded-sm */
+  transition: all 150ms ease-in-out;
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+}
+
+.eas-table-expand-btn:hover {
+  background-color: color-mix(in oklch, var(--muted), transparent 50%);
+}
+
+.eas-table-expand-btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* 展开按钮图标旋转 */
+.eas-table-expand-btn.expanded {
+  transform: rotate(90deg);
+}
+
+.eas-table-expand-btn svg {
+  transition: transform 150ms ease-in-out;
+  color: var(--muted-foreground);
+}
+
+/* 展开内容行 */
+.eas-table-expanded-content {
+  background-color: color-mix(in oklch, var(--muted), transparent 85%);
+  border-bottom: 1px solid color-mix(in oklch, var(--border), transparent 70%);
+  animation: expandRow 200ms ease-in-out;
+}
+
+.eas-table-expanded-content td {
+  padding: 0.75rem 1rem; /* py-3 px-4 */
+  border-bottom: none;
+}
+
+/* 展开内容详情 */
+.eas-table-expanded-detail {
+  padding: 1rem; /* p-4 */
+  background-color: color-mix(in oklch, var(--muted), transparent 85%);
+  border-radius: var(--radius);
+  margin: 0.5rem 0; /* my-2 */
+  border: 1px solid var(--border);
+}
+
+.eas-table-expanded-detail h4 {
+  font-weight: 500; /* font-medium */
+  color: var(--foreground);
+  margin-bottom: 0.5rem; /* mb-2 */
+}
+
+/* ========================== */
+/* 动画定义 */
+/* ========================== */
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes expandRow {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================== */
+/* 现代化交互效果 */
+/* ========================== */
+
+/* 行入场动画 - 默认启用 */
+.eas-table-row {
+  animation: fadeInUp 300ms ease-out;
+  animation-fill-mode: both;
+}
+
+/* 浏览器默认滚动模式下禁用动画，避免滚动条抖动 */
+.eas-table-container[data-scroll-mode="native"] .eas-table-row {
+  animation: none;
+}
+
+/* 选中状态过渡动画 */
+.eas-table-row[data-selected="true"] {
+  animation: none;
+}
+
+/* 悬停提升效果 - 只在hoverable时生效，排除表头行 */
+.eas-table-container.eas-table-hoverable .eas-table-body .eas-table-row:hover,
+.eas-table-container.eas-table-hoverable tbody .eas-table-row:hover {
+  box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.1); /* shadow */
+}
+
+.eas-table-container.eas-table-hoverable .eas-table-row[data-selected="true"]:hover {
+  box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.1); /* shadow */
+}
+
+/* 表头排序按钮动画 */
+.eas-table-header th[data-sortable="true"] {
+  transform: translateZ(0);
+}
+
+.eas-table-header th[data-sortable="true"]:hover {
+  background-color: color-mix(in oklch, var(--muted), transparent 50%);
+}
+
+.eas-table-header th[data-sortable="true"]:active {
+  background-color: color-mix(in oklch, var(--muted), transparent 50%);
+}
+
+/* 可访问性增强 - 焦点状态 */
+.eas-table-row:focus-visible,
+.eas-table-header th:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+  z-index: 3;
+}
+
+/* 展开状态 */
+.eas-table-row[data-expanded="true"] + .eas-table-expanded-content {
+  display: table-row;
+}
+
+.eas-table-expanded-content {
+  display: none;
+}
+
+.eas-table-expanded-content > td {
+  padding: 0.75rem 1rem; /* py-3 px-4 */
+  background-color: color-mix(in oklch, var(--muted), transparent 92%);
+  border-bottom: 1px solid color-mix(in oklch, var(--border), transparent 70%);
+}
+
+/* 展开按钮状态 */
+.eas-table-expand-btn {
+  transition: transform 200ms ease-in-out;
+}
+
+.eas-table-expand-btn.expanded {
+  transform: rotate(90deg);
+}
+
+/* ========================== */
+/* 可访问性改进 */
+/* ========================== */
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: more) {
+  .eas-table-row {
+    border-bottom-width: 2px;
+  }
+
+  .eas-table-row[data-selected="true"] {
+    border-width: 2px;
+    border-color: var(--accent);
+  }
+
+  .eas-table-header th {
+    border-bottom-width: 2px;
+  }
+}
+
+/* 减少动画偏好支持 */
+@media (prefers-reduced-motion: reduce) {
+  .eas-table-row,
+  .eas-table-header th {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .eas-table-row:hover,
+  .eas-table-row[data-selected="true"]:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* ========================== */
+/* 打印样式 */
+/* ========================== */
+
+@media print {
+  .eas-table-container {
+    box-shadow: none !important;
+    border: 1px solid var(--foreground) !important;
+    background-color: var(--background) !important;
+    color: var(--foreground) !important;
+  }
+
+  .eas-table-row:hover {
+    background-color: transparent !important;
+  }
+
+  .eas-table-cell.sticky {
+    position: static !important;
+    box-shadow: none !important;
+  }
+
+  .eas-table-header th,
+  .eas-table-cell {
+    color: var(--foreground) !important;
+    background-color: transparent !important;
+  }
+}
+
+/* ========================== */
+/* 分页组件样式 */
+/* ========================== */
+
+/* 分页组件基础样式 */
+.eas-table-pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* gap-2 */
+}
+
+/* 分页组件尺寸控制 - sm，统一使用 text-sm */
+.eas-table-pagination.eas-table-pagination-sm {
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致 */
+  gap: 0.375rem; /* gap-1.5 */
+}
+
+.eas-table-pagination.eas-table-pagination-sm .eas-pagination-button {
+  height: 1.75rem; /* h-7 */
+  min-width: 1.75rem; /* min-w-7 */
+  padding: 0 0.375rem; /* px-1.5 */
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致 */
+}
+
+.eas-table-pagination.eas-table-pagination-sm .eas-pagination-input {
+  height: 1.75rem; /* h-7 */
+  width: 4.5rem; /* w-18 */
+  min-width: 4.5rem; /* min-w-18 */
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致 */
+}
+
+.eas-table-pagination.eas-table-pagination-sm .eas-pagination-select {
+  height: 1.75rem; /* h-7 */
+  width: 4.5rem; /* w-18 */
+  min-width: 4.5rem; /* min-w-18 */
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致 */
+}
+
+.eas-table-pagination.eas-table-pagination-sm .eas-pagination-icon {
+  width: 0.75rem; /* w-3 */
+  height: 0.75rem; /* h-3 */
+}
+
+/* 分页组件尺寸控制 - md (默认) */
+.eas-table-pagination.eas-table-pagination-md {
+  font-size: 0.875rem; /* text-sm */
+  gap: 0.5rem; /* gap-2 */
+}
+
+.eas-table-pagination.eas-table-pagination-md .eas-pagination-button {
+  height: 2rem; /* h-8 */
+  min-width: 2.5rem; /* min-w-10 */
+  padding: 0 0.5rem; /* px-2 */
+  font-size: 0.875rem; /* text-sm */
+}
+
+.eas-table-pagination.eas-table-pagination-md .eas-pagination-input {
+  height: 2rem; /* h-8 */
+  width: 5rem; /* w-20 */
+  font-size: 0.875rem; /* text-sm */
+}
+
+.eas-table-pagination.eas-table-pagination-md .eas-pagination-select {
+  height: 2rem; /* h-8 */
+  width: 5rem; /* w-20 */
+  font-size: 0.875rem; /* text-sm */
+}
+
+.eas-table-pagination.eas-table-pagination-md .eas-pagination-icon {
+  width: 1rem; /* w-4 */
+  height: 1rem; /* h-4 */
+}
+
+/* 分页组件尺寸控制 - lg，统一使用 text-sm */
+.eas-table-pagination.eas-table-pagination-lg {
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致，不使用 text-base */
+  gap: 0.75rem; /* gap-3 */
+}
+
+.eas-table-pagination.eas-table-pagination-lg .eas-pagination-button {
+  height: 2.5rem; /* h-10 */
+  min-width: 3rem; /* min-w-12 */
+  padding: 0 0.75rem; /* px-3 */
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致 */
+}
+
+.eas-table-pagination.eas-table-pagination-lg .eas-pagination-input {
+  height: 2.5rem; /* h-10 */
+  width: 5.5rem; /* w-22 */
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致 */
+}
+
+.eas-table-pagination.eas-table-pagination-lg .eas-pagination-select {
+  height: 2.5rem; /* h-10 */
+  width: 5.5rem; /* w-22 */
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致 */
+}
+
+.eas-table-pagination.eas-table-pagination-lg .eas-pagination-icon {
+  width: 1.25rem; /* w-5 */
+  height: 1.25rem; /* h-5 */
+}
+
+/* field 统一size - 统一使用 text-sm，符合 DS 规范 */
+.eas-table-search-field-sm,
+.eas-table-search-field-sm input {
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致 */
+  height: 2rem; /* h-8 */
+}
+
+.eas-table-search-field-md,
+.eas-table-search-field-md input{
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致 */
+  height: 2.25rem; /* h-9 */
+}
+
+.eas-table-search-field-lg,
+.eas-table-search-field-lg input{
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致，不使用 text-base */
+  height: 2.5rem; /* h-10 */
+}
+
+.eas-table-search-field-label-sm{
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致 */
+}
+
+.eas-table-search-field-label-md{
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致 */
+}
+
+.eas-table-search-field-label-lg{
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致 */
+}
+
+/* 分页文本信息样式 */
+.eas-table-pagination .eas-pagination-text {
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.eas-table-pagination.eas-table-pagination-sm .eas-pagination-text {
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致 */
+}
+
+.eas-table-pagination.eas-table-pagination-md .eas-pagination-text {
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致 */
+}
+
+.eas-table-pagination.eas-table-pagination-lg .eas-pagination-text {
+  font-size: 0.875rem; /* text-sm - 与 DS 保持一致 */
+}
+
+/* ========================== */
+/* 暗色主题适配 */
+/* ========================== */
+
+[data-theme="dark"] .eas-table-cell.sticky.left-0 {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* shadow-md */
+}
+
+[data-theme="dark"] .eas-table-cell.sticky.right-0 {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* shadow-md */
+}
+
+/* 暗色模式下表头边框增强 */
+[data-theme="dark"] .eas-table-header {
+  border-bottom: 1px solid color-mix(in oklch, var(--border), transparent 30%);
+}
+
+[data-theme="dark"] .eas-table-header tr {
+  border-bottom: 1px solid color-mix(in oklch, var(--border), transparent 30%);
+}
+
+[data-theme="dark"] .eas-table-header th {
+  border-bottom: 1px solid color-mix(in oklch, var(--border), transparent 30%);
+}
+
+/* 禁用表头行的悬停效果 - 覆盖所有可能的悬停样式 */
+/*.eas-table-container .eas-table-header .eas-table-row:hover,*/
+/*.eas-table-container thead.eas-table-header tr.eas-table-row:hover,*/
+/*.eas-table-container.eas-table-hoverable .eas-table-header .eas-table-row:hover,*/
+/*.eas-table-container.eas-table-hoverable thead.eas-table-header tr.eas-table-row:hover,*/
+/*.eas-table-container .eas-table-header tr:hover,*/
+/*.eas-table-container thead.eas-table-header tr:hover,*/
+/*.eas-table-container.eas-table-hoverable .eas-table-header tr:hover,*/
+/*.eas-table-container.eas-table-hoverable thead.eas-table-header tr:hover*/
+thead[data-slot="table-header"]:hover {
+  background-color: color-mix(in oklch, var(--muted), transparent 70%) !important;
+  transform: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+}
+
+/* 禁用表头行的悬停效果 - 覆盖所有可能的悬停样式 */
+/* 添加更具体的选择器来覆盖表头悬停 */
+thead[data-slot="table-header"] tr[data-slot="table-row"]:hover,
+thead.eas-table-header tr[data-slot="table-row"]:hover,
+.eas-table-header tr[data-slot="table-row"]:hover,
+/* 覆盖所有可能的表头行悬停组合 */
+table .eas-table-header tr:hover,
+table thead.eas-table-header tr:hover,
+table thead[data-slot="table-header"] tr:hover {
+  /*background-color: inherit !important;*/
+  /*background: inherit !important;*/
+  box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+}
+
+/* 添加更具体的固定列表头单元格选择器 */
+thead[data-slot="table-header"] th[data-slot="table-head"].eas-table-fixed-column:hover,
+thead.eas-table-header th[data-slot="table-head"].eas-table-fixed-column:hover,
+.eas-table-header th[data-slot="table-head"].eas-table-fixed-column:hover {
+  background-color: var(--muted) !important;
+  background: var(--muted) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+}
+
+/* ========================== */
+/* 表格列过滤器样式 */
+/* ========================== */
+
+.eas-table-column-filter {
+  position: relative;
+  display: inline-flex;
+}
+
+.eas-table-column-filter-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem; /* w-5 */
+  height: 1.25rem; /* h-5 */
+  border-radius: calc(var(--radius) - 2px);
+  transition: all 150ms ease-in-out;
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+  opacity: 0.6;
+}
+
+.eas-table-column-filter-trigger:hover {
+  opacity: 1;
+  background-color: color-mix(in oklch, var(--muted), transparent 50%);
+}
+
+.eas-table-column-filter-trigger.active {
+  opacity: 1;
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.eas-table-column-filter-panel {
+  min-width: 16rem; /* min-w-64 */
+  padding: 0.75rem; /* p-3 */
+  background-color: var(--popover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* shadow-lg */
+}
+
+.eas-table-column-filter-panel .filter-operator {
+  margin-bottom: 0.5rem; /* mb-2 */
+}
+
+.eas-table-column-filter-panel .filter-value {
+  margin-bottom: 0.75rem; /* mb-3 */
+}
+
+.eas-table-column-filter-panel .filter-actions {
+  display: flex;
+  gap: 0.5rem; /* gap-2 */
+  justify-content: flex-end;
+}
+
+/* ========================== */
+/* 表格固定列样式 */
+/* ========================== */
+
+/* 固定列基础样式 - 所有定位和样式逻辑由 calculateFixedColumnStyles 处理 */
+.eas-table-fixed-column {
+  position: relative;
+}
+
+/* 固定列斑马纹样式 - 完全不透明 */
+.eas-table-container.eas-table-striped .eas-table-row:nth-child(even) .eas-table-fixed-column {
+  background-color: var(--muted) !important;
+}
+
+/* 固定列在选中行中的背景 - 完全不透明 */
+.eas-table-row[data-selected="true"] .eas-table-fixed-column {
+  background-color: var(--accent) !important;
+}
+
+/* 固定列悬停效果 - 完全不透明 */
+.eas-table-container.eas-table-hoverable .eas-table-row:hover:not([data-selected="true"]) .eas-table-fixed-column {
+  background-color: var(--muted) !important;
+}
+
+/* 固定列选中行的悬停效果 - 完全不透明 */
+.eas-table-container.eas-table-hoverable .eas-table-row[data-selected="true"]:hover .eas-table-fixed-column {
+  background-color: var(--muted) !important;
+  /*color: var(--primary-foreground) !important;*/
+}
+
+/* 表头固定列样式 - 保持表头背景 */
+.eas-table-header .eas-table-fixed-column {
+  background-color: var(--muted) !important;
+}
+
+/* ========================== */
+/* 表格列宽调整器样式 */
+/* ========================== */
+
+.eas-table-column-resizer {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  bottom: 0;
+  width: 4px;
+  cursor: col-resize;
+  opacity: 0;
+  transition: opacity 200ms ease-in-out;
+  background-color: transparent;
+  z-index: 10;
+}
+
+.eas-table-column-resizer:hover,
+.eas-table-cell:hover .eas-table-column-resizer {
+  opacity: 1;
+}
+
+.eas-table-column-resizer::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 1.5rem; /* h-6 */
+  background-color: var(--primary);
+  border-radius: 1px;
+  opacity: 0.7;
+}
+
+.eas-table-column-resizer:hover::after {
+  opacity: 1;
+  background-color: var(--primary);
+}
+
+.eas-table-column-resizer.resizing {
+  opacity: 1;
+}
+
+.eas-table-column-resizer.resizing::after {
+  opacity: 1;
+  background-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--background);
+}
+
+/* 调整时的全局样式 */
+body.eas-table-resizing {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+body.eas-table-resizing * {
+  cursor: col-resize !important;
+}
+
+/* ========================== */
+/* 统一弹层z-index层级管理 */
+/* ========================== */
+
+/* z-index层级定义（与variables.css保持一致）：
+ * 10: 基础层级 - 固定列、粘性表头等
+ * 50: 下拉菜单 - Tailwind默认层级
+ * 900: Popover/Tooltip
+ * 950: 右键菜单 - 高于Popover
+ * 1000: Modal弹窗
+ * 1200: Toast通知
+ * 1300: Dialog蒙板 - 遮挡所有其他弹层（包括右键菜单）
+ * 1400: Dialog内容 - 最高层级，高于蒙板
+ * 1500: 预留最高层级
+ */
+
+/* 工具栏右侧更多菜单 */
+.eas-table-toolbar-right-moremenu {
+  z-index: var(--eas-z-index-dropdown) !important;
+}
+
+/* 行操作更多菜单 */
+.eas-table-row-action-moremenu {
+  z-index: var(--eas-z-index-dropdown) !important;
+}
+
+/* 行右键菜单 - 使用新的变量，高于Popover但低于Dialog蒙板 */
+.eas-table-context-menu {
+  z-index: var(--eas-z-index-context-menu) !important;
+}
+
+/* 表格列过滤器面板 */
+.eas-table-column-filter-panel {
+  z-index: var(--eas-z-index-popover) !important;
+}
+
+/* 表格内嵌编辑弹层 */
+.eas-table-inline-edit-popover {
+  z-index: calc(var(--eas-z-index-popover) + 10) !important;
+}
+
+/* 表格排序指示器 */
+.eas-table-sort-indicator {
+  z-index: var(--eas-z-index-base);
+}
+
+/* 表格固定列层级 */
+.eas-table-fixed-column {
+  z-index: var(--eas-z-index-base);
+}
+
+/* 表格粘性表头 */
+.eas-table-sticky-header .eas-table-header {
+  z-index: calc(var(--eas-z-index-base) * 2);
+}
+
+/* 表格列调整器 */
+.eas-table-column-resizer {
+  z-index: var(--eas-z-index-base);
+}
+
+/* 确保Dialog相关弹层在表格组件中的层级正确 */
+.eas-table-container [data-slot="dialog-overlay"] {
+  z-index: var(--eas-z-index-dialog-overlay) !important;
+}
+
+.eas-table-container [data-slot="dialog-content"] {
+  z-index: var(--eas-z-index-dialog) !important;
+}
+
+.eas-table-toolbar-right-moremenu button,
+.eas-table-row-action-moremenu button,
+.eas-table-context-menu button,
+.eas-table-column-header-action-moremenu button
+{
+  width: 100%;
+  justify-content: flex-start;
+}
+
+/* ========================== */
+/* 静态表单容器式样管理 */
+/* ========================== */
+/* 静态表单容器 - 使用项目变量 */
+.eas-static-form {
+  --form-gap: var(--eas-gap-md, 1rem);
+  --form-padding: var(--eas-gap-sm, 0.5rem);
+  --form-item-bg: var(--muted, #f9fafb);
+  --form-item-border: var(--border, #e5e7eb);
+  --form-item-hover-bg: var(--background, #ffffff);
+  --form-text: var(--foreground, #1f2937);
+  --form-text-muted: var(--muted-foreground, #6b7280);
+  --form-radius: var(--radius-md, 0.5rem);
+
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: var(--form-gap);
+  padding: var(--form-padding);
+  width: 100%;
+}
+
+/* 表单项 */
+.eas-static-form-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--eas-gap-sm, 0.5rem);
+  min-width: 20rem;
+  padding: 0.75rem;
+  border-radius: var(--form-radius);
+  border: 1px solid var(--form-item-border);
+  background-color: var(--form-item-bg);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 3.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+}
+
+/* 全宽表单项 */
+.eas-static-form-item.col-span-full {
+  grid-column: 1 / -1;
+}
+
+/* 标签样式 */
+.eas-static-form-item-label {
+  font-size: var(--eas-size-sm, 0.875rem);
+  line-height: 1.25;
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--form-text-muted);
+  flex-shrink: 0;
+  min-width: 5rem;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+/* 字段内容区域 */
+.eas-static-form-item-field {
+  font-size: var(--eas-size-sm, 0.875rem);
+  line-height: 1.5;
+  color: var(--form-text);
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+  padding: 0.375rem 0;
+  transition: color 0.2s ease;
+}
+
+/* 多行文本区域 */
+.eas-static-form-item-field.whitespace-pre-wrap {
+  background-color: var(--form-item-hover-bg);
+  padding: 0.5rem;
+  border-radius: var(--radius-sm, 0.375rem);
+  border: 1px solid var(--form-item-border);
+  max-height: 7.5rem;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  min-height: 2.5rem;
+  transition: all 0.2s ease;
+}
+
+/* 悬停效果 */
+.eas-static-form-item:hover {
+  border-color: var(--form-item-border);
+  background-color: var(--form-item-hover-bg);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+/* 响应式调整 */
+@media (max-width: 640px) {
+  .eas-static-form {
+    grid-template-columns: 1fr;
+    gap: var(--eas-gap-sm, 0.5rem);
+    padding: var(--eas-gap-sm, 0.5rem);
+  }
+
+  .eas-static-form-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--eas-gap-xs, 0.25rem);
+    min-width: 100%;
+    padding: 0.75rem;
+  }
+
+  .eas-static-form-item-label {
+    width: 100%;
+    padding-bottom: var(--eas-gap-xs, 0.25rem);
+    border-bottom: 1px solid var(--form-item-border);
+    margin-bottom: var(--eas-gap-xs, 0.25rem);
+    min-width: 100%;
+  }
+
+  .eas-static-form-item-field {
+    width: 100%;
+  }
+}
+
+/* 暗色模式支持 */
+/* ⚠️ 必须用 `data-theme` 而非 `prefers-color-scheme` —— 本库的主题切换由
+   `<html data-theme="light|dark">` 显式控制（见 spec/css-standard.md §3.2），
+   若跟随系统，用户在浅色系统下显式切到 dark 时会漏掉暗色样式，
+   反之在深色系统下用 light 主题时又会误套暗色样式。 */
+[data-theme='dark'] .eas-static-form {
+  --form-item-bg: var(--muted, #1f2937);
+  --form-item-border: var(--border, #374151);
+  --form-item-hover-bg: var(--muted, #1f2937);
+  --form-text: var(--foreground, #f3f4f6);
+  --form-text-muted: var(--muted-foreground, #9ca3af);
+}
+
+[data-theme='dark'] .eas-static-form-item {
+  background-color: var(--form-item-bg);
+  border-color: var(--form-item-border);
+}
+
+[data-theme='dark'] .eas-static-form-item-label {
+  color: var(--form-text-muted);
+}
+
+[data-theme='dark'] .eas-static-form-item-field {
+  color: var(--form-text);
+}
+
+[data-theme='dark'] .eas-static-form-item-field.whitespace-pre-wrap {
+  background-color: var(--background, #111827);
+  border-color: var(--form-item-border);
+}
+
+[data-theme='dark'] .eas-static-form-item:hover {
+  background-color: var(--form-item-hover-bg);
+  border-color: var(--form-item-border);
+}

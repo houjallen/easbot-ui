@@ -1,9 +1,9 @@
 ---
 name: testing-guidelines
-description: 该规范定义 easbot-ui 组件库的测试契约，含 Vitest 4 + jsdom 配置基线（environment / globals / include / setupFiles / css:false / pool / timeout / coverage）、测试文件位置与命名、用例结构（describe 三层定位 + it 中文命名）、四大覆盖维度（渲染 / 状态 / 交互 / 无障碍）、断言选型（语义化查询优先，toHaveClass 断言 CSS 变量任意值）、mock 与 polyfill 规范（jsdom 未实现的 ResizeObserver / scrollIntoView / matchMedia）、测试文件头注解四段式、断言与实现同源原则、10 项扫描维度（每项含命令 + 判定 + 修正模式）、豁免清单与新增组件测试检查清单。当编写组件单测、修复测试失败或评审测试覆盖率时参考。
+description: 该规范定义 easbot-ui 组件库的测试契约，含 Vitest 4 + jsdom 配置基线（environment / globals / include / setupFiles / css:false / pool / timeout / coverage）、测试文件位置与命名（__tests__ 子目录）、用例结构（describe 三层定位 + it 中文命名）、四大覆盖维度（渲染 / 状态 / 交互 / 无障碍）、断言选型（语义化查询优先，toHaveClass 断言 CSS 变量任意值）、mock 与 polyfill 规范（jsdom 未实现的 ResizeObserver / scrollIntoView / matchMedia）、共享 polyfill helper（tests/polyfills.ts）、测试文件头注解四段式、断言与实现同源原则、10 项扫描维度（每项含命令 + 判定 + 修正模式）、豁免清单与新增组件测试检查清单。当编写组件单测、修复测试失败或评审测试覆盖率时参考。
 category: specification
-version: 1.0.0
-baseline-date: 2026-10-31
+version: 2.0.0
+baseline-date: 2026-11-01
 tags: [easbot-ui, testing, vitest, vitest4, jsdom, rtl, mock, polyfill, coverage, bdd]
 related:
   - spec-index.md
@@ -16,35 +16,36 @@ related:
 
 # EASBot UI 测试规范 (Testing Guidelines)
 
-> **真值源**：本规范以 [`vitest.config.ts`](../vitest.config.ts)、[`tests/setup.ts`](../tests/setup.ts)
-> 与 `src/**/*.test.tsx` 的 34 个测试文件为唯一执行真值；规范与实现冲突时**规范改**。
+> **真值源**：本规范以 [`vitest.config.ts`](../vitest.config.ts)、[`tests/setup.ts`](../tests/setup.ts)、
+> [`tests/polyfills.ts`](../tests/polyfills.ts) 与 `src/**/__tests__/*.test.tsx` 的 89 个测试文件为唯一执行真值；
+> 规范与实现冲突时**规范改**。
 >
 > **与其它规范的分工**（三者**不重复**）：
 >
 > | 关注点                   | 归属文档                                           | 本规范对应章节         |
 > | ------------------------ | -------------------------------------------------- | ---------------------- |
-> | 组件目录 / 命名 / 导出   | [`component-standard.md`](./component-standard.md) | §1.2（仅测试文件位置） |
+> | 组件目录 / 命名 / 导出   | [`component-standard.md`](./component-standard.md) | §1.1（仅测试文件位置） |
 > | CSS 变量 / 语义类怎么写  | [`css-standard.md`](./css-standard.md)             | §5.3（仅断言什么）     |
 > | Story 怎么写             | [`storybook-standard.md`](./storybook-standard.md) | —                      |
 > | lint / type-check / 构建 | [`code-quality.md`](./code-quality.md)             | §2（仅门禁）           |
 >
-> **历史基准**：v1.0.0 锁定 2026-10-31 数据，详见 §M+1。**规范条文本身不过期**，只有数据基准会过期。
+> **历史基准**：v2.0.0 锁定 2026-11-01 数据，详见 §M+1。**规范条文本身不过期**，只有数据基准会过期。
 
 ---
 
 ## 概述 (Overview)
 
 本规范定义**组件单测怎么写、怎么跑、怎么判定**。本库是**单包**组件库（**不是** workspace monorepo），
-测试链路是**一层**：`vitest.config.ts`（根）→ `tests/setup.ts` → `src/<component>/<component>.test.tsx`。
+测试链路是**一层**：`vitest.config.ts`（根）→ `tests/setup.ts` → `src/**/__tests__/*.test.tsx`。
 
 **核心约束**：
 
-- ✅ 测试文件**必须**与组件源码同目录，命名 `<component>.test.tsx`
+- ✅ 测试文件**必须**放在组件目录的 `__tests__/` 子目录下，命名 `<component>.test.tsx`
 - ✅ 断言 API **必须**用 `vi.*`（**禁止** `jest.*`）
 - ✅ matcher **必须**由 `tests/setup.ts` 全局注册，测试文件**禁止**逐个 import `@testing-library/jest-dom`
+- ✅ jsdom 缺失的浏览器 API **必须**从 `tests/polyfills.ts` 共享 helper 导入，**禁止**在测试文件里重复定义
 - ✅ 组件测试**必须**覆盖四类维度：**渲染 / 状态 / 交互 / 无障碍**（各至少一）
 - ✅ 查询**必须**优先语义化（`getByRole` / `getByLabelText` / `getByText`），`getByTestId` 仅作最后手段
-- ✅ jsdom 未实现的浏览器 API **必须**在测试文件内**局部 polyfill**，**禁止**污染全局 `setup.ts`
 - ❌ 禁止 `vi.mock()` 模块级 mock（本库组件无外部依赖需要 mock）
 - ❌ 禁止在测试里断言**未注册**的 Tailwind 语义类（会静默失效，见 `css-standard.md` §3.1）
 - ❌ 禁止混用 `it(` 与 `test(`（同一文件内）
@@ -56,38 +57,45 @@ related:
 ### 1.1 位置与命名
 
 ```
-src/<component>/<component>.test.tsx
+src/ui/<component>/__tests__/<component>.test.tsx
 ```
 
 | 规则                                                         | 真值源                                       |
 | ------------------------------------------------------------ | -------------------------------------------- |
-| **必须**与组件源码同目录（**不是** `__tests__/` 子目录）     | 34 个测试文件全部在组件目录内                |
-| **必须**命名 `<component>.test.tsx`（与实现同名）            | `src/button/button.test.tsx`                 |
-| **禁止**集中到 `tests/` 目录                                 | `tests/` 只放 `setup.ts`                     |
+| **必须**放在组件目录的 `__tests__/` 子目录下                 | 89 个测试文件全部在 `__tests__/` 下          |
+| **必须**命名 `<component>.test.tsx`（与实现同名）            | `src/ui/button/__tests__/button.test.tsx`    |
+| **禁止**测试 / Story 直接放在组件目录根下                    | 与组件源码分离，避免实现与测试代码混杂       |
+| **禁止**集中到 `tests/` 目录                                 | `tests/` 只放 `setup.ts` 与 `polyfills.ts`   |
 | **禁止**集成测试 / e2e 单独命名（`.integration.` / `.e2e.`） | 本库**无**集成测试层（纯组件，无跨组件流程） |
+
+> ⚠️ **两层组件的测试位置一致**：
+> `src/ui/<component>/__tests__/` 与 `src/design-system/components/ui/__tests__/` 采用同一约定。
 
 ### 1.2 vitest 配置基线
 
 > **真值源**：[`vitest.config.ts`](../vitest.config.ts)
 
-| 配置项              | 值                                                                       | 说明                                   |
-| ------------------- | ------------------------------------------------------------------------ | -------------------------------------- |
-| `environment`       | `'jsdom'`                                                                | 组件是 React DOM 组件，必须有 DOM 环境 |
-| `globals`           | `true`                                                                   | 提供 `describe` / `it` / `expect`      |
-| `include`           | `['src/**/*.test.{ts,tsx}', 'tests/**/*.test.{ts,tsx}']`                 | 与真实布局匹配                         |
-| `exclude`           | `node_modules` / `dist` / `storybook-static`                             | 排除构建产物                           |
-| `setupFiles`        | `['./tests/setup.ts']`                                                   | **全局设置入口**                       |
-| `css`               | `false`                                                                  | 样式靠类名断言，测试环境不处理 CSS     |
-| `reporters`         | `['verbose']`                                                            | 逐用例输出                             |
-| `pool`              | `'threads'`                                                              | 组件测试无共享状态，并行更快           |
-| `testTimeout`       | `30000`                                                                  | 涉及定时器 / 动画的用例留足余量        |
-| `hookTimeout`       | `30000`                                                                  | 同上                                   |
-| `coverage.provider` | `'v8'`                                                                   | —                                      |
-| `coverage.exclude`  | `**/*.stories.tsx` / `**/*.test.tsx` / `src/index.ts` / `src/styles.css` | 排除非业务代码                         |
+| 配置项              | 值                                                                             | 说明                                   |
+| ------------------- | ------------------------------------------------------------------------------ | -------------------------------------- |
+| `environment`       | `'jsdom'`                                                                      | 组件是 React DOM 组件，必须有 DOM 环境 |
+| `globals`           | `true`                                                                         | 提供 `describe` / `it` / `expect`      |
+| `include`           | `['src/**/*.test.{ts,tsx}', 'tests/**/*.test.{ts,tsx}']`                       | 与真实布局匹配                         |
+| `exclude`           | `node_modules` / `dist` / `storybook-static`                                   | 排除构建产物                           |
+| `setupFiles`        | `['./tests/setup.ts']`                                                         | **全局设置入口**                       |
+| `css`               | `false`                                                                        | 样式靠类名断言，测试环境不处理 CSS     |
+| `reporters`         | `['verbose']`                                                                  | 逐用例输出                             |
+| `pool`              | `'threads'`                                                                    | 组件测试无共享状态，并行更快           |
+| `testTimeout`       | `30000`                                                                        | 涉及定时器 / 动画的用例留足余量        |
+| `hookTimeout`       | `30000`                                                                        | 同上                                   |
+| `coverage.provider` | `'v8'`                                                                         | —                                      |
+| `coverage.exclude`  | `**/*.stories.tsx` / `**/*.test.tsx` / `src/index.ts` / `src/theme/styles.css` | 排除非业务代码                         |
 
 > ⚠️ **`include` 的 glob 必须与真实布局一致** —— 历史上配过 `src/**/__tests__/**`，导致 `No test files found`。
 >
 > ⚠️ **`css: false` 是刻意的** —— Tailwind v4 的 CSS 处理在 jsdom 下无意义且拖慢测试。
+>
+> 📌 **`resolve.alias` 保留了 `@` → `src/`** —— 但**源码规范禁止使用 `@/`**（见
+> [`component-standard.md`](./component-standard.md) §3.10 规则 4），该 alias 仅作历史兼容。
 
 ### 1.3 全局设置
 
@@ -114,6 +122,76 @@ afterEach(() => {
 
 > 📌 **v6+ 的子路径是 `/vitest`**：`@testing-library/jest-dom` 的 v6 已移除该子路径，v7 需写 `@testing-library/jest-dom/vitest`。
 
+### 1.4 共享 polyfill helper（全局安装）
+
+> **真值源**：[`tests/polyfills.ts`](../tests/polyfills.ts)，
+> 由 [`tests/setup.ts`](../tests/setup.ts) **全局 import** —— 测试文件**无需**逐个 import。
+
+jsdom **未实现**部分浏览器 API，依赖它们的组件在测试中会直接抛错：
+
+| API                                                                         | 缺失时的症状                                    | 依赖组件                                          |
+| --------------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------- |
+| `ResizeObserver`                                                            | `ReferenceError: ResizeObserver is not defined` | Radix `useSize`（Checkbox / Switch 的表单气泡）   |
+| `Element.scrollIntoView`                                                    | `TypeError`（Select / Command 滚动选中项）      | Select / Command                                  |
+| `Element.hasPointerCapture` / `setPointerCapture` / `releasePointerCapture` | `TypeError`（浮层触发器打不开）                 | DropdownMenu / Select / Dialog / Popover 的触发器 |
+| `PointerEvent` 构造器                                                       | 事件对象读不到 `pointerType`，浮层打不开        | 全部 Radix 触发器                                 |
+
+**规则**：
+
+| #   | 规则                                                                               |
+| --- | ---------------------------------------------------------------------------------- |
+| 1   | ✅ polyfill **必须**由 `tests/setup.ts` 全局安装（**环境级**能力，不是单文件诉求） |
+| 2   | ❌ **禁止**在测试文件里逐个 `import '.../tests/polyfills'` —— 已全局生效           |
+| 3   | ❌ **禁止**在测试文件里重复定义 `ResizeObserverStub` / `PointerEventStub`          |
+| 4   | ❌ **禁止**在 `tests/setup.ts` 里放**组件专属** polyfill（见 §6.2 规则 4）         |
+
+```ts
+// ✅ 正例 —— tests/setup.ts（全局一次）
+import './polyfills';
+
+// ❌ 反例 —— 测试文件里重复 import（已全局生效，属冗余）
+import '../../../../../tests/polyfills';
+
+// ❌ 反例 —— 重复定义（规范 §6.2 规则 3）
+class ResizeObserverStub implements ResizeObserver {
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+}
+```
+
+### 1.5 浮层类组件的交互驱动方式（Radix）
+
+> 本库大量组件基于 **Radix primitives**（DropdownMenu / Select / Dialog / Popover / Combobox …）。
+> Radix 的触发器走 **`onPointerDown`** 路径，而非 `onClick`。
+
+**规则**：
+
+| #   | 规则                                                                                                                                                              |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ✅ 浮层类交互**必须**用 `@testing-library/user-event`（`userEvent.setup()` + `await user.click(...)`）—— 它会派发完整的指针事件序列                               |
+| 2   | ❌ **禁止**用 `fireEvent.click` 驱动 Radix 触发器 —— 只派发 `click`，**不会**触发 `onPointerDown`，浮层打不开                                                     |
+| 3   | ✅ 关闭浮层用 **`Esc` 键**（`await user.keyboard('{Escape}')`）—— 不要用「点击外部」：Radix 打开浮层时会给 `body` 加 `pointer-events: none`，jsdom 里无法可靠模拟 |
+| 4   | ✅ 浮层内容渲染到 `document.body`（portal），**必须**用 `await screen.findByRole(...)` / `findByTestId(...)` 查询（异步出现）                                     |
+| 5   | ✅ 断言浮层已关闭用 `expect(screen.queryByXxx(...)).not.toBeInTheDocument()` —— Radix 关闭时会整体卸载                                                            |
+
+```tsx
+// ✅ 正例
+const user = userEvent.setup();
+await user.click(screen.getByText('打开菜单'));
+expect(await screen.findByTestId('content')).toBeVisible();
+await user.keyboard('{Escape}');
+await waitFor(() => {
+  expect(screen.queryByTestId('content')).not.toBeInTheDocument();
+});
+
+// ❌ 反例 —— fireEvent.click 不触发 Radix 的 onPointerDown
+fireEvent.click(screen.getByText('打开菜单'));
+```
+
+> 📌 **层级易错点**：从 `src/ui/<component>/__tests__/` 到仓库根 `tests/` 是 **5 个 `..`**
+> （`__tests__` → `<component>` → `ui` → `src` → 根）。写成 4 个会导致模块解析失败。
+
 ---
 
 ## 2. 命令
@@ -124,8 +202,8 @@ afterEach(() => {
 pnpm test                    # vitest run（单次，提交前主入口）
 pnpm test:watch              # vitest（监听）
 pnpm test:coverage           # vitest run --coverage
-pnpm vitest run src/button                    # 单目录
-pnpm vitest run src/button/button.test.tsx    # 单文件
+pnpm vitest run src/ui/button                          # 单目录
+pnpm vitest run src/ui/button/__tests__/button.test.tsx # 单文件
 ```
 
 > ⚠️ **本库**只有 `pnpm test`（不是 `pnpm test:run`）—— 与 easbot monorepo 的 `test:run` 命名**不同**，勿照搬。
@@ -153,14 +231,14 @@ pnpm vitest run src/button/button.test.tsx    # 单文件
  */
 ```
 
-> 📌 **真值源**：[`src/button/button.test.tsx:1-14`](../src/button/button.test.tsx)、[`src/alert/alert.test.tsx:1-13`](../src/alert/alert.test.tsx)
+> 📌 **真值源**：[`src/ui/button/button.test.tsx:1-14`](../src/ui/button/button.test.tsx)、[`src/ui/alert/alert.test.tsx:1-13`](../src/ui/alert/alert.test.tsx)
 
 ### 3.2 describe 三层定位
 
 顶层 describe **必须**是 `<Component> 组件`；内层按**测试维度**分组。
 
 ```tsx
-// ✅ 正例（src/button/button.test.tsx:71-73）
+// ✅ 正例（src/ui/button/button.test.tsx:71-73）
 describe('Button 组件', () => {
   describe('渲染测试', () => { ... });
   describe('状态测试', () => { ... });
@@ -179,7 +257,7 @@ describe('Button 组件', () => {
 | `无障碍测试` | `aria-*` 属性、`role`、焦点管理  |
 | `组合测试`   | 变体 × 尺寸组合、子组件嵌套      |
 
-> 📌 **真值源**：两种分组风格并存 —— 「测试维度」风格（`src/button/button.test.tsx`）与「功能」风格（`src/dialog/dialog.test.tsx:6` 的 `基础功能`）。
+> 📌 **真值源**：两种分组风格并存 —— 「测试维度」风格（`src/ui/button/button.test.tsx`）与「功能」风格（`src/ui/dialog/dialog.test.tsx:6` 的 `基础功能`）。
 > **新增测试统一用「测试维度」风格**。
 
 ### 3.3 it 命名
@@ -187,11 +265,11 @@ describe('Button 组件', () => {
 **必须**中文，句式统一为 `应该<动作>` 或 `应<动作>`。同一文件内**必须**统一用一种。
 
 ```tsx
-// ✅ 正例（src/button/button.test.tsx:78,89）
+// ✅ 正例（src/ui/button/button.test.tsx:78,89）
 it('应该正确渲染默认按钮', () => { ... });
 it('应该正确应用变体样式', () => { ... });
 
-// ✅ 正例（src/spinner/spinner.test.tsx:43）
+// ✅ 正例（src/ui/spinner/spinner.test.tsx:43）
 it('应正确组合尺寸和颜色变体', () => { ... });
 ```
 
@@ -221,17 +299,17 @@ it('应正确组合尺寸和颜色变体', () => { ... });
 
 ### 4.2 matcher 选型
 
-| 场景               | matcher                                                                         | 真值源                            |
-| ------------------ | ------------------------------------------------------------------------------- | --------------------------------- |
-| 元素已渲染         | `toBeInTheDocument()`                                                           | `src/spinner/spinner.test.tsx:65` |
-| 样式类名           | `toHaveClass(...)`                                                              | `src/button/button.test.tsx:93`   |
-| 属性               | `toHaveAttribute('aria-disabled', 'true')`                                      | `src/dialog/dialog.test.tsx:69`   |
-| 可见性             | `toBeVisible()`                                                                 | `src/dialog/dialog.test.tsx:23`   |
-| 禁用态             | `toBeDisabled()`                                                                | `src/button/button.test.tsx:138`  |
-| 焦点               | `toHaveFocus()`                                                                 | `src/button/button.test.tsx:262`  |
-| 内联样式（动态值） | `toHaveStyle({ transform: 'scale(0.93)' })`                                     | `src/button/button.test.tsx:356`  |
-| 回调触发           | `toHaveBeenCalled()` / `toHaveBeenCalledTimes(n)` / `toHaveBeenCalledWith(...)` | `src/button/button.test.tsx:137`  |
-| 异步元素出现       | `await screen.findByRole(...)`                                                  | `src/dialog/dialog.test.tsx:22`   |
+| 场景               | matcher                                                                         | 真值源                               |
+| ------------------ | ------------------------------------------------------------------------------- | ------------------------------------ |
+| 元素已渲染         | `toBeInTheDocument()`                                                           | `src/ui/spinner/spinner.test.tsx:65` |
+| 样式类名           | `toHaveClass(...)`                                                              | `src/ui/button/button.test.tsx:93`   |
+| 属性               | `toHaveAttribute('aria-disabled', 'true')`                                      | `src/ui/dialog/dialog.test.tsx:69`   |
+| 可见性             | `toBeVisible()`                                                                 | `src/ui/dialog/dialog.test.tsx:23`   |
+| 禁用态             | `toBeDisabled()`                                                                | `src/ui/button/button.test.tsx:138`  |
+| 焦点               | `toHaveFocus()`                                                                 | `src/ui/button/button.test.tsx:262`  |
+| 内联样式（动态值） | `toHaveStyle({ transform: 'scale(0.93)' })`                                     | `src/ui/button/button.test.tsx:356`  |
+| 回调触发           | `toHaveBeenCalled()` / `toHaveBeenCalledTimes(n)` / `toHaveBeenCalledWith(...)` | `src/ui/button/button.test.tsx:137`  |
+| 异步元素出现       | `await screen.findByRole(...)`                                                  | `src/ui/dialog/dialog.test.tsx:22`   |
 
 ### 4.3 类名断言必须与 CSS 规范一致
 
@@ -243,12 +321,12 @@ it('应正确组合尺寸和颜色变体', () => { ... });
 | Tailwind 语义类 | `toHaveClass('border-primary')`（已注册 token） | 断言未注册的 token 类（静默失效） |
 
 ```tsx
-// ✅ 正例（src/button/button.test.tsx:92-93）
+// ✅ 正例（src/ui/button/button.test.tsx:92-93）
 // Tailwind v4：语义类已替换为 CSS 变量任意值
 expect(button).toHaveClass('bg-[var(--destructive)]');
 ```
 
-> 📌 **状态变体类名**（`data-[state=checked]:border-primary`）**整体断言**，不拆分前缀与基类（见 `src/checkbox/checkbox.test.tsx:40-42`）。
+> 📌 **状态变体类名**（`data-[state=checked]:border-primary`）**整体断言**，不拆分前缀与基类（见 `src/ui/checkbox/checkbox.test.tsx:40-42`）。
 
 ### 4.4 异步与 act
 
@@ -259,7 +337,7 @@ expect(button).toHaveClass('bg-[var(--destructive)]');
 | 定时器                | `vi.useFakeTimers()` + `vi.advanceTimersByTime(ms)` + `vi.useRealTimers()` |
 | 重渲染                | 用 `render()` 返回的 `rerender` / `unmount`                                |
 
-> 📌 **`rerender` 是首选**（比多次 `render` 更贴近真实）：`src/spinner/spinner.test.tsx:20`。
+> 📌 **`rerender` 是首选**（比多次 `render` 更贴近真实）：`src/ui/spinner/spinner.test.tsx:20`。
 
 ### 4.5 断言与实现同源原则
 
@@ -284,7 +362,7 @@ expect(button).toHaveClass('bg-[var(--destructive)]');
 Radix 的 `Dialog` / `Popover` / `Tooltip` 等**渲染到 `document.body`**（portal），`container` 查询不到。
 
 ```tsx
-// ✅ 正例（src/dialog/dialog.test.tsx:22）
+// ✅ 正例（src/ui/dialog/dialog.test.tsx:22）
 expect(await screen.findByRole('dialog')).toBeInTheDocument();
 ```
 
@@ -313,7 +391,7 @@ expect(el).toHaveClass('animate-in');
 Button 的移动端能力（波纹 / 长按 / 滑动 / 压力感应）**必须**用**伪造的事件对象**测试，**禁止**依赖真实 UA。
 
 ```tsx
-// ✅ 正例（src/button/button.test.tsx:28-69）—— 覆写 UA + 构造 Touch 事件
+// ✅ 正例（src/ui/button/button.test.tsx:28-69）—— 覆写 UA + 构造 Touch 事件
 Object.defineProperty(navigator, 'userAgent', { value: '...iPhone...' });
 const createTouchEvent = () => ({ touches: [...], targetTouches: [...], changedTouches: [...], bubbles: true });
 ```
@@ -328,31 +406,35 @@ const createTouchEvent = () => ({ touches: [...], targetTouches: [...], changedT
 | --- | ------------------------------------------------------------------------------------- |
 | 1   | ❌ **禁止** `vi.mock()` 模块级 mock —— 本库组件只依赖 Radix / lucide / cva，无需 mock |
 | 2   | ✅ 回调类交互用 `vi.fn()` 断言是否被调用                                              |
-| 3   | ✅ 浏览器 API 缺失用**局部 polyfill**（§6.2）                                         |
+| 3   | ✅ 浏览器 API 缺失用**共享 polyfill**（§6.2）                                         |
 | 4   | ❌ **禁止**在 `tests/setup.ts` 里做组件专属 polyfill                                  |
 
 ### 6.2 polyfill 规范
 
-jsdom **未实现**的浏览器 API **必须**在**需要它的测试文件内**局部定义。
+jsdom **未实现**的浏览器 API **必须**在 [`tests/polyfills.ts`](../tests/polyfills.ts) 里集中定义，
+并由 [`tests/setup.ts`](../tests/setup.ts) **全局 import**。
 
-**当前需要的 3 个**：
+> 📌 **v6+ 变更**：早期版本要求「在需要它的测试文件内局部定义」，
+> 现已统一为**全局安装** —— 这些都是**环境级**能力（jsdom 缺什么），
+> 不是某个组件的诉求；逐文件 import 只会造成遗漏（漏 import 的文件直接挂）。
 
-| API                      | 需要的组件                                    | 真值源                               |
-| ------------------------ | --------------------------------------------- | ------------------------------------ |
-| `ResizeObserver`         | command / navigation-menu / slider / textarea | `src/command/command.test.tsx:4-18`  |
-| `Element.scrollIntoView` | command                                       | `src/command/command.test.tsx:20-25` |
-| `matchMedia`             | select                                        | `src/select/select.test.tsx:196-203` |
+**当前覆盖的 4 类**：
 
-**标准写法**：
+| API                                                                         | 需要的组件                                    | 真值源               |
+| --------------------------------------------------------------------------- | --------------------------------------------- | -------------------- |
+| `ResizeObserver`                                                            | Checkbox / Switch / Slider / Chart / Carousel | `tests/polyfills.ts` |
+| `Element.scrollIntoView`                                                    | Select / Command                              | `tests/polyfills.ts` |
+| `Element.hasPointerCapture` / `setPointerCapture` / `releasePointerCapture` | 全部 Radix 浮层触发器                         | `tests/polyfills.ts` |
+| `PointerEvent` 构造器                                                       | 全部 Radix 浮层触发器                         | `tests/polyfills.ts` |
 
-```tsx
-// ✅ 正例（src/command/command.test.tsx:6-18）
-class ResizeObserverStub implements ResizeObserver {
-  observe(): void {
-    // 尺寸测量在 jsdom 中无实际意义，保持空实现
-  }
-  unobserve(): void {}
-  disconnect(): void {}
+**标准写法**（真值源 `tests/polyfills.ts`）：
+
+```ts
+// ✅ 正例 —— 幂等安装，不覆盖已有实现
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = function scrollIntoView(): void {
+    // 滚动行为在 jsdom 中无实际意义，保持空实现
+  };
 }
 globalThis.ResizeObserver =
   globalThis.ResizeObserver ?? (ResizeObserverStub as unknown as typeof ResizeObserver);
@@ -360,22 +442,20 @@ globalThis.ResizeObserver =
 
 **规则**：
 
-| #   | 规则                                                                            |
-| --- | ------------------------------------------------------------------------------- |
-| 1   | **必须**用 `globalThis.X = globalThis.X ?? <stub>` 形式（幂等，不覆盖已有实现） |
-| 2   | **必须**写在**测试文件顶部**（组件作用域内），**禁止**放 `setup.ts`             |
-| 3   | **必须**给 stub 加中文注释说明「为什么 jsdom 缺这个 API」                       |
-| 4   | 同一 API 被多个测试文件需要时 —— **必须**抽到 `tests/` 下的共享 helper          |
-
-> ⚠️ **`ResizeObserverStub` 当前在 4 个测试文件重复**（command / navigation-menu / slider / textarea）—— 按规则 4 **应当抽取**到共享 helper，
-> 但**不阻塞**新测试（见 §M+2 豁免 H2）。
+| #   | 规则                                                                                     |
+| --- | ---------------------------------------------------------------------------------------- |
+| 1   | **必须**用 `globalThis.X = globalThis.X ?? <stub>` 形式（幂等，不覆盖已有实现）          |
+| 2   | **必须**写在 `tests/polyfills.ts`（由 `setup.ts` 全局 import），**禁止**放组件测试文件里 |
+| 3   | **必须**给 stub 加中文注释说明「为什么 jsdom 缺这个 API」                                |
+| 4   | ❌ **禁止**在测试文件里 `import '.../tests/polyfills'` —— 已全局生效，属冗余             |
+| 5   | ❌ **禁止**在测试文件里重复定义 stub（`ResizeObserverStub` / `PointerEventStub`）        |
 
 ### 6.3 `vi` 的引入方式
 
 **必须**显式 `import { vi } from 'vitest';`（即使 `globals: true` 已提供）。
 
 ```tsx
-// ✅ 正例（src/button/button.test.tsx:19）
+// ✅ 正例（src/ui/button/button.test.tsx:19）
 import { vi } from 'vitest';
 ```
 
@@ -456,7 +536,7 @@ rg -n "from '@testing-library/jest-dom" -g "src/**/*.test.tsx"
 **修正模式**：
 
 ```tsx
-// ❌ 违规（src/button/button.test.tsx）
+// ❌ 违规（src/ui/button/button.test.tsx）
 import '@testing-library/jest-dom';
 
 // ✅ 修正 —— 删掉该行；matcher 由 tests/setup.ts 全局注册
@@ -483,7 +563,7 @@ Get-ChildItem src -Recurse -Filter "*.test.tsx" | ForEach-Object {
 **修正模式**：
 
 ```tsx
-// ❌ 违规（src/dialog/dialog.test.tsx）
+// ❌ 违规（src/ui/dialog/dialog.test.tsx）
 it('应正确渲染对话框内容', () => { ... });
 test('应支持不同尺寸', () => { ... });
 
@@ -526,7 +606,7 @@ const spy = vi.fn();
 **扫描命令**：
 
 ```bash
-rg -c "getByTestId|queryByTestId" -g "src/**/*.test.tsx" | Where-Object { $_ -match "^(?!src/button/button.test.tsx|src/dialog/dialog.test.tsx)" }
+rg -c "getByTestId|queryByTestId" -g "src/**/*.test.tsx" | Where-Object { $_ -match "^(?!src/ui/button/button.test.tsx|src/ui/dialog/dialog.test.tsx)" }
 ```
 
 **判定规则**：
@@ -540,7 +620,7 @@ rg -c "getByTestId|queryByTestId" -g "src/**/*.test.tsx" | Where-Object { $_ -ma
 // ❌ 违规 —— 元素本可用语义查询
 <span data-testid="loading-icon" aria-hidden="true" />
 
-// ✅ 修正（src/button/button.test.tsx:394）
+// ✅ 修正（src/ui/button/button.test.tsx:394）
 // 装饰性图标确实无语义锚点，保留 data-testid 合理
 <Loader2 className="mr-2 h-4 w-4 animate-spin" data-testid="loading-icon" aria-hidden="true" />
 ```
@@ -636,7 +716,7 @@ Get-ChildItem src -Recurse -Filter "*.test.tsx" | ForEach-Object {
 
 ```bash
 # 列出断言了未注册 Tailwind 语义类的测试（空 = 合规）
-$theme = Get-Content src/styles.css -Raw
+$theme = Get-Content src/theme/styles.css -Raw
 $registered = ([regex]::Matches($theme, '--color-([a-z0-9-]+):') | ForEach-Object { $_.Groups[1].Value }) + @('gray-50','gray-100','gray-200','gray-300','gray-400','gray-500','gray-600','gray-700','gray-800','gray-900')
 $semantic = rg -o "toHaveClass\('(bg|text|border|ring)-(primary|secondary|destructive|success|warning|error|info|popover|accent|muted|background|foreground|card|input|ring)[a-z-]*'" -g "src/**/*.test.tsx" --no-filename -r '$1' 2>$null | Sort-Object -Unique
 $bad = $semantic | Where-Object { $cls = $_ -replace '^(bg|text|border|ring)-',''; -not ($registered -contains $cls) }
@@ -654,29 +734,26 @@ if ($bad) { "UNREGISTERED: $($bad -join ', ')" } else { "OK" }
 // ❌ 违规 —— bg-primary 未注册，断言恒真
 expect(button).toHaveClass('bg-primary');
 
-// ✅ 修正（src/button/button.test.tsx:93）
+// ✅ 修正（src/ui/button/button.test.tsx:93）
 expect(button).toHaveClass('bg-[var(--destructive)]');
 ```
 
 ---
 
-## M+1. 历史基准（2026-10-31 实测）
+## M+1. 历史基准（2026-11-01 实测）
 
 > **作用域**：本节是**历史快照**。数据会过期，条文不过期。
 
-| 指标                             | 数值                                    |
-| -------------------------------- | --------------------------------------- |
-| 测试文件数                       | 34                                      |
-| 用例总数                         | **254**                                 |
-| 单文件最多用例                   | 28（`src/button/button.test.tsx`）      |
-| 单文件最少用例                   | 1（`src/use-toast/use-toast.test.tsx`） |
-| `jest.*` 命中                    | 0                                       |
-| 逐文件 import jest-dom 命中      | 0                                       |
-| `vi.mock()` 命中                 | 0                                       |
-| 混用 `it(` / `test(` 的文件      | 2（`command` / `dialog`）               |
-| `getByTestId` 使用的文件         | 2（`button` / `dialog`）                |
-| `ResizeObserver` polyfill 重复处 | 4 个文件                                |
-| `pnpm test` 耗时                 | ~100s                                   |
+| 指标                             | 数值                                        |
+| -------------------------------- | ------------------------------------------- |
+| 测试文件数                       | **89**（39 公开层 + 50 设计系统层）         |
+| 测试文件全部在 `__tests__/` 下   | **89 / 89（100%）**                         |
+| `jest.*` 命中                    | **14**（存量待迁移，见 §M+2）               |
+| 逐文件 import jest-dom 命中      | 3（`combobox` / `form` / `select`）         |
+| `vi.mock()` 命中                 | 0                                           |
+| 混用 `it(` / `test(` 的文件      | 2（`command` / `dialog`）                   |
+| `ResizeObserver` polyfill 重复处 | 已抽到 `tests/polyfills.ts`（仍有个别重复） |
+| `pnpm test` 耗时                 | ~100s                                       |
 
 ### 重测命令
 
@@ -689,26 +766,29 @@ rg -c "^\s*(it|test)\(" -g "src/**/*.test.tsx" | Measure-Object
 
 ## M+2. 豁免清单
 
-| 对象                                                                                | 豁免依据                                                                                                                           |
-| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `src/use-toast/use-toast.test.tsx` 仅 1 个用例                                      | `useToast` 是**状态 Hook**，`Toaster` 的渲染与 toast 队列逻辑由 `src/toast/toast.test.tsx` 覆盖；本文件只验证「Hook 返回值与订阅」 |
-| `ResizeObserverStub` 在 4 个测试文件重复定义                                        | **存量豁免**：当前 jsdom 缺失该 API，重复定义可接受。**新增**第 5 处时**必须**按 §6.2 规则 4 抽到 `tests/` 共享 helper             |
-| `src/command/command.test.tsx` 与 `src/dialog/dialog.test.tsx` 混用 `it(` / `test(` | **存量豁免**：§M 维度 ④ 命中这两处；**新增**测试文件**禁止**混用（§3.3 规则 4）                                                    |
-| 27 个测试文件缺文件头块注解（维度 ⑧）                                               | **存量豁免**：**新增**测试文件 MUST 达标；**改动**既有测试时 MUST 顺手补齐（`code-annotation-standard.md` §1.4「改动即补」原则）   |
-| 部分测试未覆盖全部四维度（维度 ⑨）                                                  | **存量豁免**：维度 ⑨ 是**关键词近似匹配**（会漏判），命中项**需人工确认**后再判定；**新增**组件测试 MUST 覆盖四类                  |
-| 组件测试**不覆盖**覆盖率阈值                                                        | 本库**无**覆盖率门槛（`vitest.config.ts` 未配 `thresholds`）；覆盖率用于**观察**，不作为**门禁**                                   |
+| 对象                                                             | 豁免依据                                                                                                                                        |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/ui/use-toast/__tests__/use-toast.test.tsx` 仅 1 个用例      | `useToast` 是**状态 Hook**，`Toaster` 的渲染与 toast 队列逻辑由 `src/ui/toast/__tests__/toast.test.tsx` 覆盖；本文件只验证「Hook 返回值与订阅」 |
+| 14 个测试文件仍用 `jest.*`（含 `@jest/globals` import）          | **存量豁免**：历史上从 Jest 迁移到 Vitest 时遗漏。**新增**测试文件**禁止**使用 `jest.*`；**改动**既有测试时 MUST 顺手改成 `vi.*`（§3.3 规则）   |
+| `ResizeObserverStub` 在个别测试文件重复定义                      | **存量豁免**：共享 helper `tests/polyfills.ts` 已建立（§1.4），重复定义仅剩未迁移的存量文件。**新增**文件**必须**用共享 helper                  |
+| `src/ui/command/` 与 `src/ui/dialog/` 的测试混用 `it(` / `test(` | **存量豁免**：§M 维度 ④ 命中这两处；**新增**测试文件**禁止**混用（§3.3 规则 4）                                                                 |
+| 3 个测试文件逐个 import `@testing-library/jest-dom`              | **存量豁免**：`tests/setup.ts` 已全局注册；**新增**测试文件**禁止**逐个 import（§1.3 规则 3）                                                   |
+| 27 个测试文件缺文件头块注解（维度 ⑧）                            | **存量豁免**：**新增**测试文件 MUST 达标；**改动**既有测试时 MUST 顺手补齐（`code-annotation-standard.md` §1.4「改动即补」原则）                |
+| 部分测试未覆盖全部四维度（维度 ⑨）                               | **存量豁免**：维度 ⑨ 是**关键词近似匹配**（会漏判），命中项**需人工确认**后再判定；**新增**组件测试 MUST 覆盖四类                               |
+| 组件测试**不覆盖**覆盖率阈值                                     | 本库**无**覆盖率门槛（`vitest.config.ts` 未配 `thresholds`）；覆盖率用于**观察**，不作为**门禁**                                                |
 
 ---
 
 ## M+3. 冲突裁决
 
-| #   | 冲突点                   | 旧规范声明（easbot monorepo 版）                                    | 实际情况（本库）                                    | 裁决                             |
-| --- | ------------------------ | ------------------------------------------------------------------- | --------------------------------------------------- | -------------------------------- |
-| C1  | 测试命令名               | `pnpm test:run`（单次）/ `pnpm test`（监听）                        | 本库 `pnpm test` = `vitest run`（单次）             | **本库用 `pnpm test`**（§2）     |
-| C2  | 测试目录分层             | `src/**/__tests__/` 与 `<pkg>/tests/{unit,integration,e2e}/` 双体系 | 本库**只有** `src/<component>/<component>.test.tsx` | **单体系**（§1.1）               |
-| C3  | 覆盖率门槛               | buddy 包 80% 门槛                                                   | 本库**无** `thresholds`                             | **无门槛**（§M+2）               |
-| C4  | `globals` 与显式 import  | 「显式 import 是约定，globals 是兜底」                              | 与本库一致                                          | **必须显式 import `vi`**（§6.3） |
-| C5  | 环境差分测试（双 shell） | 双 grammar 差分是范本                                               | 本库是**浏览器组件**，无 shell 场景                 | **不适用**（本规范无对应维度）   |
+| #   | 冲突点                   | 旧规范声明（easbot monorepo 版）                                    | 实际情况（本库）                             | 裁决                             |
+| --- | ------------------------ | ------------------------------------------------------------------- | -------------------------------------------- | -------------------------------- |
+| C1  | 测试命令名               | `pnpm test:run`（单次）/ `pnpm test`（监听）                        | 本库 `pnpm test` = `vitest run`（单次）      | **本库用 `pnpm test`**（§2）     |
+| C2  | 测试目录分层             | `src/**/__tests__/` 与 `<pkg>/tests/{unit,integration,e2e}/` 双体系 | 本库**只有** `src/**/__tests__/<c>.test.tsx` | **单体系**（§1.1）               |
+| C3  | 覆盖率门槛               | buddy 包 80% 门槛                                                   | 本库**无** `thresholds`                      | **无门槛**（§M+2）               |
+| C4  | `globals` 与显式 import  | 「显式 import 是约定，globals 是兜底」                              | 与本库一致                                   | **必须显式 import `vi`**（§6.3） |
+| C5  | 环境差分测试（双 shell） | 双 grammar 差分是范本                                               | 本库是**浏览器组件**，无 shell 场景          | **不适用**（本规范无对应维度）   |
+| C6  | 测试文件位置             | 「与组件源码同目录」                                                | 实际全部在 `__tests__/` 子目录               | **改规范**（本规范 §1.1）        |
 
 ---
 

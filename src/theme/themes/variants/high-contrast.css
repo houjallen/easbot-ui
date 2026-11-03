@@ -1,0 +1,60 @@
+:root[data-theme="high-contrast"] {
+    /* 基础色调 */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    
+    /* 主色调 */
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
+    
+    /* 次要色调 */
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
+    
+    /* 强调色 */
+    --accent: 60 100% 50%;
+    --accent-foreground: 0 0% 0%;
+    
+    /* 破坏性操作 */
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* 卡片 */
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    
+    /* 弹出层 */
+    --popover: 0 0% 0%;
+    --popover-foreground: 0 0% 100%;
+    
+    /* 静音/禁用状态 */
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 80%;
+    
+    /* 边框和输入框 */
+    --border: 0 0% 100%;
+    --input: 0 0% 100%;
+    
+    /* 环形效果 */
+    --ring: 60 100% 50%;
+    
+    /* 圆角 */
+    --radius: 0.25rem;
+    
+    /* 阴影 */
+    --shadow-sm: none;
+    --shadow: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+    --shadow-xl: none;
+    
+    /* 状态颜色 */
+    --success: 120 100% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 40 100% 50%;
+    --warning-foreground: 0 0% 0%;
+    --error: 0 100% 50%;
+    --error-foreground: 0 0% 100%;
+    --info: 200 100% 50%;
+    --info-foreground: 0 0% 0%;
+}

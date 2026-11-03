@@ -1,0 +1,167 @@
+html, body, #__next, #root {
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+}
+
+.eas-sm-hidden {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .eas-sm-hidden {
+    display: inline;
+  }
+}
+
+.eas-close-btn {
+  position: absolute;
+  top: var(--eas-gap-md);     /* 0.5rem */
+  right: var(--eas-gap-md);   /* 0.5rem */
+}
+
+/* 全局 button 鼠标样式
+ *
+ * 📌 **交互按钮用 `pointer`** —— 让用户知道元素可点击，
+ *    避免「不知道哪里能点」的困惑（UX 惯例）。
+ *
+ * 📌 **禁用态用 `not-allowed`** —— 明确告知「当前不可操作」，
+ *    比默认箭头更明确。
+ *
+ * ⚠️ **不覆盖 `disabled` 元素的基础指针** ——
+ *    `button:disabled` 的 `cursor` 需显式指定为 `not-allowed`，
+ *    否则浏览器默认仍是 `default`。
+ */
+button:not(:disabled),
+[role='button']:not([aria-disabled='true']) {
+  cursor: pointer;
+}
+
+button:disabled,
+[role='button'][aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+/* Badge dot 统一样式 */
+.eas-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  opacity: 0.85;
+  display: inline-block;
+  background: currentColor;
+}
+
+@media (min-width: 1024px) {
+  .eas-badge-dot {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+/* 通用 main 滚动容器（适用于非 eas-layout 页面） */
+.eas-main-scroll {
+  overflow: auto;
+  height: 100vh;
+}
+
+.light{
+  height: 100vh;
+  overflow: auto;
+}
+
+.dark{
+  height: 100vh;
+  overflow: auto;
+}
+
+/* 使用语义角色选择器提供兜底层级，避免遮挡 */
+body [role='dialog'],
+body [role='alertdialog'] {
+  z-index: var(--eas-z-index-dialog);
+}
+
+/* Radix Portal 容器兜底层级（若组件通过 Portal 渲染） */
+body [data-radix-portal] {
+  z-index: var(--eas-z-index-dialog);
+}
+
+/* AlertDialog 蒙层统一层级：使用全局变量 --eas-z-index-dialog-overlay */
+/* 通过 data-slot 精准选择，并添加 !important 以覆盖 utility 类（如 z-50） */
+body [data-slot='alert-dialog-overlay'] {
+  z-index: var(--eas-z-index-dialog-overlay);
+}
+
+/* 兼容未加 data-slot 的遮罩节点（Radix 常见结构） */
+body [role='alertdialog'] + div[aria-hidden='true'],
+body div[aria-hidden='true'][data-aria-hidden='true'] {
+  z-index: var(--eas-z-index-dialog-overlay);
+}
+
+/* Radix Popper 弹层 - 统一层级
+ *
+ * 覆盖组件：Select / Combobox / Popover / DropdownMenu / ContextMenu /
+ *           Menubar / HoverCard / Tooltip
+ *
+ * ⚠️ 此处必须是 `!important`（带感叹号）——
+ *    写成裸 `important` 是**非法 CSS**，整条声明会被浏览器丢弃，
+ *    Radix 外层 wrapper 会保留自己的内联 `z-index: 50`。
+ *    后果：wrapper 层级(50)低于宿主页面上任意高层级容器
+ *    （如 Storybook 的 `#storybook-root` z-index:1300），
+ *    弹层被压在下层元素之下 —— 表现为「弹层透底，能看见下层文字」。
+ *
+ * 📌 **统一用 `--eas-z-index-popper`（1450）**：
+ *    必须高于 `--eas-z-index-dialog`（1400）——
+ *    这些弹层常从 Dialog / Drawer / Sheet 内部触发，
+ *    层级低于 Dialog 内容会被面板压住。
+ */
+body [data-radix-popper-content-wrapper] {
+  /* Radix 外层 wrapper（内联 z-index: 50），强制提升到变量层级 */
+  z-index: var(--eas-z-index-popper, var(--eas-z-index-context-menu)) !important;
+}
+
+/* 菜单内容容器兜底（Radix Menu content / Dropdown content）
+ *
+ * 📌 与外层 wrapper **同层级**（1450）——
+ *    内容层若低于 wrapper，会被 wrapper 的背景遮挡。
+ */
+body [data-radix-menu-content],
+body [data-slot='dropdown-menu-content'] {
+  z-index: var(--eas-z-index-popper, var(--eas-z-index-context-menu)) !important;
+}
+
+/* 二次弹层（嵌套的 Popper/Menu 等）在第一层基础上 +10
+ * 选择器匹配：一个 popper wrapper 内部再次出现的 popper wrapper / menu content */
+body [data-radix-popper-content-wrapper] [data-radix-popper-content-wrapper],
+body [data-radix-popper-content-wrapper] [data-radix-menu-content],
+body [data-radix-popper-content-wrapper] [data-slot='dropdown-menu-content'],
+body [data-slot='popover-content'] [data-radix-popper-content-wrapper],
+body [data-slot='popover-content'] [data-radix-menu-content],
+body [data-slot='popover-content'] [data-slot='dropdown-menu-content'] {
+  z-index: calc(var(--eas-z-index-popper, 1450) + 10) !important;
+}
+
+/* 使用 :has 精确区分第一层和子菜单（Portal 渲染为 body 子节点时生效） */
+/* 第一层菜单（非子菜单） */
+body [data-radix-popper-content-wrapper]:has([data-radix-menu-content]):not(:has([data-radix-menu-subcontent])) {
+  z-index: var(--eas-z-index-popper, 1450) !important;
+}
+
+/* 第二层子菜单（SubContent） */
+body [data-radix-popper-content-wrapper]:has([data-radix-menu-subcontent]),
+body [data-radix-popper-content-wrapper]:has([data-slot='dropdown-menu-subcontent']) {
+  z-index: calc(var(--eas-z-index-popper, 1450) + 10) !important;
+}
+
+/* 直接作用于内容层（Content/SubContent），覆盖其内联 z-index */
+/* 第一层内容 */
+body [data-radix-menu-content]:not([data-radix-menu-subcontent]),
+body [data-slot='dropdown-menu-content']:not([data-radix-menu-subcontent]) {
+  z-index: var(--eas-z-index-popper, 1450) !important;
+}
+
+/* 第二层子内容 */
+body [data-radix-menu-content][data-radix-menu-subcontent],
+body [data-slot='dropdown-menu-subcontent'] {
+  z-index: calc(var(--eas-z-index-popper, 1450) + 10) !important;
+}

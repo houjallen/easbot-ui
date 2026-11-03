@@ -1,0 +1,274 @@
+/**
+ * 组件库样式入口（Tailwind CSS v4）
+ *
+ * 构建方式：`pnpm build:css` → `tailwindcss -i ./src/theme/styles.css -o ./dist/styles.css --minify`
+ *
+ * @description
+ * 本文件是本库**唯一**的 CSS 编译入口（唯一真值源，见 `spec/css-standard.md` §1）。
+ * 消费方 `import '@easbot/ui/styles.css'` 即得完整样式，
+ * **无需**安装或配置 Tailwind。
+ *
+ * 设计说明：
+ *
+ * 1. **构建期全量编译** —— Tailwind 是构建期工具，运行时无意义。
+ *    本文件在构建期扫描 `src/` 下的全部组件源码，把实际用到的原子类编译成纯 CSS。
+ *
+ * 2. **Tailwind v4 语法** —— v3 的 `@tailwind base/components/utilities` 指令在 v4 已移除，
+ *    统一改用 `@import 'tailwindcss'`。
+ *
+ * 3. **v3 插件迁移** —— `tailwindcss-animate`（v3 插件）提供的 `animate-in` / `fade-in-*` /
+ *    `zoom-in-*` / `slide-in-from-*` 等工具类，在 v4 由 `tw-animate-css` 提供（纯 CSS 引入）。
+ *
+ * 4. **主题变量** —— 通过 `@import` 引入 light / dark 两套 CSS 变量，
+ *    运行时通过 `<html data-theme="light|dark">` 切换，无需重新构建。
+ *
+ * 5. **语义 token 注册（`@theme inline`）** —— 主题文件里的 `--primary` / `--gray-500` 等
+ *    是**自定义 CSS 变量**，Tailwind v4 不认识它们。若不注册成 token，
+ *    `bg-primary` / `text-muted-foreground` 这类**语义类不会生成任何 CSS**（静默失效）。
+ *    `@theme inline` 把它们映射为 `--color-*`，语义类才可用。
+ *
+ * 6. **灰阶必须 `hsl()` 包裹** —— 主题文件里 `--gray-500` 存的是**裸 HSL 分量**
+ *    （`240 4% 50%`），必须写成 `hsl(var(--gray-500))`；
+ *    直接 `var(--gray-500)` 会生成非法颜色值。
+ *
+ * 7. **`dark:` 变体对齐 `data-theme`** —— 主题文件的选择器是 `:root[data-theme='dark']`，
+ *    而 Tailwind 默认的 `dark:` 走 `@media (prefers-color-scheme: dark)`（跟随系统），
+ *    与「由 `<html data-theme>` 显式切换」的机制冲突。
+ *    `@custom-variant dark` 把 `dark:` 重新指向 `[data-theme='dark']` 选择器。
+ *
+ * 8. **`@source` 路径相对本文件** —— 本文件位于 `src/theme/`（**两级深**），
+ *    故扫描范围用上跳**一级**的通配路径（`../` = `src/`），覆盖 `src/` 整个目录。
+ *    ⚠️ 写成 `../../` 会扫到**仓库根目录**（含 `docs/` / `node_modules/`），
+ *    把文档里的字面量类名也当候选类解析 —— 必须用 `../`。
+ */
+
+/* Tailwind v4 入口 */
+@import 'tailwindcss';
+
+/* v4 兼容的动画工具类（替代 v3 的 tailwindcss-animate 插件） */
+@import 'tw-animate-css';
+
+/* 主题变量：light / dark 两套 CSS 自定义属性 */
+@import './themes/light.css';
+@import './themes/dark.css';
+
+/* 设计 token（--eas-* 尺寸 / 间距 / 层级）—— 两套主题共用同一份 */
+@import './themes/variables.css';
+
+/* 层级兜底与 eas-* 工具类 —— 必须在原子类之后（utilities 层内按源码顺序生效） */
+@import './styles/prefix.css';
+
+/* Table 组件样式（sticky header / bordered / density / striped / fullscreen / scroll）
+   —— 组件源码用 `eas-table-*` 类名实现这些能力（见 src/ui/table/atoms/*.tsx），
+   必须进产物，否则表格的核心样式全部失效。
+   ⚠️ 该文件含 59 处 `!important`（存量，见 spec/css-standard.md §M+2 豁免清单），
+   且必须排在原子类之后，才能覆盖 Tailwind 生成的 `border-b` / `text-left` 等工具类。 */
+@import '../ui/table/style/table.css';
+
+/* 扫描组件源码，生成实际用到的原子类（相对本文件所在目录 → 覆盖 src/ 全部） */
+@source '../**/*.{ts,tsx}';
+
+/* 排除 Markdown 文档 —— Tailwind v4 会自动探测仓库内的 `.md`，
+   文档里的**字面量类名示例**（如 `translate-x-[calc(var(--switch-<size>-width)...]`）
+   会被当作候选类解析，导致 CSS 优化器报 `Unexpected token Delim('<')` 警告。
+   `@source not` 的路径同样相对本文件，故需上跳两级到仓库根。 */
+@source not '../../**/*.md';
+
+/* ============================================================================
+ * dark 变体 —— 对齐主题文件的 :root[data-theme='dark'] 选择器
+ * ========================================================================== */
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* ============================================================================
+ * 语义 token 注册 —— 让 bg-primary / text-muted-foreground 等语义类可用
+ * ========================================================================== */
+
+@theme inline {
+  /* 语义色：主题文件里已是完整颜色值，可直接 var() 引用 */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  /* 输入类控件的淡背景 —— 与 `--color-input`（边框色）分离，
+   * 避免「边框要清晰、背景要淡」两个需求共用一个变量。 */
+  --color-input-background: var(--input-background);
+  --color-ring: var(--ring);
+  --color-card: var(--card-background);
+  --color-card-foreground: var(--card-foreground);
+
+  /* Sidebar 语义 token —— 侧边栏配色需与主题同步切换 */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* 灰阶：主题文件里是裸 HSL 分量，必须用 hsl() 包裹 */
+  --color-gray-50: hsl(var(--gray-50));
+  --color-gray-100: hsl(var(--gray-100));
+  --color-gray-200: hsl(var(--gray-200));
+  --color-gray-300: hsl(var(--gray-300));
+  --color-gray-400: hsl(var(--gray-400));
+  --color-gray-500: hsl(var(--gray-500));
+  --color-gray-600: hsl(var(--gray-600));
+  --color-gray-700: hsl(var(--gray-700));
+  --color-gray-800: hsl(var(--gray-800));
+  --color-gray-900: hsl(var(--gray-900));
+}
+
+/* ============================================================================
+ * 基础层
+ * ========================================================================== */
+
+@layer base {
+  :root {
+    /* 字体栈 —— 可被消费方覆盖
+     *
+     * ⚠️ `--font-source-han-sans` 由 `@easbot/ui/fonts.css` 定义（**opt-in**，
+     * 消费方需显式 `import '@easbot/ui/fonts.css'`）。
+     *
+     * **未定义时必须能安全降级** —— 直接写
+     * `var(--font-source-han-sans), system-ui, …` 会在变量缺失时让**整条声明失效**
+     * （CSS 变量缺失 → 该属性变 unset → `font-family` 退回浏览器默认，
+     *   连 `system-ui` 回退栈都拿不到）。
+     *
+     * 故用 `var(--font-source-han-sans, <完整回退栈>)` 的**兜底值形式**：
+     * 变量存在 → 用自定义字体；变量不存在 → 用回退栈（不留空隙）。
+     */
+    --font-sans:
+      var(
+        --font-source-han-sans,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        Roboto,
+        'Helvetica Neue',
+        Arial,
+        sans-serif,
+        'Apple Color Emoji',
+        'Segoe UI Emoji',
+        'Segoe UI Symbol',
+        'Noto Color Emoji'
+      );
+  }
+
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
+    font-family: var(--font-sans);
+  }
+}
+
+/* ============================================================================
+ * 自定义工具类
+ * ========================================================================== */
+
+/**
+ * 水波纹动画 —— Button / Card / Checkbox 的触摸反馈。
+ *
+ * 用 `@utility` 而非普通 class，确保 Tailwind v4 能识别并按需生成
+ * （普通 class 写在 `@layer` 外仍可工作，但 `@utility` 语义更准确）。
+ */
+@utility animate-ripple {
+  animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+/* 渐变背景动画 */
+@utility animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 8s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* ============================================================================
+ * 滚动条样式
+ * ========================================================================== */
+
+@layer utilities {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--background);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--muted-foreground) 30%, transparent);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--muted-foreground) 50%, transparent);
+  }
+
+  [data-theme='dark'] ::-webkit-scrollbar-track {
+    background: var(--background);
+  }
+
+  [data-theme='dark'] ::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--muted-foreground) 30%, transparent);
+  }
+
+  [data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--muted-foreground) 50%, transparent);
+  }
+}
