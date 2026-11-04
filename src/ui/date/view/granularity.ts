@@ -18,7 +18,6 @@
  * @see 决策记录 `docs/decisions/0001-src-ui-defect-remediation.md`
  */
 
-import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 
 /**
@@ -48,7 +47,6 @@ export function truncateToGranularity(date: Dayjs, granularity: ViewGranularity)
       return date.month(Math.floor(date.month() / 3) * 3).startOf('month');
     case 'month':
       return date.startOf('month');
-    case 'day':
     default:
       return date.startOf('day');
   }

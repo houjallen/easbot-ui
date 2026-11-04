@@ -180,6 +180,7 @@ export function useTablePlugin(
       tableContext, // 清理插件状态
       context,
       resolveLocale,
+      updatePluginState,
     ],
   );
 
