@@ -7,7 +7,7 @@
 > **项目定位**：`@easbot/ui` 是一个**独立的单包 React 组件库**（56 个公开组件，基于 Radix UI + Tailwind CSS v4），
 > 不是 monorepo，不含 `packages/` / `skills/` 目录。
 >
-> **规范体系**：`spec/` 是本库的**开发宪法**（8 份文档），
+> **规范体系**：`spec/` 是本库的**开发宪法**（14 份文档 + 探针脚本 `spec/scripts/`），
 > 入口见 [`spec/spec-index.md`](./spec/spec-index.md) —— 新增组件 / 改样式 / 写测试前**先读对应规范**。
 
 > **版本对齐**：与 `package.json` 一致（当前 `0.3.31`），详见 [`README.md`](./README.md) § 版本。
@@ -38,7 +38,7 @@
    详见 [`spec/i18n-standard.md`](./spec/i18n-standard.md)。
 7. **TODO 约束**：所有**未决策 / 待设计 / 占位**实现必须使用 `// TODO: ...` 注释明确标注
    （含来源、待完成事项、决策路径）。
-8. **测试用例同步**：每个**新功能 / Bug 修复 / 重构**必须配套单元测试（Vitest 4），
+8. **测试用例同步**：每个**新功能 / Bug 修复 / 重构**必须配套单元测试（Vitest 5），
    覆盖核心路径 + 边界 + 异常。**提交前必须补齐**测试覆盖。
 9. **README 同步**：任何**导出变更 / 新增组件 / CLI 命令 / 数据结构 / 开发命令**变更，
    MUST 在提交前同步更新 [`README.md`](./README.md) + [`README.en.md`](./README.en.md)。
@@ -59,7 +59,7 @@ pnpm build                # tsup（JS + d.ts）+ Tailwind CSS 编译
 pnpm build:css            # 仅编译 Tailwind CSS → dist/styles.css
 pnpm clean                # 删除 dist/
 
-# 测试（Vitest 4 + jsdom）
+# 测试（Vitest 5 + jsdom）
 pnpm test                 # 单次运行
 pnpm test:watch           # 监听模式
 pnpm test:coverage        # 覆盖率
@@ -226,7 +226,7 @@ src/ui/<component>/
 | **Vite**     | 仅作为 `@storybook/react-vite` 内部依赖存在 | Storybook 需要 dev server + HMR + CSS 处理                         |
 | **样式方案** | Tailwind v4，**构建期全量编译**             | 消费方零配置；Tailwind 是构建期工具，不进运行时依赖                |
 | **动画类**   | `tw-animate-css`（v4 兼容）                 | 原 `tailwindcss-animate` 是 v3 插件，v4 下不提供 `animate-in` 等类 |
-| **测试框架** | Vitest 4 + jsdom，**不引入** addon-vitest   | addon-vitest 走浏览器模式（需 playwright），CI 重且重复建设        |
+| **测试框架** | Vitest 5 + jsdom，**不引入** addon-vitest   | addon-vitest 走浏览器模式（需 playwright），CI 重且重复建设        |
 | **数据契约** | Zod 4（schema 即运行时校验器）              | 类型与校验同源，避免双轨维护；消费方配置开箱即用                   |
 | **国际化**   | 内置双语文案 + `useComponentMessage`        | 不引入 `react-i18next` / `i18next`；组件库无状态，语言由消费方注入 |
 | **压缩**     | 不压缩，保留 sourcemap                      | 压缩交给消费方 bundler；组件库需可调试                             |

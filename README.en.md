@@ -252,7 +252,7 @@ export function App() {
 | Contracts   | Zod 4 (`z.infer` types + runtime checks)                   |
 | i18n        | Built-in bilingual (zh-CN / en-US) + `useComponentMessage` |
 | Build       | tsup (esbuild)                                             |
-| Testing     | Vitest 4 + @testing-library/react + jsdom                  |
+| Testing     | Vitest 5 + @testing-library/react + jsdom                  |
 | Docs        | Storybook 10 (react-vite builder)                          |
 | Linting     | Biome 2                                                    |
 | Types       | TypeScript 6                                               |
@@ -264,7 +264,7 @@ export function App() {
 | ------------------ | --------------------------------------------- | ---------------------------------------------------------------------- |
 | npm package build  | **tsup** (esbuild)                            | A component library only needs "source → lib + dts"; esbuild is faster |
 | Storybook preview  | `@storybook/react-vite` (bundles Vite itself) | Storybook needs a dev server + HMR + CSS handling — Vite's strength    |
-| Unit testing       | Vitest 4 (Vite pipeline built in)             | No project-level `vite.config.ts` needed; reads `vitest.config.ts`     |
+| Unit testing       | Vitest 5 (Vite pipeline built in)             | No project-level `vite.config.ts` needed; reads `vitest.config.ts`     |
 | Consumer toolchain | Consumer's own (Vite / Next.js / CRA)         | The library ships a standard npm package                               |
 
 **Conclusion**: this repo does **not** need `vite.config.ts` as a build tool. tsup is the
@@ -522,7 +522,7 @@ want to customize the theme.
 
 ## Testing Conventions
 
-- **Framework**: Vitest 4 + jsdom
+- **Framework**: Vitest 5 + jsdom
 - **Location**: `src/ui/<component>/__tests__/<component>.test.tsx` (tests + stories in the `__tests__/` subdirectory)
 - **Naming**: `<component>.test.tsx`
 - **API**: use `vi.*` (not `jest.*`); matchers are registered globally via `@testing-library/jest-dom/vitest`

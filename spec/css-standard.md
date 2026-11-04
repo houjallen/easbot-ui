@@ -1,14 +1,15 @@
 ---
 name: css-standard
-description: 该规范定义 easbot-ui 组件库的样式与主题契约，含 Tailwind CSS v4 构建期编译链路（src/theme/styles.css 单一入口 / @source '../**/*.{ts,tsx}' 扫描 src/ 且排除 .md / dist/styles.css 交付）、src/theme/ 目录布局与文件归属（styles.css 入口 / themes/ 主题变量 / fonts/ 字体 / images/ 图标 / styles/ 辅助样式）、构建与开发两条编译路径都必须启用 Tailwind 编译器（Storybook 侧漏注册 @tailwindcss/vite 会导致零个原子类生成、样式全丢）、CSS 变量命名规则（全局语义变量 / 组件私有前缀变量 / 状态后缀）、主题双文件机制（src/theme/themes/light.css 与 dark.css 必须同步且变量集合完全一致）、@theme inline 语义 token 注册规则（不注册则 bg-primary 等语义类静默失效）、灰阶变量必须用 hsl() 包裹（主题文件存的是裸 HSL 分量）、@custom-variant dark 对齐 data-theme 机制、层叠层顺序与优先级规则、CSS 变量 vs Tailwind 任意值的选型规则、样式 13 项扫描维度（每项含命令 + 判定 + 修正模式）、焦点态约定（focus-visible + outline，禁止用 focus: 与 ring 表达焦点，避免被误读为选中态）、图标按钮默认 ghost 风格、豁免清单与新增样式变量检查清单。当编写组件样式、新增主题变量、排查样式不生效或主题切换异常时参考。
+description: 该规范定义 easbot-ui 组件库的样式与主题契约，含 Tailwind CSS v4 构建期编译链路（src/theme/styles.css 单一入口 / @source '../**/*.{ts,tsx}' 扫描 src/ 且排除 .md / dist/styles.css 交付）、src/theme/ 目录布局与文件归属（styles.css 入口 / themes/ 主题变量 / fonts/ 字体 / images/ 图标 / styles/ 辅助样式）、构建与开发两条编译路径都必须启用 Tailwind 编译器（Storybook 侧漏注册 @tailwindcss/vite 会导致零个原子类生成、样式全丢）、CSS 变量命名规则（全局语义变量 / 组件私有前缀变量 / 状态后缀）、主题双文件机制（src/theme/themes/light.css 与 dark.css 必须同步且变量集合完全一致）、@theme inline 语义 token 注册规则（不注册则 bg-primary 等语义类静默失效）、灰阶变量必须用 hsl() 包裹（主题文件存的是裸 HSL 分量）、@custom-variant dark 对齐 data-theme 机制、层叠层顺序与优先级规则、CSS 变量 vs Tailwind 任意值的选型规则、样式 17 项扫描维度（每项含命令 + 判定 + 修正模式）、焦点态约定（focus-visible + outline 优先，ring 仅在配 offset 时可接受）、动效降级约定（prefers-reduced-motion 必须有兜底 + 禁止 transition-all + 动画只用 transform/opacity）、图标按钮默认 ghost 风格、豁免清单与新增样式变量检查清单。当编写组件样式、新增主题变量、排查样式不生效或主题切换异常时参考。
 category: specification
-version: 2.1.1
-baseline-date: 2026-11-02
-tags: [easbot-ui, css, tailwind, theme, design-token, dark-mode, style, code-review]
+version: 2.2.1
+baseline-date: 2026-11-05
+tags: [easbot-ui, css, tailwind, theme, design-token, dark-mode, style, motion, focus, code-review]
 related:
   - spec-index.md
   - architecture-standard.md
   - component-standard.md
+  - a11y-interaction-standard.md
   - testing-guidelines.md
   - storybook-standard.md
   - code-annotation-standard.md
@@ -627,6 +628,37 @@ import '../src/theme/styles/iconfont/officefont.css';
 - `@theme` 注册时**必须**包一层 `hsl()`
 - 组件里**优先**用 `border-gray-500`（语义类）而不是 `border-[var(--gray-500)]`
 
+### 2.5 ⛔ 深色主题必须声明 `color-scheme`
+
+> 📌 **相关规范**：[`a11y-interaction-standard.md`](./a11y-interaction-standard.md) §9.3。
+
+**深色主题**必须声明 `color-scheme: dark` —— 否则浏览器的**滚动条**、
+**原生控件**（`<select>` 下拉列表 / 日期选择器 / 复选框 / 滚动条按钮）
+**仍是浅色**，与主题**割裂**（Windows 深色模式下尤其明显）。
+
+```css
+/* src/theme/themes/dark.css */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  /* ... 其它变量 ... */
+}
+```
+
+| 主题    | `color-scheme` 取值 | 理由                             |
+| ------- | ------------------- | -------------------------------- |
+| `light` | `light`             | 显式声明，避免浏览器沿用系统偏好 |
+| `dark`  | `dark`              | 让原生控件跟随主题               |
+
+> ⚠️ **实测**：本库主题文件**零** `color-scheme` 声明 —— 登记为缺口 G-A9
+> （见 [`a11y-interaction-standard.md`](./a11y-interaction-standard.md) §M+2）。
+>
+> ⚠️ **本库不产出 `<html>`** —— `color-scheme` 声明在**主题文件的选择器块内**，
+> 由消费方设置 `<html data-theme="dark">` 时**自动生效**，无需消费方额外操作。
+>
+> 📌 **原生 `<select>` 额外要求** —— Windows 深色模式下，下拉列表**必须**显式
+> `background-color` + `color`（本库 `select` 组件用的是 Radix 自绘列表，
+> 不受影响；**消费方**用原生 `<select>` 时需注意）。
+
 ---
 
 ## 3. Tailwind v4 关键机制（本库踩过的四个坑）
@@ -856,20 +888,30 @@ default: 'border-gray-400 hover:border-gray-600 hover:bg-accent/20 active:bg-acc
 ### 4.7 焦点态约定（⛔ 不得表现为「描边」）
 
 > 📌 **真值源**：[`src/ui/icon/icon-button.tsx`](../src/ui/icon/icon-button.tsx) 的 JSDoc「焦点态约定」。
+>
+> 📌 **相关规范**：焦点指示的**语义侧**要求（可访问名称 / 键盘可达 / ARIA）见
+> [`a11y-interaction-standard.md`](./a11y-interaction-standard.md) §3。本节只管**样式写法**。
 
 焦点指示**必须**满足三条硬约束：
 
 | 约束         | 规则                                                                                   | 原因                                                                  |
 | ------------ | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
 | **触发器**   | 只用 `focus-visible:`，**禁止** `focus:`                                               | `focus:` 被鼠标点击触发，焦点圈常驻 → 误读为「选中态」                |
-| **绘制位置** | 用 `outline`（绘制在元素**之外**），**禁止** 用 `ring` 表达焦点                        | `ring` 紧贴元素边缘，圆形按钮上与 `border-radius` 重合 → 视觉等同描边 |
+| **绘制位置** | **优先**用 `outline`（绘制在元素**之外**）；用 `ring` 时**必须**配 `ring-offset`       | `ring` 紧贴元素边缘，圆形按钮上与 `border-radius` 重合 → 视觉等同描边 |
 | **可访问性** | **必须**保留可见焦点指示（WCAG 2.4.7），**不得**整体裸奔（既无 `outline` 也无 `ring`） | 键盘用户 Tab 后无任何视觉提示                                         |
 
-**标准写法**：
+**标准写法（首选）**：
 
 ```tsx
 // ✅ 正例（src/ui/icon/icon-button.tsx）
 'outline-none focus-visible:outline-2 focus-visible:outline-ring/70 focus-visible:outline-offset-2';
+```
+
+**次选写法（必须配 offset）**：
+
+```tsx
+// ✅ 合规 —— ring + offset 留出空隙，与描边可区分
+'outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-offset-2';
 ```
 
 **反例**：
@@ -878,12 +920,17 @@ default: 'border-gray-400 hover:border-gray-600 hover:bg-accent/20 active:bg-acc
 // ❌ 用 focus: —— 鼠标点击后焦点圈常驻
 'focus:ring-2 focus:ring-ring';
 
-// ❌ 用 ring 表达焦点 —— 紧贴边缘，视觉等同描边
+// ❌ 用 ring 表达焦点但不配 offset —— 紧贴边缘，视觉等同描边
 'focus-visible:ring-[3px] focus-visible:ring-ring/50';
 
 // ❌ 焦点指示裸奔 —— 违反 WCAG 2.4.7
 'rounded-md p-1 hover:bg-muted-foreground/20';
 ```
+
+> ⚠️ **存量现状**：全库有 **21 个文件**使用 `focus-visible:ring-*` 但**未配** `ring-offset`
+> （`design-system` 层 16 个 + `src/ui` 层 5 个）——
+> 属**存量豁免**（见 [`a11y-interaction-standard.md`](./a11y-interaction-standard.md) §M+2 H3）。
+> **改动**这些文件时 MUST 顺手补 `focus-visible:ring-offset-2`；**新增**代码**必须**用首选写法。
 
 **图标按钮的默认外观**：
 
@@ -902,6 +949,55 @@ default: 'border-gray-400 hover:border-gray-600 hover:bg-accent/20 active:bg-acc
 > ⚠️ **例外**：菜单**项**（DropdownMenu / ContextMenu / Select 的选项）用 `focus:bg-accent` 表达高亮，
 > 属 Radix 的**键盘导航高亮**语义（业界标准做法），**不算缺陷**；
 > 但**独立触发器**（如 `NavigationMenu` 的 trigger）**不得**用 `focus:` 表达背景高亮。
+
+### 4.7.1 动效降级（⛔ 必须响应 `prefers-reduced-motion`）
+
+> 📌 **相关规范**：[`a11y-interaction-standard.md`](./a11y-interaction-standard.md) §6。
+
+**任何**动画 / 过渡 / 位移效果**必须**提供降级变体。两种合法写法：
+
+```tsx
+// ✅ 写法 A —— Tailwind `motion-reduce:` 变体（组件内，优先）
+'transition-all motion-reduce:transition-none';
+```
+
+```css
+/* ✅ 写法 B —— CSS 媒体查询（自定义 @utility 动画，必须用这个，且必须放在唯一编译入口） */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+```
+
+> ⚠️ **写法 B 必须放在 `src/theme/styles.css`** —— 它是唯一编译入口。
+> 放在组件目录里的 CSS **不进产物**（与 `src/ui/table/style/table.css` 的教训同源）。
+>
+> 📌 **写法 A 与 B 的分工**：
+> `tw-animate-css` 提供的 `animate-in` / `animate-out`（Radix 弹层动画）**不逐个降级** ——
+> 由写法 B 的**全局 media 查询**统一兜底；
+> 组件**自建**的动效（`animate-ripple` / `animate-gradient` / `animate-spin`）**必须**走写法 B 或显式配 `motion-reduce:`。
+
+**动画属性只用 `transform` / `opacity`** —— 合成器友好，不触发重排 / 重绘。
+❌ 禁止**过渡**（`transition`）作用于 `width` / `height` / `top` / `left` / `margin`。
+
+**禁止 `transition-all`** —— 它会动画化所有可动画属性（含布局属性），触发非预期的布局重排：
+
+```tsx
+// ❌ 违规
+'transition-all duration-200';
+
+// ✅ 正确 —— 显式列出属性
+'transition-[color,box-shadow] duration-200';
+```
+
+> ⚠️ **实测**：全库 `transition-all` **12 处** —— 属存量豁免
+> （见 [`a11y-interaction-standard.md`](./a11y-interaction-standard.md) §M+2 H6）。
 
 ### 4.8 交互控件的硬编码颜色
 
@@ -945,7 +1041,7 @@ default: 'border-gray-400 hover:border-gray-600 hover:bg-accent/20 active:bg-acc
 
 ---
 
-## M. 14 项扫描维度（评审必跑）
+## M. 17 项扫描维度（评审必跑）
 
 > **执行纪律**：⛔ **禁止按组件分批跑**，模式必须**一次跑全库**。
 
@@ -1517,9 +1613,112 @@ rg -n "cursor:\s*'pointer'" -g "src/**/*.tsx" -g "!*stories.tsx" --no-heading
 <button className="disabled:cursor-not-allowed" />
 ```
 
+### 维度 ⑮ 禁止 `transition-all`
+
+> 📌 对应条文：§4.7.1「动效降级」。
+
+**扫描命令**：
+
+```bash
+rg -n "transition-all" -g "src/**/*.tsx" -g "!*stories.tsx" --no-heading
+```
+
+**判定规则**：
+
+- ❌ 违规：`transition-all` —— 动画化所有属性（含 `width` / `height` / `box-shadow`）
+- ✅ 合规：0 命中
+- 📌 **实测基线**：**12 处** → 存量豁免
+  （见 [`a11y-interaction-standard.md`](./a11y-interaction-standard.md) §M+2 H6）
+
+**修正模式**：
+
+```tsx
+// ❌ 违规
+'transition-all duration-200';
+
+// ✅ 正确 —— 显式列出属性
+'transition-[color,box-shadow] duration-200';
+```
+
+### 维度 ⑯ 动效必须有 reduced-motion 降级
+
+> 📌 对应条文：§4.7.1「动效降级」。
+
+**扫描命令**：
+
+```bash
+# ① 自定义动画必须有 media 兜底（在唯一编译入口）
+rg -n "@utility animate-|@keyframes" src/theme/styles.css
+Select-String -Path src/theme/styles.css -Pattern "prefers-reduced-motion" |
+  ForEach-Object { "OK: " + $_.Line.Trim() }
+
+# ② 组件内的动效类必须配 motion-reduce
+rg -n "transition-\[|animate-" -g "src/**/*.tsx" -g "!*stories.tsx" --no-heading |
+  Where-Object { $_ -notmatch 'motion-reduce:' }
+```
+
+**判定规则**：
+
+- ❌ 违规 1：`styles.css` 的 `@utility` 动画无 `prefers-reduced-motion` 兜底
+- ❌ 违规 2：组件内动效类未配 `motion-reduce:`
+- ✅ 合规：两条均通过
+
+> 📌 **实测基线**：`styles.css` 的 `animate-ripple` / `animate-gradient` **均无**兜底 →
+> 缺口 G-A3。
+
+**修正模式**：
+
+```css
+/* ✅ 修正 —— src/theme/styles.css（唯一编译入口） */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+```
+
+### 维度 ⑰ `focus-visible:ring` 必须配 `ring-offset`
+
+> 📌 对应条文：§4.7「焦点态约定」。
+
+**扫描命令**：
+
+```bash
+# 列出用 ring 表达焦点但未配 offset 的文件（空 = 合规）
+Get-ChildItem src -Recurse -Include *.tsx | Where-Object {
+  $_.FullName -notmatch '__tests__' -and $_.Name -notlike '*.stories.tsx'
+} | ForEach-Object {
+  $t = Get-Content $_.FullName -Raw
+  if ($t -match 'focus-visible:ring' -and $t -notmatch 'focus-visible:ring-offset') {
+    $_.FullName.Replace("$PWD\","").Replace("\","/")
+  }
+}
+```
+
+**判定规则**：
+
+- ❌ 违规：用 `ring` 表达焦点但无 `offset` → 视觉等同描边
+- ✅ 合规：输出为空
+- 📌 **实测基线**：**21 个文件** → 存量豁免
+  （见 [`a11y-interaction-standard.md`](./a11y-interaction-standard.md) §M+2 H3）
+
+**修正模式**：
+
+```tsx
+// ❌ 违规
+'focus-visible:ring-[3px] focus-visible:ring-ring/50';
+
+// ✅ 修正
+'focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-offset-2';
+```
+
 ---
 
-## M+1. 历史基准（2026-11-02 实测）
+## M+1. 历史基准（2026-11-05 复测）
 
 > **作用域**：本节是**历史快照**。数据会过期，条文不过期。
 
@@ -1614,17 +1813,23 @@ Write-Output "体积: $([math]::Round((Get-Item dist/styles.css).Length/1KB,1)) 
 
 ## M+3. 冲突裁决
 
-| #   | 冲突点                             | 旧规范声明                                                    | 实际情况                                                            | 裁决                                                                                                               |
-| --- | ---------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| C1  | Tailwind 语义类是否可用            | `code-quality.md` 未涉及                                      | 修复前 32/33 语义基类**未生成 CSS**                                 | **必须经 `@theme inline` 注册**（本规范 §3.1）                                                                     |
-| C2  | `dark:` 的判定依据                 | 未涉及                                                        | Tailwind 默认走 `prefers-color-scheme`                              | **必须用 `@custom-variant dark` 对齐 `data-theme`**（§3.2）                                                        |
-| C3  | 主题类型定义的归属                 | 未涉及                                                        | `src/theme/index.ts` 与 `src/theme/themes/index.ts` **各有一份**    | **根目录版是公开 API**（2 主题）；`themes/` 版是资源层（7 主题），不导出                                           |
-| C4  | 样式取值方式                       | `coding-standards.md` 未涉及                                  | 实现文件 `var(--xxx)` 752 处 vs 语义类 ~97 处                       | **语义类优先，组件私有用 `var(--<component>-<role>)`**（§4.1）                                                     |
-| C5  | 主题文件的位置                     | v1.x 在 `src/` 根                                             | 散落在 `src/` 根与 `src/theme/` 两处                                | **收敛到 `src/theme/`**（本规范 §1.2 / §1.3）                                                                      |
-| C6  | 编译入口的数量                     | v1.x 是 `src/styles.css`                                      | 迁移期可能出现新旧入口并存                                          | **入口唯一**（本规范 §1.1 / 维度 ⑫）                                                                               |
-| C7  | `@source` 的相对基准               | v1.x 入口在 `src/`（1 级深），`@source './**'`                | 入口迁到 `src/theme/`（2 级深）后，`../../` 会扫到**仓库根目录**    | **`@source` 必须相对入口重算** —— `../` = `src/`，并显式 `@source not '../../**/*.md'`（§1.4 / 维度 ⑫）            |
-| C8  | 字体二进制放 `src/` 还是 `public/` | v2.0.3 前放 `src/theme/fonts/` + `src/theme/styles/iconfont/` | 字体是**静态资源**（浏览器按 URL 请求），CSS 是**源码**（参与构建） | **二进制进 `public/`，CSS 声明源留在 `src/`** —— 职责分离；`public/` 与消费方静态资源目录同名同结构（§1.7 / §1.8） |
-| C9  | 主题 CSS 是否需要单独产出          | v2.0.3 记「已被 `styles.css` 内联，无需单独引」               | 消费方可能需要**只覆盖主题变量**而保留自己的原子类                  | **保留 `dist/theme-{light,dark}.css`** 并在 `exports` 暴露 —— 可选产物（§1.5）                                     |
+| #   | 冲突点                             | 旧规范声明                                                       | 实际情况                                                            | 裁决                                                                                                                                                     |
+| --- | ---------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1  | Tailwind 语义类是否可用            | `code-quality.md` 未涉及                                         | 修复前 32/33 语义基类**未生成 CSS**                                 | **必须经 `@theme inline` 注册**（本规范 §3.1）                                                                                                           |
+| C2  | `dark:` 的判定依据                 | 未涉及                                                           | Tailwind 默认走 `prefers-color-scheme`                              | **必须用 `@custom-variant dark` 对齐 `data-theme`**（§3.2）                                                                                              |
+| C3  | 主题类型定义的归属                 | 未涉及                                                           | `src/theme/index.ts` 与 `src/theme/themes/index.ts` **各有一份**    | **根目录版是公开 API**（2 主题）；`themes/` 版是资源层（7 主题），不导出                                                                                 |
+| C4  | 样式取值方式                       | `coding-standards.md` 未涉及                                     | 实现文件 `var(--xxx)` 752 处 vs 语义类 ~97 处                       | **语义类优先，组件私有用 `var(--<component>-<role>)`**（§4.1）                                                                                           |
+| C5  | 主题文件的位置                     | v1.x 在 `src/` 根                                                | 散落在 `src/` 根与 `src/theme/` 两处                                | **收敛到 `src/theme/`**（本规范 §1.2 / §1.3）                                                                                                            |
+| C6  | 编译入口的数量                     | v1.x 是 `src/styles.css`                                         | 迁移期可能出现新旧入口并存                                          | **入口唯一**（本规范 §1.1 / 维度 ⑫）                                                                                                                     |
+| C7  | `@source` 的相对基准               | v1.x 入口在 `src/`（1 级深），`@source './**'`                   | 入口迁到 `src/theme/`（2 级深）后，`../../` 会扫到**仓库根目录**    | **`@source` 必须相对入口重算** —— `../` = `src/`，并显式 `@source not '../../**/*.md'`（§1.4 / 维度 ⑫）                                                  |
+| C8  | 字体二进制放 `src/` 还是 `public/` | v2.0.3 前放 `src/theme/fonts/` + `src/theme/styles/iconfont/`    | 字体是**静态资源**（浏览器按 URL 请求），CSS 是**源码**（参与构建） | **二进制进 `public/`，CSS 声明源留在 `src/`** —— 职责分离；`public/` 与消费方静态资源目录同名同结构（§1.7 / §1.8）                                       |
+| C9  | 主题 CSS 是否需要单独产出          | v2.0.3 记「已被 `styles.css` 内联，无需单独引」                  | 消费方可能需要**只覆盖主题变量**而保留自己的原子类                  | **保留 `dist/theme-{light,dark}.css`** 并在 `exports` 暴露 —— 可选产物（§1.5）                                                                           |
+| C10 | 焦点指示用 `ring` 还是 `outline`   | 外部 Web Interface Guidelines 允许 `focus-visible:ring-*` 或等效 | v2.1.1 规定「**禁止** 用 `ring` 表达焦点」                          | **加严为「优先 outline」**（§4.7）—— `ring` **配 `offset` 时**可接受；不配则违规（维度 ⑰）。存量 21 个文件豁免                                           |
+| C11 | `transition: all` 是否允许         | 外部规范「禁止，必须显式列出属性」                               | v2.1.1 未涉及                                                       | **采纳**（§4.7.1 / 维度 ⑮）—— 与本库的构建期 CSS 约束一致；存量 12 处豁免                                                                                |
+| C12 | `prefers-reduced-motion` 兜底      | 外部规范「必须提供降级变体或禁用」                               | v2.1.1 未涉及                                                       | **采纳**（§4.7.1 / 维度 ⑯）—— 但**例外**：`tw-animate-css` 的 `animate-in` / `animate-out` **不逐个降级**，由 `styles.css` 的**全局 media 查询**统一兜底 |
+| C13 | 深色主题的 `color-scheme`          | 外部规范「深色主题需 `color-scheme: dark`」                      | v2.1.1 未涉及                                                       | **采纳**（§2.5 / 缺口 G-A9）—— 本库**不产出** `<html>`，故声明在 `dark.css` 的 `:root[data-theme='dark']` 块内                                           |
+| C14 | 组件命名 / 复合组件形态            | 外部规范倾向静态属性复合（`.Root` / `.Trigger`）                 | 本库**扁平多导出**（`DialogContent`）                               | **保留本库规范** —— 详见 [`component-api-standard.md`](./component-api-standard.md) §M+3 C1                                                              |
+| C15 | `use()` 替代 `useContext()`        | 外部规范「React 19 用 `use()`」                                  | 本库 `useContext` 16 处，全在顶层                                   | **不作为默认替换** —— 详见 [`react-performance-standard.md`](./react-performance-standard.md) §M+3 C2                                                    |
 
 ---
 
@@ -1647,12 +1852,18 @@ Write-Output "体积: $([math]::Round((Get-Item dist/styles.css).Length/1KB,1)) 
 - [ ] 类名合并用 `cn()`，`className` 在末位
 - [ ] 状态样式用 `data-[...]` 变体
 - [ ] 内联 style 只承载动态值
+- [ ] 焦点样式用 `focus-visible:` + `outline`（或 `ring` + `offset`），无裸 `outline-none`
+- [ ] 动效有 `motion-reduce:` 降级（或由 `styles.css` 的全局 media 兜底）
+- [ ] 过渡用具体属性（`transition-[color,box-shadow]`），**不用** `transition-all`
+- [ ] 可点击元素有 `touch-action: manipulation`；浮层内容有 `overscroll-behavior: contain`
 - [ ] `pnpm build:css` 后产物中相关类**确实生成**（维度 ⑨）
 
 ### 评审样式时
 
-- [ ] 维度 ① ~ ⑫ 已全跑（一次跑全库）
+- [ ] 维度 ① ~ ⑰ 已全跑（一次跑全库）
 - [ ] 主题切换在 `data-theme="light"` 与 `data-theme="dark"` 下都正常
+- [ ] 深色主题下原生控件（滚动条 / 下拉列表 / 复选框）可读（`color-scheme`，§2.5）
+- [ ] `prefers-reduced-motion: reduce` 下无强制动画（维度 ⑯）
 - [ ] `pnpm test` 全绿（类名断言可能因 token 注册而变化）
 - [ ] **Storybook 里样式正常**（维度 ⑪ —— 编译器没接管时**构建产物正常但 Storybook 全丢**）
 - [ ] 编译入口唯一（维度 ⑫ —— 无新旧入口并存）
@@ -1671,3 +1882,5 @@ Write-Output "体积: $([math]::Round((Get-Item dist/styles.css).Length/1KB,1)) 
 | 2.0.3 | 2026-11-02 | **字体链路打通（opt-in 交付）+ 修复 `--font-sans` 断链 + 清理 77 MB 死资源**。① **字体从「死代码」变为「可用交付物」** —— `src/theme/fonts/fonts.ts` 原本声明 7 个字重（`'200'`~`'900'`）并生成 `SourceHanSansCN-{weight}.otf`，而磁盘上的真实文件名是 `Regular` / `Medium` / `Bold` / `ExtraLight` / `Light` / `Normal` / `Heavy` → **7 个生成名无一命中**，且 `fonts.ts` **零引用**、注释里写的 `import '@easbot/ui/fonts.css'` 在 `exports` 中**根本不存在**、字体文件（101.9 MB）**从未进 `dist/`**。修复：`fonts.ts` 重写（字重与文件名对齐真实文件、导出 `FONT_FAMILY` / `FONT_SANS_VARIABLE` / `FONT_DIR` / `buildFontFace` / `buildFontStack` / `buildFontsCss`）；新增 `scripts/build-fonts.ts`（由 `pnpm build:fonts` 执行，生成 `dist/fonts.css` + 复制 OTF + 复制 SIL OFL 授权文件）；`package.json#exports` 新增 `"./fonts.css": "./dist/fonts.css"`；`pnpm build` 串联 `tsup && build:css && build:fonts`；② **字重收敛为 3 个（400 / 500 / 700）** —— 每个 OTF 约 8 MB 且 `font-display: swap` 下**每个字重独立下载**，多余字重显著拖慢首屏；③ **删除 77 MB 死资源** —— `src/theme/fonts/msyh/`（3 个 `.ttc` / 46 MB，零引用）+ `SourceHanSansCN` 的 ExtraLight/Heavy/Light/Normal（31 MB）；④ **修复 `--font-sans` 断链（IACVT）** —— `src/theme/styles.css` 的 `@layer base` 与 `src/theme/themes/variables.css` 的 `@theme` 此前写 `var(--font-source-han-sans), system-ui, …`，变量缺失时**整条声明失效**（连 `system-ui` 都拿不到）；改为 **`var(--font-source-han-sans, <完整回退栈>)` 兜底值形式**；⑤ §1.7 由「字体资源」重写为「**字体资源 —— opt-in 交付**」，明确「样式与字体 CSS **一起导出**、由**应用层决定是否启用**」的消费方契约；⑥ §1.5 交付物表新增 `dist/fonts.css` / `dist/fonts/*.otf`；⑦ §1.8 补记 2 项删除；⑧ §M+1 基线补记字体产物（`fonts.css` 0.9 KB / 3 个 OTF 24.1 MB / npm 包 23.5 MB）；⑨ §M+2 中 `fonts.ts` 的「注释已标注失效」条目**作废并替换**为「已修复」记录                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | 2.1.0 | 2026-11-02 | **图标字体链路打通（opt-in 交付）+ 修复 Storybook 图标空白 + 清理 868 KB 冗余格式**。① **发现 iconfont 整条链路从未生效** —— `src/theme/styles/iconfont/` 下的 4 个字体文件（eot / ttf / woff / svg）+ 2 个 officefont ttf **从未进 `dist/`**，`iconfont.css` **未被任何入口引用** → `Icon` 的 `type="class"` 模式在消费方**全是空白图标**（`name` / `url` 模式不受影响）；② **新增 `src/theme/styles/iconfont/icons.ts`** —— 图标字体的**唯一声明源**（导出 `ICONFONT_FAMILY` / `ICONFONT_DIR` / `ICONFONT_FACES` / `OFFICEFONT_FACES` / `buildIconfontFaces` / `buildOfficefontFaces` / `parseIconfontContentMap` / `buildIconfontContentRules`）；③ **新增 `scripts/build-icons.ts`**（`pnpm build:icons`）—— 读源 CSS → **解析** 796 个 `.icon-xxx:before` 的 content 映射 → **重新生成** `dist/iconfont.css`（**不复制**，因路径需改写）→ 复制 4 个字体文件到 `dist/iconfont/`；④ **⛔ 关键约束：CSS 必须重写路径** —— 源文件 `url(iconfont.eot)` 相对自身，产物里 CSS 在 `dist/` 而字体在 `dist/iconfont/` → 层级不一致 → 404；产物改为 `url('./iconfont/iconfont.woff')`；officefont 同理（`url(font/symbol.ttf)` → `url('./iconfont/font/symbol.ttf')`）；⑤ **只保留 woff + ttf** —— 删除 `eot`（174 KB，仅 IE8- 需要）+ `svg`（694 KB，已被 WOFF2 取代），**省 868 KB**，不损失任何现代浏览器支持；⑥ **`package.json#exports` 新增 `"./iconfont.css"`**，`pnpm build` 串联 `tsup && build:css && build:fonts && build:icons`；⑦ **修复 Storybook 图标空白** —— `.storybook/preview.tsx` 此前**只引** `styles.css`，而 iconfont 是 opt-in 产物**不在 `styles.css` 内** → `iconfont` / `officefont` 两个 story 的图标全是空白（story 注释却写着「已全局引入」，极易误判）；现补引两个源 CSS；⑧ **修复 `.officefont` 类缺 `font-family`** —— `officefont-demo.css` 只声明了 `content` 码点，`.officefont` 类**没声明 `font-family`** → 退回默认字体，码点不在字符集里 → 只显示方块；现补 `font-family: 'Wingdings', 'Symbol', sans-serif`；⑨ **`iconfontClassNames` 转为公开 API** —— `src/ui/icon/index.ts` 新增 `export { default as iconfontClassNames }`，消费方可直接取全部 796 个类名做「图标选择器」；⑩ **新增 §1.8「图标字体资源 —— opt-in 交付」**，原「死代码清单」顺延为 §1.9；⑪ §1.5 交付物表新增 `dist/iconfont.css` / `dist/iconfont/*`；⑫ §1.2 文件表补 4 行 iconfont 归属；⑬ §1.9 补记 eot / svg 删除；⑭ §M+1 基线补记图标产物（`iconfont.css` 39.5 KB / 796 个图标类 / 4 个字体 0.44 MB / npm 包 23.9 MB）；⑮ §M+2 豁免清单中 iconfont 的 `!important` 条目补注「不进 `styles.css`」 |
 | 2.1.1 | 2026-11-02 | **字体二进制迁到 `public/`（职责分离）+ 主题 CSS 单独产出并在 `exports` 暴露**。① **目录职责分离** —— 字体二进制是**静态资源**（浏览器按 URL 请求），CSS 声明源是**源码**（参与构建）→ 二进制统一迁到 `public/font/`（7 个 OTF）与 `public/icon/`（4 个文件），**与消费方的静态资源目录同名同结构**，产物按 `/font/xxx` / `/icon/xxx` 引用即**自动对应**；**删除** `src/theme/fonts/SourceHanSansCN/`（7 个 OTF / 60 MB）与 `src/theme/styles/iconfont/font/`（4 个文件）—— `src/` 下**只留 CSS 声明源**（`fonts.ts` / `iconfont.css` / `officefont.css` / `icons.ts`）；② **构建脚本改为「只生成 CSS，不复制字体」** —— `scripts/build-fonts.ts` / `scripts/build-icons.ts` 只产出 CSS + **校验字体存在**（缺失即早失败），npm 包体积 23.9 → **1.5 MB**；③ **字重由 3 个扩为 7 个** —— 字体不进包后，**字重范围由应用层决定**，本库提供全部 7 个（200 / 300 / 400 / 450 / 500 / 700 / 900）的 `@font-face`，消费方可按需只放 1~2 个；④ **`package.json#exports` 新增 `"./theme-light.css"` / `"./theme-dark.css"`** —— 这两个文件**已内联在 `styles.css`**（`@import`），单独产出是为让消费方能**只覆盖主题变量**而保留自己的原子类（**特别提供的可选产物**）；⑤ **新增 §M+3 冲突裁决 C8 / C9**；⑥ §1.7 / §1.8 各新增「目录职责（CSS 与二进制分离）」表；⑦ §1.9 补记两个目录的删除记录；⑧ §M+1 基线更新（npm 包 23.9 MB → **1.5 MB**，`dist/` 内字体二进制 **0 个**）；⑨ §M+2 豁免清单补 `public/` 字体二进制（不进 npm 包）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| 2.2.1 | 2026-11-05 | **全量评审修正**。① **§M+1 复测** —— 706/706 变量集合一致性经 `pnpm probe css` 复测无误，标题日期刷新；② **基线日期同步** —— frontmatter `baseline-date` 2026-11-04 → 2026-11-05。**规范条文本身不过期，只有数据基准会过期**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| 2.2.0 | 2026-11-04 | **吸收外部 Web Interface Guidelines 的动效与焦点条款，扫描维度 14 → 17 项**。① **§4.7 焦点态约定「加严为优先 outline」** —— 原「**禁止** 用 `ring` 表达焦点」改为「**优先** `outline`；用 `ring` 时**必须**配 `ring-offset`」，并给出次选写法（`focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-offset-2`）；这是对外部规范「`focus-visible:ring-*` 或等效」的**兼容式采纳** —— 存量 21 个未配 offset 的文件列入豁免（**改动即补**，新增禁用）；② **新增 §4.7.1「动效降级」** —— 确立 `prefers-reduced-motion` **必须**有兜底（写法 A `motion-reduce:` / 写法 B `styles.css` 全局 media 查询，二者分工明确：`tw-animate-css` 的 `animate-in`/`animate-out` 由写法 B 统一兜底，**不逐个降级**）、**动画属性只用 `transform`/`opacity`**、**禁止 `transition-all`**（改为具体属性）；③ **新增 §2.5「深色主题必须声明 `color-scheme`」** —— `light.css` 显式 `light`、`dark.css` 显式 `dark`，否则浏览器滚动条与原生控件仍是浅色（缺口 G-A9）；④ **扫描维度由 14 项增至 17 项** —— 新增 ⑮「禁止 `transition-all`」（基线 12 处）、⑯「动效必须有 reduced-motion 降级」（基线：`styles.css` 的 `animate-ripple`/`animate-gradient` **均无**兜底）、⑰「`focus-visible:ring` 必须配 `ring-offset`」（基线 21 个文件）；⑤ **§M+3 冲突裁决由 9 条增至 15 条（C10~C15）** —— 逐条裁定外部规范：焦点 `ring`（加严为「优先 outline」）、`transition: all`（采纳）、`prefers-reduced-motion`（采纳但 `tw-animate-css` 例外）、`color-scheme`（采纳）、复合组件形态（**保留本库扁平多导出**）、`use()` 替代 `useContext()`（**不作为默认替换**）；⑥ §M+4 检查清单同步 4 条新项（焦点样式 / 动效降级 / 具体属性过渡 / `touch-action` 与 `overscroll-behavior`）；⑦ 新增交叉引用 [`a11y-interaction-standard.md`](./a11y-interaction-standard.md)（语义侧）与 [`component-api-standard.md`](./component-api-standard.md) / [`react-performance-standard.md`](./react-performance-standard.md)（形态与渲染）。**规范条文本身不过期，只有数据基准会过期**。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |

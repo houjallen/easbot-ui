@@ -1,13 +1,16 @@
 ﻿---
 name: component-standard
-description: 该规范定义 easbot-ui 组件库的组件开发契约，含目录结构要求（实现 / __tests__ 测试与 Story / barrel 导出）、目录与文件命名规则、组件命名规则、导出方式（named export + forwardRef + displayName）、props 类型定义（interface + cva 变体联合类型）、cva 变体定义与命名、类名合并（cn）、类型导入显式化（import type，verbatimModuleSyntax）、图标库规范（唯一使用 lucide-react，具名导入，禁止命名空间导入与引入第二图标库）、barrel 导出规范与公开 API 契约、组件实现 11 项扫描维度（每项含 rg / 脚本命令 + 判定规则 + 真实代码反例→正例）、豁免清单与新增组件检查清单。当新增组件、重构组件实现、评审组件代码或检查组件目录完整性时参考。
+description: 该规范定义 easbot-ui 组件库的组件开发契约，含目录结构要求（实现 / __tests__ 测试与 Story / barrel 导出）、目录与文件命名规则、组件命名规则、导出方式（named export + forwardRef + displayName）、props 类型定义（interface + cva 变体联合类型）、cva 变体定义与命名、类名合并（cn）、类型导入显式化（import type，verbatimModuleSyntax）、图标库规范（唯一使用 lucide-react，具名导入，禁止命名空间导入与引入第二图标库）、barrel 导出规范与公开 API 契约、组件实现 12 项扫描维度（每项含 rg / 脚本命令 + 判定规则 + 真实代码反例→正例）、豁免清单与新增组件检查清单。当新增组件、重构组件实现、评审组件代码或检查组件目录完整性时参考。
 category: specification
-version: 2.0.0
-baseline-date: 2026-11-01
+version: 2.2.0
+baseline-date: 2026-11-05
 tags: [easbot-ui, component, convention, naming, export, cva, forwardref, barrel, code-review]
 related:
   - spec-index.md
   - css-standard.md
+  - component-api-standard.md
+  - a11y-interaction-standard.md
+  - react-performance-standard.md
   - testing-guidelines.md
   - storybook-standard.md
   - code-annotation-standard.md
@@ -272,7 +275,7 @@ export type SelectVariant = NonNullable<VariantProps<typeof selectVariants>['var
 export type SelectSize = NonNullable<VariantProps<typeof selectVariants>['size']>;
 ```
 
-> 📌 **真值源**：`NonNullable<VariantProps<...>['key']>` 是从 cva 定义**派生**的唯一正确写法 —— 手写 `'default' | 'secondary'` 会与 cva 定义漂移（[`src/ui/input/input.tsx:13`](../src/ui/input/input.tsx) 是反例）。
+> 📌 **真值源**：`NonNullable<VariantProps<...>['key']>` 是从 cva 定义**派生**的唯一正确写法 —— 手写 `'sm' | 'default'` 会与 cva 定义漂移（[`src/ui/select/select.tsx:38`](../src/ui/select/select.tsx) 是反例）。
 
 ### 3.5 cva 变体定义
 
@@ -324,7 +327,7 @@ cn('text-sm font-medium leading-none', { 'cursor-not-allowed opacity-70': disabl
 | 3   | **必须**允许调用方的 `className` 覆盖组件默认样式（`twMerge` 保证） | `src/utils/classnames.ts:15`   |
 | 4   | 组件内部追加的类名放在 `className` **之后**（保证调用方优先级更高） | `src/ui/button/button.tsx:378` |
 
-> ⚠️ **`cloneElement` 时**同样**必须**保留调用方的 `className`（[`src/textarea/textarea.tsx`](../src/ui/textarea/textarea.tsx) 已修复）。
+> ⚠️ **`cloneElement` 时**同样**必须**保留调用方的 `className`（[`src/ui/textarea/textarea.tsx`](../src/ui/textarea/textarea.tsx) 已修复）。
 
 ### 3.7 属性透传
 
@@ -487,6 +490,40 @@ import { Button } from '../index';
 import { Button } from '../../button';
 ```
 
+### 3.11 公开 API 的设计契约（⛔ 跨文档引用）
+
+> 📌 **完整的 API 设计规范见** [`component-api-standard.md`](./component-api-standard.md)。
+> 本节只列**与本规范直接耦合**的硬性要求。
+
+| #   | 要求                                                                 | 归属章节                                                           |
+| --- | -------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| 1   | **布尔 prop ≤ 5 个**；超出**必须**收敛为 `variant` 或配置对象        | `component-api-standard.md` §1.2                                   |
+| 2   | 复合组件走**扁平多导出**（`XxxContent`），**不用**静态属性复合       | `component-api-standard.md` §2.1                                   |
+| 3   | 结构组合用 `children` / 插槽；`renderXxx` 仅限「数据项渲染」         | `component-api-standard.md` §3                                     |
+| 4   | 有受控 prop **必**有 `defaultXxx`，且定义了二者优先级                | `component-api-standard.md` §5.1                                   |
+| 5   | Context：Provider 独占状态；消费 Hook **抛错守卫**                   | `component-api-standard.md` §4.2                                   |
+| 6   | **禁止**从目录 barrel 做**运行时**导入（循环依赖）                   | `component-api-standard.md` 维度 ⑦                                 |
+| 7   | 组件**内部**不得从 barrel 运行时导入（与 §3.8 的对外 barrel 不冲突） | [`architecture-standard.md`](./architecture-standard.md) §M 维度 ② |
+
+> 📌 **「对外走 barrel」与「内部不走 barrel」不矛盾**：
+> **对外**（`src/index.ts` → `src/ui/index.ts` → 组件 `index.ts`）**必须**走 barrel —— 这是**公开 API 契约**；
+> **内部**（组件 A 引用组件 B）**必须**直连源模块 —— 否则产生**运行时循环依赖**。
+
+### 3.12 无障碍与性能的实现约束（⛔ 跨文档引用）
+
+> 📌 **完整的规范见** [`a11y-interaction-standard.md`](./a11y-interaction-standard.md)
+> 与 [`react-performance-standard.md`](./react-performance-standard.md)。本节只列**实现层**的硬性要求。
+
+| #   | 要求                                                                  | 归属章节                                      |
+| --- | --------------------------------------------------------------------- | --------------------------------------------- |
+| 1   | 图标按钮**必须**有 `aria-label` / `sr-only` 文本                      | `a11y-interaction-standard.md` §1.1           |
+| 2   | 装饰性图标**必须** `aria-hidden="true"`                               | `a11y-interaction-standard.md` §1.2           |
+| 3   | 非语义元素做交互**必须**补 `role` + `tabIndex` + `onKeyDown`          | `a11y-interaction-standard.md` §2.2           |
+| 4   | 焦点样式**必须** `focus-visible:` + `outline`（或 `ring` + `offset`） | [`css-standard.md`](./css-standard.md) §4.7   |
+| 5   | `aria-label` 的文案**必须**走 `useComponentMessage`                   | [`i18n-standard.md`](./i18n-standard.md) §4.1 |
+| 6   | 组件**必须**在**模块级**定义（不在渲染函数体内）                      | `react-performance-standard.md` §3.3          |
+| 7   | 渲染期**禁止** DOM 测量（`getBoundingClientRect` / `offsetHeight`）   | `react-performance-standard.md` §4.1          |
+
 ---
 
 ## 4. 依赖与构建影响
@@ -518,28 +555,34 @@ import { Button } from '../../button';
 **扫描命令**：
 
 ```bash
-# 列出缺件套的组件目录（空 = 全部齐全）
-Get-ChildItem src -Directory | Where-Object {$_.Name -notin @('types','utils')} | ForEach-Object {
-  $d = $_.Name
-  $miss = @()
-  if (-not (Test-Path "src/$d/$d.tsx")) { $miss += 'impl' }
-  if (-not (Test-Path "src/$d/$d.test.tsx")) { $miss += 'test' }
-  if (-not (Test-Path "src/$d/$d.stories.tsx")) { $miss += 'story' }
-  if (-not (Test-Path "src/$d/index.ts")) { $miss += 'index' }
-  if ($miss) { "$d -> MISSING: $($miss -join ',')" }
-}
+pnpm probe component
 ```
 
-**判定规则**：
+> 手工等价命令（仅列目录缺件，PowerShell 可直跑）：
+>
+> ```powershell
+> Get-ChildItem src/ui -Directory | ForEach-Object {
+>   $d = $_.Name
+>   $miss = @()
+>   if (-not (Test-Path "src/ui/$d/index.ts") -and -not (Test-Path "src/ui/$d/index.tsx")) { $miss += 'index' }
+>   if (-not (Get-ChildItem "src/ui/$d" -Filter '*.tsx' -Recurse -File | Where-Object { $_.FullName -notmatch '__tests__' -and $_.Name -notmatch '\.stories\.|\.test\.' })) { $miss += 'impl' }
+>   if (Get-ChildItem "src/ui/$d" -Include '*.test.*','*.stories.*' -Recurse -File | Where-Object { $_.FullName -notmatch '__tests__' }) { $miss += 'misplaced' }
+>   if ($miss) { "$d -> MISSING: $($miss -join ',')" }
+> }
+> ```
 
-- ❌ 违规：任一组件目录缺 `impl` / `test` / `story` / `index` 任一项
-- ✅ 合规：输出为空
+**判定规则**（探针自动判定）：
+
+- ❌ 违规：组件目录缺 barrel 入口（`index.ts` / `index.tsx`）或缺实现 tsx；
+  测试 / Story 出现在 `__tests__/` 之外
+- ✅ 合规：`[probe:component]` 无 ERROR（存量 `export default` 以 WARN 呈现，属维度②）
 
 **修正模式**：
 
 ```bash
-# ❌ 违规：新建了 src/date-picker/date-picker.tsx，但没建 test / stories / index
-# ✅ 修正：补齐 3 个文件，并在 src/index.ts 加一行 export
+# ❌ 违规：新建了 src/ui/date-picker/，只有 date-picker.tsx
+# ✅ 修正：补齐 4 件套 —— 实现 + index.ts + __tests__/date-picker.test.tsx + __tests__/date-picker.stories.tsx
+#          并在 src/index.ts 加 export * from './ui/date-picker'
 ```
 
 ### 维度 ② 实现文件禁止 `export default`
@@ -547,18 +590,28 @@ Get-ChildItem src -Directory | Where-Object {$_.Name -notin @('types','utils')} 
 **扫描命令**：
 
 ```bash
-rg -n "^export default" -g "src/*/*.tsx" -g "!*stories.tsx"
+pnpm probe component
 ```
+
+> 手工等价命令：
+>
+> ```powershell
+> Get-ChildItem src/ui -Recurse -Filter *.tsx -File |
+>   Where-Object { $_.FullName -notmatch '__tests__|examples' -and $_.Name -notmatch '\.stories\.|\.test\.' } |
+>   Select-String -Pattern '^\s*export\s+default\s'
+> ```
 
 **判定规则**：
 
-- ❌ 违规：实现文件出现 `export default`
-- ✅ 合规：0 命中
+- ❌ 违规（**新增文件**）：实现文件出现 `export default` —— 必须改 named export
+- ⚠️ 存量 **32 处 / 32 文件**（`src/ui`，排除 `__tests__` / stories / examples）已登记豁免
+  —— 探针以 **WARN** 呈现（消息标注「改动即改」），不阻塞退出码
+- ✅ 合规（新增文件）：0 新增命中
 
 **修正模式**：
 
 ```tsx
-// ❌ 违规（src/<component>/<component>.tsx）
+// ❌ 违规（src/ui/<component>/<part>.tsx）
 export default Dialog;
 
 // ✅ 修正
@@ -892,53 +945,58 @@ src/ui/typography/index.tsx   # ← 保留这个（唯一入口）
 
 ---
 
-## M+1. 历史基准（2026-11-01 实测）
+## M+1. 历史基准（2026-11-05 实测）
 
 > **作用域**：本节是**历史快照**。数据会过期，条文不过期。
+> 一键刷新：`pnpm probe baseline`。
 
-| 指标                                                 | 数值                                           |
-| ---------------------------------------------------- | ---------------------------------------------- |
-| 公开组件目录数（`src/ui/`）                          | 54                                             |
-| 基础实现组件数（`src/design-system/components/ui/`） | 48                                             |
-| 组件目录含 `index.ts` barrel 率                      | 54/54（100%）                                  |
-| 测试文件数（`src/**/__tests__/`）                    | 89（39 公开层 + 50 设计系统层）                |
-| Storybook stories 文件数                             | 82                                             |
-| 实现文件 `export default` 命中                       | 1（`src/design-system/index.tsx`，见 §M+2 H4） |
-| 主题 CSS 变量数（light / dark）                      | 706 / 706（集合完全一致）                      |
+| 指标                                                 | 数值                                                                                        |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| 公开组件目录数（`src/ui/`）                          | 56                                                                                          |
+| 基础实现组件数（`src/design-system/components/ui/`） | 46                                                                                          |
+| 组件目录含 barrel 入口率                             | 56/56（100%；`typography` 用 `index.tsx`，其余 `index.ts`）                                 |
+| 测试文件数（`src/**/*.test.tsx`）                    | 123                                                                                         |
+| Storybook stories 文件数                             | 79                                                                                          |
+| 实现文件 `export default` 命中                       | 32 处 / 32 文件（`src/ui`，排除 `__tests__` / stories / examples）—— 存量豁免（维度② WARN） |
+| 主题 CSS 变量数（light / dark）                      | 706 / 706（集合完全一致）                                                                   |
 
 ### 重测命令
 
 ```bash
-# 组件数
-Get-ChildItem src/ui -Directory | Measure-Object
-# 测试文件数
-Get-ChildItem src -Recurse -Filter "*.test.tsx" | Measure-Object
-# 用例数
-rg -c "^\s*(it|test)\(" -g "src/**/*.test.tsx" | Measure-Object
+pnpm probe baseline      # 一键输出上表全部数字
+pnpm probe component     # 维度①②合规状态
 ```
 
 ---
 
 ## M+2. 豁免清单
 
-| 对象                                                                 | 豁免依据                                                                                                                                                                                                |
-| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/ui/use-toast/use-toast.tsx` 不使用 forwardRef / `cn()`          | 该目录导出的是 **Hook**（`useToast`）与状态函数（`toast`），不渲染 DOM，无 ref 与类名可言                                                                                                               |
-| `src/ui/alert-dialog/alert-dialog-modal.tsx` 未纳入 barrel（维度 ⑦） | **已知缺口**：`AlertDialogModal` 已实现（`src/ui/alert-dialog/alert-dialog-modal.tsx:39`）但 `src/ui/alert-dialog/index.ts:1-2` 未导出，且该文件无 test / stories。补齐需单独排期，不在本次规范重建范围 |
-| `src/ui/button/index.ts` 的 `declare module` 增强（§3.8 规则 4）     | **存量豁免**：该增强声明的 `swipeThreshold` / `pressureConfig` 字段在实现（`src/ui/button/button.tsx:73-96`）中**不存在** —— 是**类型契约与实现不一致的真实缺陷**，已登记待修。新增组件**禁止**此模式   |
-| `src/design-system/index.tsx` 的 `export default`（§3.1）            | **存量豁免**：`DesignSystemProvider` 是 Provider 组合入口，保留 default 导出便于消费方 `import DesignSystemProvider from ...`。`export *` **不传播** default，故不影响 `src/index.ts` barrel            |
+| 编号 | 对象                                                                 | 豁免依据                                                                                                                                                                                                               |
+| ---- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| H1   | `src/ui/use-toast/use-toast.tsx` 不使用 forwardRef / `cn()`          | 该目录导出的是 **Hook**（`useToast`）与状态函数（`toast`），不渲染 DOM，无 ref 与类名可言                                                                                                                              |
+| H2   | `src/ui/alert-dialog/alert-dialog-modal.tsx` 未纳入 barrel（维度 ⑦） | **已知缺口**（spec-index G1）：`AlertDialogModal` 已实现（`src/ui/alert-dialog/alert-dialog-modal.tsx:39`）但 `src/ui/alert-dialog/index.ts:1-2` 未导出，且该文件无 test / stories。补齐需单独排期                     |
+| H3   | `src/ui/button/index.ts` 的 `declare module` 增强（§3.8 规则 4）     | **存量豁免**：该增强声明的 `swipeThreshold` / `pressureConfig` 字段在实现（`src/ui/button/button.tsx:73-96`）中**不存在** —— 是**类型契约与实现不一致的真实缺陷**（spec-index G2），已登记待修。新增组件**禁止**此模式 |
+| H4   | `src/design-system/index.tsx` 的 `export default`（§3.1）            | **存量豁免**：`DesignSystemProvider` 是 Provider 组合入口，保留 default 导出便于消费方 `import DesignSystemProvider from ...`。`export *` **不传播** default，故不影响 `src/index.ts` barrel                           |
+| H5   | 维度② `export default` 存量 **32 处**（`src/ui` 实现文件）           | **存量豁免**：探针以 WARN 呈现；**改动触及某文件时必须顺手改为 named export**，新增文件一律 MUST named export（spec-index 无独立编号，见 §M+1）                                                                        |
 
 ---
 
 ## M+3. 冲突裁决
 
-| #   | 冲突点           | 旧规范声明                                                    | 实际情况                                                                    | 裁决                                            |
-| --- | ---------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------- |
-| C1  | 组件目录结构     | `spec-index.md` 未定义                                        | `src/ui/` 下 56 个组件目录含实现 + `index.ts`，测试与 Story 在 `__tests__/` | **目录结构为硬性契约**（本规范 §1.1）           |
-| C2  | 导出方式         | `coding-standards.md` 写「具名导出优先，不用 default export」 | 实现文件 0 处 `export default`（`design-system/index.tsx` 除外）            | **named export 为硬性要求**（本规范 §3.1）      |
-| C3  | `data-slot` 属性 | 未提及                                                        | 全库 **0 处** 使用                                                          | **不引入** `data-slot`（保持与 Radix 惯例一致） |
-| C4  | 变体联合类型来源 | 未提及                                                        | `src/ui/input/input.tsx:13` 手写联合类型                                    | **必须从 cva 派生**（本规范 §3.4）              |
-| C5  | 主题变量命名     | `code-quality.md` 未覆盖                                      | 组件私有变量用 `<component>-<role>` 前缀                                    | **归 `css-standard.md`**                        |
+| #   | 冲突点               | 旧规范声明                                                    | 实际情况                                                                    | 裁决                                                                                                                                                     |
+| --- | -------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1  | 组件目录结构         | `spec-index.md` 未定义                                        | `src/ui/` 下 56 个组件目录含实现 + `index.ts`，测试与 Story 在 `__tests__/` | **目录结构为硬性契约**（本规范 §1.1）                                                                                                                    |
+| C2  | 导出方式             | `coding-standards.md` 写「具名导出优先，不用 default export」 | 实现文件 0 处 `export default`（`design-system/index.tsx` 除外）            | **named export 为硬性要求**（本规范 §3.1）                                                                                                               |
+| C3  | `data-slot` 属性     | 未提及                                                        | 全库 **0 处** 使用                                                          | **不引入** `data-slot`（保持与 Radix 惯例一致）                                                                                                          |
+| C4  | 变体联合类型来源     | 未提及                                                        | `src/ui/select/select.tsx:38` 手写联合类型                                  | **必须从 cva 派生**（本规范 §3.4）                                                                                                                       |
+| C5  | 主题变量命名         | `code-quality.md` 未覆盖                                      | 组件私有变量用 `<component>-<role>` 前缀                                    | **归 `css-standard.md`**                                                                                                                                 |
+| C6  | 复合组件形态         | 外部惯例用静态属性复合（`Dialog.Content`）                    | 全库**零** `Object.assign` / 零 `.Root =`，一律扁平多导出                   | **保留本库规范** —— 静态属性会引入双命名与 TS2308 冲突（见 [`component-api-standard.md`](./component-api-standard.md) §M+3 C1）                          |
+| C7  | `forwardRef`         | 外部 React 19 最佳实践建议「不用 `forwardRef`」               | **必须** `forwardRef` + `displayName`                                       | **保留本库规范** —— 外部规则的依据是「`use()` 替代 `useContext()`」，与 **ref 转发无关**；`forwardRef` 在 React 19 中**仍是官方推荐**方式                |
+| C8  | 布尔 prop 扩散       | 外部建议「用组合替代布尔」                                    | 未涉及；布尔 126 处，`show*` 主导                                           | **采纳为方向，分级落地** —— 设**阈值**而非一刀切；既有 API 收敛是**破坏性变更**（见 [`component-api-standard.md`](./component-api-standard.md) §M+3 C2） |
+| C9  | `renderXxx`          | 外部建议「优先 `children`」                                   | 表格子系统有 9 处 `render*` prop                                            | **采纳** —— 但**保留**表格的 `render*`（「数据项渲染」是唯一合法场景，见 [`component-api-standard.md`](./component-api-standard.md) §M+3 C3）            |
+| C10 | `asChild` 覆盖       | 外部建议复合组件普遍提供 `asChild`                            | 仅 4 个组件提供                                                             | **采纳为新增义务** —— 新增复合组件**必须**提供；既有组件**逐步补齐**（缺口 G-P1）                                                                        |
+| C11 | barrel 导入          | 外部建议「直接导入，避免 barrel」                             | **必须**用 barrel 导出（`export *`）                                        | **部分采纳** —— **对外**必须走 barrel（公开 API 契约）；**内部**运行时 barrel 导入会**循环依赖**（缺口 G-P2）                                            |
+| C12 | 图标按钮的可访问名称 | 外部规范要求 icon-only 按钮必须有 `aria-label`                | 全库 **18 处** 图标按钮缺名 + 6 处日期后缀图标不可键盘访问                  | **采纳** —— 新增 [`a11y-interaction-standard.md`](./a11y-interaction-standard.md)，缺口 G-A10 / G-A11                                                    |
 
 ---
 
@@ -959,20 +1017,28 @@ rg -c "^\s*(it|test)\(" -g "src/**/*.test.tsx" | Measure-Object
 - [ ] `src/ui/index.ts` 已按字母序加 `export * from './<component>';`
 - [ ] 测试覆盖渲染 / 状态 / 交互 / 无障碍四类；Story 覆盖各变体与尺寸
 - [ ] 消费方配置对象（若有）已用 Zod Schema 定义于 `src/models/`
+- [ ] **布尔 prop ≤ 5 个**；超阈值已收敛为 `variant` 或配置对象（[`component-api-standard.md`](./component-api-standard.md) §1.2）
+- [ ] 结构组合用 `children` / 插槽；复合组件走**扁平多导出**并提供 `asChild`
+- [ ] 图标按钮有 `aria-label`；装饰性图标有 `aria-hidden="true"`；非语义元素交互补齐 `role` + `tabIndex` + `onKeyDown`
+- [ ] 焦点样式用 `focus-visible:` + `outline`（或 `ring` + `offset`）
+- [ ] 组件在**模块级**定义；渲染期**无** DOM 测量
 
 ### 评审组件时
 
-- [ ] 维度 ① ~ ⑪ 已全跑（一次跑全库，非按组件分批）
+- [ ] 维度 ① ~ ⑫ 已全跑（一次跑全库，非按组件分批）
 - [ ] 新增的 `export` 已同步 `README.md` + `README.en.md`
 - [ ] 破坏性变更走了 `minor` / `major` 版本 bump
+- [ ] 跨规范自检已跑：[`a11y-interaction-standard.md`](./a11y-interaction-standard.md) 12 项 / [`component-api-standard.md`](./component-api-standard.md) 10 项 / [`react-performance-standard.md`](./react-performance-standard.md) 10 项
 
 ---
 
 ## M+5. 修订记录
 
-| 版本  | 日期       | 变更                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ----- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.0.0 | 2026-10-31 | **首版**。基于 `eas-dev-docs` 技能的 `spec.md` 模板 + 全库实测重建：① 原 `coding-standards.md`（easbot monorepo 残留，含 Zod strict / NamedError / 22 包 workspace 体系）**重命名并重写**为组件库口径的 `component-standard.md`；② 确立**组件 4 件套**为硬性契约；③ 确立 named export / forwardRef + displayName / `export interface` props / cva 派生联合类型 / `cn()` 末位透传 五条实现契约；④ 10 项扫描维度全部实跑验证（命令可一键复跑）；⑤ 豁免清单 4 条（含 2 条真实缺口登记：`alert-dialog-modal` 未导出、`button/index.ts` 幽灵字段增强） |
+| 版本  | 日期       | 变更                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ----- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0.0 | 2026-10-31 | **首版**。基于 `eas-dev-docs` 技能的 `spec.md` 模板 + 全库实测重建：① 原 `coding-standards.md`（easbot monorepo 残留，含 Zod strict / NamedError / 22 包 workspace 体系）**重命名并重写**为组件库口径的 `component-standard.md`；② 确立**组件 4 件套**为硬性契约；③ 确立 named export / forwardRef + displayName / `export interface` props / cva 派生联合类型 / `cn()` 末位透传 五条实现契约；④ 10 项扫描维度全部实跑验证（命令可一键复跑）；⑤ 豁免清单 4 条（含 2 条真实缺口登记：`alert-dialog-modal` 未导出、`button/index.ts` 幽灵字段增强）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| 2.1.0 | 2026-11-04 | **接入三份新规范，消除跨规范盲区**。① **新增 §3.11「公开 API 的设计契约」** —— 跨文档引用 [`component-api-standard.md`](./component-api-standard.md) 的 7 条硬性要求（布尔 prop ≤ 5 / 扁平多导出 / `children` 优先 / 受控非受控配对 / Context 抛错守卫 / 禁 barrel 运行时导入），并**明确「对外走 barrel」与「内部不走 barrel」不矛盾**（前者是公开 API 契约，后者是循环依赖防护）；② **新增 §3.12「无障碍与性能的实现约束」** —— 跨文档引用 [`a11y-interaction-standard.md`](./a11y-interaction-standard.md) 与 [`react-performance-standard.md`](./react-performance-standard.md) 的 7 条实现层要求（`aria-label` / `aria-hidden` / 键盘三件套 / 焦点样式 / i18n 文案来源 / 模块级定义 / 禁渲染期 DOM 测量）；③ **§M+3 冲突裁决由 5 条增至 12 条（C6~C12）** —— 逐条裁定外部规范：**保留**扁平多导出（C6）、**保留** `forwardRef` + `displayName`（C7，说明外部规则的 `use()` 与 ref 转发**无关**）、**采纳**布尔分级阈值（C8）、**采纳** `children` 优先但**保留**表格 `render*`（C9）、**采纳** `asChild` 新增义务（C10）、**部分采纳** barrel 建议（C11）、**采纳**图标按钮可访问名称（C12）；④ §M+4 检查清单新增 6 项（布尔阈值 / 组合方式 / a11y 三条 / 焦点样式 / 模块级定义 + 跨规范自检）；⑤ frontmatter 补 3 份 `related` 与版本升 **2.1.0**。**规范条文本身不过期，只有数据基准会过期**。 |
+| 2.2.0 | 2026-11-05 | **全量评审修正**。① **维度①命令修正** —— 原命令检查组件根目录的 `$d.test.tsx` / `$d.stories.tsx`（与 §1.1 `__tests__/` 契约自相矛盾）且扫描范围误含非组件目录，改为 `pnpm probe component`（口径：`src/ui`、barrel 允许 `index.ts` / `index.tsx`、测试与 Story 必须在 `__tests__/`）；② **维度②接入探针**并登记存量豁免 H5（`export default` 实测 32 处 / 32 文件，WARN 呈现，改动即改）；③ **§M+1 基线刷新**（组件 56 / 基础组件 46 / 测试 123 / Story 79 / barrel 56/56），重测命令改 `pnpm probe baseline`；④ **豁免清单补编号列 H1~H5**（正文 §1.x 的 H1~H4 引用由此可追溯）；⑤ **失效锚点修正**：变体联合类型反例 `input.tsx:13`（实为 JSDoc）→ `select.tsx:38`；`src/textarea` 路径笔误 → `src/ui/textarea`。**规范条文本身不过期，只有数据基准会过期**。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
 ---
 

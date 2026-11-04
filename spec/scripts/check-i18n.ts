@@ -6,9 +6,9 @@
  * 维度③（console.error / console.warn 固定文案）、
  * 维度④（消息表语言不完整）、维度⑤（key 不一致）、维度⑥（占位符不匹配）。
  *
- * 用法：
+ * 用法（必须在仓库根目录执行）：
  * ```bash
- * npx tsx scripts/check-i18n.ts
+ * pnpm check:i18n          # 或 npx tsx spec/scripts/check-i18n.ts
  * ```
  *
  * 退出码：0 = 全部通过；1 = 存在违规。

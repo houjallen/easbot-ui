@@ -245,7 +245,7 @@ export function App() {
 | 数据契约 | Zod 4（`z.infer` 推导类型 + 运行时校验）         |
 | 国际化   | 内置双语（zh-CN / en-US）+ `useComponentMessage` |
 | 构建     | tsup (esbuild)                                   |
-| 测试     | Vitest 4 + @testing-library/react + jsdom        |
+| 测试     | Vitest 5 + @testing-library/react + jsdom        |
 | 文档     | Storybook 10 (react-vite builder)                |
 | 规范     | Biome 2                                          |
 | 类型     | TypeScript 6                                     |
@@ -257,7 +257,7 @@ export function App() {
 | -------------- | ---------------------------------------- | ------------------------------------------------------------ |
 | npm 包构建     | **tsup**（esbuild）                      | 组件库只需「源码 → lib + dts」，esbuild 打包快、配置少       |
 | Storybook 预览 | `@storybook/react-vite`（内部自带 Vite） | Storybook 需要 dev server + HMR + CSS 处理，正是 Vite 强项   |
-| 单元测试       | Vitest 4（自带 Vite 管线）               | 不要求项目内有 `vite.config.ts`，读自己的 `vitest.config.ts` |
+| 单元测试       | Vitest 5（自带 Vite 管线）               | 不要求项目内有 `vite.config.ts`，读自己的 `vitest.config.ts` |
 | 消费方工具链   | 消费方自带（Vite / Next.js / CRA 均可）  | 组件库只产出标准 npm 包                                      |
 
 **结论**：本仓库**不需要** `vite.config.ts` 作为构建工具。tsup 是构建真值源，
@@ -494,7 +494,7 @@ Schema 分组（位于 `src/models/` 与 `src/utils/validation-rule.ts`）：
 
 ## 测试规范
 
-- **框架**：Vitest 4 + jsdom
+- **框架**：Vitest 5 + jsdom
 - **位置**：`src/ui/<component>/__tests__/<component>.test.tsx`（测试与 Story 统一收纳在 `__tests__/` 子目录）
 - **命名**：`<component>.test.tsx`
 - **API**：使用 `vi.*`（非 `jest.*`）；matcher 由 `@testing-library/jest-dom/vitest` 全局注册

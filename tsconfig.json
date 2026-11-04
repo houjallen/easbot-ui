@@ -9,6 +9,6 @@
     "types": ["node", "vitest/globals", "@testing-library/jest-dom"],
     "resolveJsonModule": true
   },
-  "include": [".storybook/**/*", "scripts/**/*", "src/**/*", "tests/**/*", "*.config.ts"],
+  "include": [".storybook/**/*", "scripts/**/*", "src/**/*", "tests/**/*", "spec/scripts/**/*", "*.config.ts"],
   "exclude": ["node_modules", "dist", "storybook-static"]
 }

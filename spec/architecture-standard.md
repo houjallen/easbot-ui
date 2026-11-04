@@ -1,14 +1,16 @@
 ---
 name: architecture-standard
-description: 该规范定义 easbot-ui 组件库的架构契约，含七层源码布局与职责边界（ui / design-system / models / utils / hooks / providers / theme）、模块依赖方向与单向分层图、构建链路（tsup 单一入口 + Tailwind CSS 两步构建 + 消费方零配置）、发布产物与 exports 契约、测试与 Storybook 的工程化基线、TypeScript 严格项约定，以及 12 项扫描维度（每项含命令 + 判定 + 修正模式）。当新增目录、调整模块边界、修改构建配置或排查依赖方向违规时参考。
+description: 该规范定义 easbot-ui 组件库的架构契约，含七层源码布局与职责边界（ui / design-system / models / utils / hooks / providers / theme）、模块依赖方向与单向分层图、构建链路（tsup 单一入口 + Tailwind CSS 两步构建 + 消费方零配置）、发布产物与 exports 契约、测试与 Storybook 的工程化基线、TypeScript 严格项约定与 React 19 基线，以及 13 项扫描维度（每项含命令 + 判定 + 修正模式）。当新增目录、调整模块边界、修改构建配置或排查依赖方向违规时参考。
 category: specification
-version: 2.0.1
-baseline-date: 2026-11-02
-tags: [easbot-ui, architecture, directory, layering, build, tsup, tailwind, bundler]
+version: 2.2.0
+baseline-date: 2026-11-05
+tags: [easbot-ui, architecture, directory, layering, build, tsup, tailwind, bundler, react19]
 related:
   - spec-index.md
   - model-standard.md
   - component-standard.md
+  - component-api-standard.md
+  - react-performance-standard.md
   - css-standard.md
   - code-quality.md
   - testing-guidelines.md
@@ -73,11 +75,33 @@ related:
 | 数据表     | **react-hook-form 7.91**                          | `Form` 组件的表单状态                                             |
 | 图表       | **recharts 3.10**                                 | `Chart` 组件                                                      |
 | 国际化     | **内置双语**（`src/utils/component-messages.ts`） | 21 个文案域 × zh-CN/en-US，不引外部库                             |
+| **React**  | **React 19**（peer `^19.0.0`，实测 19.3.1）       | 见 §1.1                                                           |
 | 测试       | **Vitest 5 + jsdom 30**                           | 见 §6                                                             |
 | 文档       | **Storybook 10**（`@storybook/react-vite`）       | 见 §7                                                             |
 | 代码规范   | **Biome 2.6.4** + **Prettier**（仅 md）           | 见 §8                                                             |
 | 包管理     | **pnpm ≥10**                                      | 与 EASBot 家族一致                                                |
 | Node       | **≥22.22.2**                                      | `package.json#engines`                                            |
+
+### 1.1 React 19 基线（⛔ 硬性约束）
+
+本库是 **React 19** 组件库 —— `peerDependencies.react: ^19.0.0`，
+实测已安装 **19.3.1**。
+
+| #   | 约束                                                                     | 理由                                                                                                                                                                           |
+| --- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | **必须**用 React 19 **可用的** API 语义                                  | 消费方跑 React 19，本库**不能**依赖 React 18 的隐式行为                                                                                                                        |
+| 2   | **必须**保留 `React.forwardRef` + `displayName` 契约                     | `forwardRef` 在 React 19 中**仍是官方推荐**的 ref 转发方式（外部「React 19 弃用 forwardRef」的说法**不成立**，见 [`component-standard.md`](./component-standard.md) §M+3 C7）  |
+| 3   | **禁止**用**手写** `useEffect` + `useState` **模拟** React 19 的并发语义 | 应直接用 `useTransition` / `useDeferredValue` / `useOptimistic`（见 [`react-performance-standard.md`](./react-performance-standard.md) §1.5）                                  |
+| 4   | `useContext` **继续**用于 Context 读取（本库 16 处，全在顶层）           | 组件顶层读取时 `useContext` **完全够用**；`use()` 的条件调用能力会**诱使**破坏「无条件订阅」语义（见 [`react-performance-standard.md`](./react-performance-standard.md) §1.3） |
+| 5   | **禁止**引入 React 18 及以下的**已废弃** API                             | 避免消费方在 React 19 下触发警告                                                                                                                                               |
+
+> 📌 **React 19 并发特性的现状** —— `use` / `useOptimistic` / `useActionState` /
+> `useTransition` / `startTransition` / `useDeferredValue` / `<Activity>` **全部零使用**。
+> 这**不是缺陷**：并发特性主要服务**应用层**场景（路由切换 / 流式渲染 / 大列表），
+> 由**消费方**决定是否启用。本库的职责是**不拖慢**消费方 —— 即不用手工模式抵消其并发优化。
+>
+> 📌 **`useActionState` 明确不引入** —— 它面向**服务端动作 / 渐进增强**，
+> 本库**无** action 端点；表单状态管理用 **`react-hook-form`**（既有方案，不引入第二套）。
 
 > ⚠️ **Vite 只作为 `@storybook/react-vite` 的内部依赖存在** ——
 > 本库**没有** `vite.config.ts` 作为构建配置（见 §5）。
@@ -135,6 +159,8 @@ easbot-ui/
 │   │   ├── theme-provider.tsx    #   ThemeProvider（含 localStorage 持久化）
 │   │   └── notify-provider.tsx   #   NotifyProvider
 │   │
+│   ├── components/               # 应用层组件（ThemeToggle / LocaleToggle；组合 ui 组件，不进 barrel 单独导出）
+│   │
 │   ├── theme/                    # 主题资源层（⭐ 唯一 CSS 编译入口在 styles.css）
 │   │   ├── styles.css            #   ⭐ 编译入口（@source / @theme inline / @custom-variant）
 │   │   ├── index.ts              #   Theme 类型（light / dark）
@@ -145,9 +171,9 @@ easbot-ui/
 │   │
 │   └── types/                    # 类型声明（typings.d.ts，环境声明）
 │
-├── scripts/                      # 构建与校验脚本（10 文件，零外部依赖）
+├── scripts/                      # 构建与版本脚本（零外部依赖；规范探针在 spec/scripts/）
 │   ├── bump-version.ts           #   版本 bump（同步 README + 生成 CHANGELOG + 打 tag）
-│   ├── check-i18n.ts             #   ⭐ i18n 规范扫描（8 项维度）
+│   ├── check-i18n.ts             #   ⭐ i18n 规范扫描（维度 ①③④⑤⑥；已迁至 spec/scripts/）
 │   ├── generate-changelog.ts     #   CHANGELOG 生成（conventional commits）
 │   ├── pre-commit-version.ts     #   pre-commit 版本校验
 │   ├── list-published-versions.ts#   查询 npm 已发布版本
@@ -162,13 +188,13 @@ easbot-ui/
 │
 ├── .storybook/                   # Storybook 配置（main.ts / preview.tsx）
 ├── docs/                         # 消费方文档（组件文档 / getting-started / theming）
-├── spec/                         # 开发规范（10 份，见 spec-index.md）
+├── spec/                         # 开发规范（14 份，含探针脚本 spec/scripts/；见 spec-index.md）
 ├── biome.json                    # Biome 配置（代码 + 格式化）
 ├── prettier.config.mjs           # Prettier 配置（仅 md/mdx）
 ├── tsconfig.json / tsconfig.base.json
 ├── tsup.config.ts                # 构建配置（单入口 / 49 个 external）
 ├── vitest.config.ts              # 测试配置（jsdom）
-└── package.json                  # 依赖分区 + 21 个 script
+└── package.json                  # 依赖分区 + 27 个 script
 ```
 
 ### 2.2 各层职责
@@ -494,7 +520,7 @@ src/theme/styles/iconfont/iconfont.css ─┴─(build:icons)─►  dist/iconfo
 
 ---
 
-## M. 12 项扫描维度（评审必跑）
+## M. 13 项扫描维度（评审必跑）
 
 > **执行纪律**：⛔ **禁止按文件分批跑**，模式必须**一次跑全库**。
 
@@ -593,10 +619,12 @@ $all = @(rg -n '^export default' src -g '*.tsx' -g '*.ts' -g '!*stories.tsx' -g 
 
 **判定规则**：
 
-- ❌ 违规：**`src/ui/` 下的公开组件目录**（不含 `src/ui/table/`）出现 `export default`
-- ✅ 合规：命中数与 §M+1 基线一致（当前 **48** 处，全部在
-  `src/ui/table/`（28）+ `src/design-system/`（2）+ `src/utils/classnames.ts`（1）
-  - `src/ui/icon/font/iconfont-classnames.ts`（1）+ `src/ui/date/locale/index.ts`（1））
+- ❌ 违规：**新增**代码出现 `export default`（公开组件 / 插件 / 工具一律具名导出）
+- ⚠️ 存量豁免：命中数与 §M+1 基线一致即合规（当前 **57** 处 / 排除 `__tests__` 与 stories，分布：
+  `src/ui/table/` 28（plugins 18 + examples 10）+ `src/ui/` 其他 17
+  （edit 3 / file 2 / table atoms·components·molecules·organisms·hooks 10 / date·locale 1 / iconfont 1）
+  - `typings.d.ts` 9（环境声明模块增强）+ `design-system/index.tsx` 1（G8）
+  - `theme-provider.tsx` 1 + `utils/classnames.ts` 1（真值源受控例外））
 
 > 📌 **`src/ui/table/` 内部大量使用 `export default`** —— 18 个插件 +
 > 10 个示例文件都是 default export。这是**表格子系统的历史写法**，
@@ -713,62 +741,107 @@ foreach ($e in @('.','./styles.css')) {
 - ❌ 违规：产物缺失；或 `exports` 缺 `.` / `./styles.css`
 - ✅ 合规：无输出
 
+### 维度 ⑬ 禁止 barrel 运行时循环导入
+
+> 📌 对应条文：§4「模块依赖方向」+ [`component-api-standard.md`](./component-api-standard.md) 维度 ⑦。
+
+**扫描命令**：
+
+```bash
+# 列出从目录 index 的**运行时**（非 import type）导入（空 = 合规）
+rg -n "^import \{[^}]*\} from '(\.\./)*(index|\.)'" -g "src/ui/**/*.tsx" --no-heading |
+  Where-Object { $_ -notmatch 'import type' -and $_ -notmatch '__tests__' -and $_ -notmatch 'examples' }
+```
+
+**判定规则**：
+
+- ❌ 违规：组件内部从目录 barrel 做**运行时**导入 → **循环依赖**
+  （`src/ui/table/index.ts` 又 `export * from './atoms'` / `'./hooks'` → 初始化顺序不确定）
+- ✅ 合规：0 命中
+- ⚠️ **豁免**：`import type` 导入（编译期擦除，**无**运行时循环）；`examples/` 与 `__tests__/`（不进发布产物）
+
+**修正模式**：
+
+```tsx
+// ❌ 违规（src/ui/table/atoms/CellValue.tsx:6）
+import { useTableLogic } from '../index';
+
+// ✅ 修正 —— 直连实际源模块
+import { useTableLogic } from '../context/TableContext';
+```
+
+> 📌 **实测**：**2 处**运行时循环
+> （`src/ui/table/atoms/TableCardContainer.tsx:1` / `src/ui/table/atoms/CellValue.tsx:6`）
+> → 缺口 G-P2 / G-R4。
+
 ---
 
 ## M+1. 历史基准（2026-11-02 实测）
 
 > **作用域**：本节是**历史快照**。数据会过期，条文不过期。
 
-| 指标                        | 值                                              |
-| --------------------------- | ----------------------------------------------- |
-| 包名 / 版本                 | `@easbot/ui` / **0.3.31**                       |
-| 公开组件目录（`src/ui/`）   | **56**                                          |
-| 基础实现组件（DS 层）       | **46**                                          |
-| `src/ui/index.ts` 导出段数  | **55**                                          |
-| `src/index.ts` 导出段数     | **6**                                           |
-| `src/models/` 文件 / schema | **5** / **13**                                  |
-| `tsup` `external` 包数      | **49**（React 4 + Radix 28 + 其他 17）          |
-| `dependencies` / `peerDeps` | **18** / **30**（28 Radix + react + react-dom） |
-| Radix peer 全部 `optional`  | ✅ **28 / 28**                                  |
-| 主题变量 light / dark       | **706 / 706**，集合完全一致                     |
-| 测试文件数                  | **111**（`src/**/*.test.{ts,tsx}`）             |
-| Story 文件数                | **77**（`src/**/*.stories.tsx`）                |
-| `export default` 处数       | **48**（`src/ui/table/` 28 + DS 2 + 其他 18）   |
-| `package.json` script 数    | **23**                                          |
-| `src/theme/` 变量文件数     | **7 套**（不发布，实际发布 light / dark 两套）  |
+| 指标                                 | 值                                                                                       |
+| ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| 包名 / 版本                          | `@easbot/ui` / **0.3.31**                                                                |
+| **React 版本**                       | peer `^19.0.0` / 实测 **19.3.1**                                                         |
+| 公开组件目录（`src/ui/`）            | **56**                                                                                   |
+| 基础实现组件（DS 层）                | **46**                                                                                   |
+| `src/ui/index.ts` 导出段数           | **55**                                                                                   |
+| `src/index.ts` 导出段数              | **6**                                                                                    |
+| `src/models/` 文件 / schema          | **5** / **13**                                                                           |
+| `tsup` `external` 包数               | **49**（React 4 + Radix 28 + 其他 17）                                                   |
+| `dependencies` / `peerDeps`          | **17** / **30**（28 Radix + react + react-dom）                                          |
+| Radix peer 全部 `optional`           | ✅ **28 / 28**                                                                           |
+| 主题变量 light / dark                | **706 / 706**，集合完全一致                                                              |
+| 测试文件数                           | **123**（`src/**/*.{test.ts,test.tsx}`）                                                 |
+| Story 文件数                         | **79**（`src/**/*.stories.tsx`）                                                         |
+| `export default` 处数                | **57**（全 src，排除 `__tests__` / stories；分布见维度⑥ —— `src/ui` 实现 tsx 子集为 32） |
+| `package.json` script 数             | **27**                                                                                   |
+| `src/theme/` 变量文件数              | **7 套**（不发布，实际发布 light / dark 两套）                                           |
+| 文案域数（`ComponentMessageDomain`） | **21**（另 `componentMessages` 聚合表 1 个）                                             |
+| **React 19 并发 API 命中**           | **0**（`use` / `useTransition` / `useDeferredValue` / `useOptimistic` / `<Activity>`）   |
+| `React.memo` 命中                    | **7**（全在 `src/ui/table/atoms/`）                                                      |
+| 动态 `import()` 命中                 | **0**                                                                                    |
+| **barrel 运行时循环导入**            | **2**（`TableCardContainer` / `CellValue`）                                              |
 
 ---
 
 ## M+2. 豁免清单
 
-| 对象                                                                   | 豁免依据                                                                                                              |
-| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `src/design-system/index.tsx` 的 `export default DesignSystemProvider` | **barrel 不传播 default** —— 消费方从 `src/index.ts` 拿到的是具名导出（登记在 [`spec-index.md`](./spec-index.md) G8） |
-| `src/design-system/lib/utils.ts` 的局部 `cn()`                         | DS 层历史自持实现，**与真值源等价**；新增代码一律用 `src/utils/classnames.ts`（§4.3）                                 |
-| `vitest.config.ts` / `.storybook/main.ts` 的 `'@' → src` alias         | **工具侧历史兼容**，源码禁用该别名（维度 ⑤ 只约束源码 import）                                                        |
-| `src/theme/styles.css` / `src/design-system/styles/globals.css`        | **死代码**，不进构建路径（§2.3）—— 清理前需确认无引用                                                                 |
-| `src/theme/` 整体不在 `src/index.ts` barrel                            | **资源层**（字体 / CSS / tokens），无运行时 API（§2.2）                                                               |
-| `src/types/typings.d.ts` 不进 barrel                                   | **环境声明**（模块增强），非运行时符号                                                                                |
-| `src/ui/table/` 的原子/分子/有机体（atom/molecule/organism）分层       | 表格是**唯一**的「胖」组件，采用生物式分层；其余 53 个组件用扁平结构（§2.1）                                          |
-| `src/ui/typography/` 同时存在 `index.ts` 与 `index.tsx`                | `moduleResolution: 'Bundler'` 下 `index.ts` 胜出；`index.tsx` 记录了 TS2308 冲突的规避说明                            |
-| `src/ui/table/types/` 的纯 TypeScript 契约层                           | 含大量**函数值 props**，Zod 校验不了（见 [`model-standard.md`](./model-standard.md) §4.2）                            |
-| `scripts/clean-test-fixtures.ts` / `rewrite-imports.mjs` 未挂 script   | 历史工具，按需手动执行                                                                                                |
+| 对象                                                                                                           | 豁免依据                                                                                                                                                                |
+| -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/design-system/index.tsx` 的 `export default DesignSystemProvider`                                         | **barrel 不传播 default** —— 消费方从 `src/index.ts` 拿到的是具名导出（登记在 [`spec-index.md`](./spec-index.md) G8）                                                   |
+| `src/design-system/lib/utils.ts` 的局部 `cn()`                                                                 | DS 层历史自持实现，**与真值源等价**；新增代码一律用 `src/utils/classnames.ts`（§4.3）                                                                                   |
+| `vitest.config.ts` / `.storybook/main.ts` 的 `'@' → src` alias                                                 | **工具侧历史兼容**，源码禁用该别名（维度 ⑤ 只约束源码 import）                                                                                                          |
+| `src/theme/styles.css` / `src/design-system/styles/globals.css`                                                | **死代码**，不进构建路径（§2.3）—— 清理前需确认无引用                                                                                                                   |
+| `src/theme/` 整体不在 `src/index.ts` barrel                                                                    | **资源层**（字体 / CSS / tokens），无运行时 API（§2.2）                                                                                                                 |
+| `src/types/typings.d.ts` 不进 barrel                                                                           | **环境声明**（模块增强），非运行时符号                                                                                                                                  |
+| `src/ui/table/` 的原子/分子/有机体（atom/molecule/organism）分层                                               | 表格是**唯一**的「胖」组件，采用生物式分层；其余 53 个组件用扁平结构（§2.1）                                                                                            |
+| `src/ui/typography/` 目录入口为 `index.tsx`（唯一例外，无 `index.ts`）                                         | `moduleResolution: 'Bundler'` 下 `.tsx` **优先解析**；`index.tsx` 内记录了 TS2308 冲突的规避说明（与 [`component-standard.md`](./component-standard.md) 维度⑫口径一致） |
+| `src/ui/table/types/` 的纯 TypeScript 契约层                                                                   | 含大量**函数值 props**，Zod 校验不了（见 [`model-standard.md`](./model-standard.md) §4.2）                                                                              |
+| `scripts/clean-test-fixtures.ts` / `rewrite-imports.mjs` 未挂 script                                           | 历史工具，按需手动执行                                                                                                                                                  |
+| 维度② 存量：`src/providers/notify-provider.tsx` 反向依赖 `src/ui/toast` / `use-toast`（实现 4 处 + 测试 2 处） | **已知缺口 G-AR1**：硬约束 5 违规，待修（`pnpm probe arch` 可复现）；**新增** providers / hooks 代码 MUST 遵守硬约束                                                    |
 
 ---
 
 ## M+3. 冲突裁决
 
-| #   | 冲突点                 | 旧写法 / 外部惯例                   | 本库裁决                                                             |
-| --- | ---------------------- | ----------------------------------- | -------------------------------------------------------------------- |
-| C1  | 构建产物目录           | `lib/` 或 `es/`                     | **`dist/`**（与家族「发布产物 = dist」约定一致）                     |
-| C2  | 样式产出方式           | 由构建工具（vite / rollup）一并产出 | **两步构建**：`tsup` 出 JS，`@tailwindcss/cli` 出 CSS                |
-| C3  | 组件分层               | 单层 `components/`                  | **两层**：`ui/`（公开）+ `design-system/`（基础实现）                |
-| C4  | `design-system` 的暴露 | 全部导出                            | **只导出 Provider 相关符号**；基础组件经 `src/ui/` 暴露              |
-| C5  | 路径别名               | `tsconfig.paths` + `@/` 导入        | **禁用**，一律相对路径（维度 ⑤）                                     |
-| C6  | 图标库                 | 多图标库并存                        | **唯一** `lucide-react`（见 component 规范）                         |
-| C7  | 动画方案               | `tailwindcss-animate`（v3 插件）    | **`tw-animate-css`**（v4 兼容）                                      |
-| C8  | 运行时日志             | 组件内 `console.*`                  | **无运行时日志**（纯组件库）；构建 / 脚本的 `console.*` 属开发期诊断 |
-| C9  | 测试覆盖率门槛         | 强制 80%                            | **无门槛**（`vitest.config.ts` 未配 `thresholds`）                   |
+| #   | 冲突点                   | 旧写法 / 外部惯例                                                               | 本库裁决                                                                                                                                                |
+| --- | ------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1  | 构建产物目录             | `lib/` 或 `es/`                                                                 | **`dist/`**（与家族「发布产物 = dist」约定一致）                                                                                                        |
+| C2  | 样式产出方式             | 由构建工具（vite / rollup）一并产出                                             | **两步构建**：`tsup` 出 JS，`@tailwindcss/cli` 出 CSS                                                                                                   |
+| C3  | 组件分层                 | 单层 `components/`                                                              | **两层**：`ui/`（公开）+ `design-system/`（基础实现）                                                                                                   |
+| C4  | `design-system` 的暴露   | 全部导出                                                                        | **只导出 Provider 相关符号**；基础组件经 `src/ui/` 暴露                                                                                                 |
+| C5  | 路径别名                 | `tsconfig.paths` + `@/` 导入                                                    | **禁用**，一律相对路径（维度 ⑤）                                                                                                                        |
+| C6  | 图标库                   | 多图标库并存                                                                    | **唯一** `lucide-react`（见 component 规范）                                                                                                            |
+| C7  | 动画方案                 | `tailwindcss-animate`（v3 插件）                                                | **`tw-animate-css`**（v4 兼容）                                                                                                                         |
+| C8  | 运行时日志               | 组件内 `console.*`                                                              | **无运行时日志**（纯组件库）；构建 / 脚本的 `console.*` 属开发期诊断                                                                                    |
+| C9  | 测试覆盖率门槛           | 强制 80%                                                                        | **无门槛**（`vitest.config.ts` 未配 `thresholds`）                                                                                                      |
+| C10 | React 19 的 `forwardRef` | 外部建议「React 19 弃用 `forwardRef`」                                          | **保留本库规范** —— 全库 **49** 处 `forwardRef` + `displayName`；外部规则的依据是「`use()` 替代 `useContext()`」，与 **ref 转发无关**（见 §1.1 约束 2） |
+| C11 | React 19 并发 API        | 外部建议广泛采用 `use` / `useTransition` / `useDeferredValue` / `useOptimistic` | 全库**零**使用                                                                                                                                          | **不强制引入** —— 并发特性服务**应用层**场景，由**消费方**决定；本库的职责是**不拖慢**消费方（见 §1.1）    |
+| C12 | 组件内部导入方式         | 外部建议「直接导入，避免 barrel」                                               | **必须**用 barrel 导出（`export *`）                                                                                                                    | **部分采纳** —— **对外**必须走 barrel（公开 API 契约）；**内部**运行时 barrel 导入会**循环依赖**（维度 ⑬） |
+| C13 | 复合组件形态             | 外部倾向静态属性复合（`.Root` / `.Trigger`）                                    | 全库**零**静态属性挂载，一律扁平多导出                                                                                                                  | **保留本库规范** —— 详见 [`component-api-standard.md`](./component-api-standard.md) §M+3 C1                |
+| C14 | 数据获取 / SSR           | 外部建议 `Promise.all` 并行 / `React.cache` 去重                                | 本库**无**数据获取层、**无** SSR 层                                                                                                                     | **不适用** —— 本库是**纯组件库**（见 `spec-index.md`「不存在的约定」）                                     |
 
 ---
 
@@ -780,17 +853,19 @@ foreach ($e in @('.','./styles.css')) {
 - [ ] 未使用 `@/` 别名（维度 ⑤）
 - [ ] 依赖方向向下（维度 ②）
 - [ ] 有 barrel 出口（维度 ④）
+- [ ] **无** barrel 运行时循环导入（维度 ⑬）
 - [ ] 新增第三方依赖已同步 `package.json` 分区 + `tsup.config.ts` 的 `external`（维度 ⑧⑨）
 - [ ] 类型导入用 `import type`（维度 ⑩）
 - [ ] 测试 / Story 在 `__tests__/` 下（维度 ⑪）
 - [ ] 文件头 JSDoc 完整（见 [`code-annotation-standard.md`](./code-annotation-standard.md) §3.1）
+- [ ] 未用**手写** `useEffect` + `useState` 模拟 React 19 并发语义（§1.1 约束 3）
 
 ### 改架构时
 
 - [ ] §2.1 目录树已同步更新
 - [ ] §4.1 依赖图未产生环
 - [ ] §3 的 barrel 导出段已更新
-- [ ] 12 项维度全部重跑
+- [ ] 13 项维度全部重跑
 
 ### 发布前
 
@@ -807,6 +882,8 @@ foreach ($e in @('.','./styles.css')) {
 | ----- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2.0.0 | 2026-11-02 | **全文重写 —— 对齐 `easbot-ui` 组件库真实实现**（原 v1.6.0 描述的是 `easbot-doc` 文档门户 —— Nextra 4 / Next.js 16 / Algolia / `content/<locale>/` / `sourceType` 判别式联合，与本库**完全无关**）。① 概述重写 —— 明确本库是**独立单包 React 组件库**（非文档门户、非 monorepo）；② §1 技术基线全换（tsup 8.5 / Tailwind v4 / Radix 28 peer / Zod 4.6.7 / Vitest 5 / Storybook 10 / Biome 2.6.4）；③ §2 目录树改为真实的**七层**布局（ui 54 / design-system 48 / models 5 / utils 10 / hooks 3 / providers 2 / theme / types），补 `src/theme/`「资源层，不进 barrel」的定位，新增 §2.2「各层职责 + 不得包含什么 + 是否进公开 API」三列表、§2.3「死代码 / 残缺资产」表（`src/theme/styles.css` 的 `../../../../repository/` 失效路径、`globals.css` 的未安装插件 `@tailwindcss/typography`、7 套未发布主题、2 个未挂 script 的历史脚本）；④ §3 新增「公开 API 出口」——`src/index.ts` 的 6 段导出（顺序固定）+ 5 条规则；⑤ §4 依赖方向全面重写 —— 给出**实测**的允许边表（含 `src/ui/` → `src/models/` 的 7 处**全为 `import type`**）+ **5 条硬约束** + §4.3 `cn()` 唯一实现（`src/utils/classnames.ts` vs DS 局部副本）；⑥ §5 构建链路改为**两步构建**（tsup 出 JS+dts / `@tailwindcss/cli` 出 CSS），补 tsup 12 项配置要点 + **49 个 external** 的 6 组分类 + 消费方零配置契约（`exports` 仅 3 条，**无 `./fonts.css`**）；⑦ §6 测试基线（jsdom / globals / `tests/setup.ts` / `css:false` / 30s 超时 / v8 覆盖率 + 7 类 polyfill 全局化）；⑧ §7 Storybook 基线（`@storybook/react-vite` / 5 addon / **不装 `addon-vitest`** / `viteFinal` 必须注入 `@tailwindcss/vite` + 主题双机制 `data-theme` 属性 vs class）；⑨ §8 TypeScript 严格项（`verbatimModuleSyntax` / `Bundler` / `noUncheckedIndexedAccess` / **无 `paths` 无 `baseUrl`** / `noEmit`）；⑩ 维度由 12 项（Nextra 专属）改为 **12 项**（全部对齐组件库）：目录齐全 / 依赖方向 / models 必须 `import type` / 组件 barrel / 禁 `@/` + 禁 `paths` / 禁 `export default` / barrel 只含导出 / 依赖分区 + external 同步 / Radix peer 全 optional / 类型导入显式化 / 测试与 Story 在 `__tests__/` / 构建产物与 exports 契约；⑪ §M+1 基线全换（0.3.31 / 54 组件 / 55+6 导出段 / 13 schema / 49 external / 18+30 依赖 / 692+692 变量 / 109 测试 / 81 Story / 21 script）；⑫ §M+2 豁免清单扩为 9 条（含 DS 局部 `cn()` / 工具侧 `@` alias / `src/theme/` 死代码 / 表格的生物式分层 / typography 双 barrel）；⑬ **新增 §M+3 冲突裁决 9 条**（产物目录 / 样式产出方式 / 组件分层 / DS 暴露面 / 路径别名 / 图标库 / 动画方案 / 运行时日志 / 覆盖率门槛）。**本规范从「文档门户架构规范」彻底转为「组件库架构规范」**。 |
 | 2.0.1 | 2026-11-02 | **同步字体 / 图标字体的 opt-in 交付链路 + 主题 CSS 单独产出**。① §5.1 构建链路图由「两步构建」改为「**四步构建**」 —— `tsup && build:css && build:fonts && build:icons`；② **字体产物改为「只生成 CSS，不复制二进制」** —— 字体是**静态资源**，保留在仓库根的 `public/font/` 与 `public/icon/`（**与消费方的静态资源目录同名同结构**），产物按 `/font/xxx` / `/icon/xxx` 引用即自动对应；`src/` 下**只留 CSS 声明源**（`fonts.ts` / `iconfont.css` / `officefont.css` / `icons.ts`）；③ **`exports` 由 3 条扩为 7 条** —— 新增 `./fonts.css` / `./iconfont.css` / `./theme-light.css` / `./theme-dark.css`；④ §2.2 与 §5.3 中「`exports` 无 `./fonts.css`」「该注释目前是失效的」两处**失效声明作废**（已生效）；⑤ §M+1 基线同步（npm 包 23.9 MB → **1.5 MB**，`dist/` 内字体二进制 **0 个**）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| 2.1.0 | 2026-11-04 | **新增 React 19 基线 + 维度 ⑬，基线数据全量校正**。① **新增 §1.1「React 19 基线（⛔ 硬性约束）」** —— 确立 5 条约束：① 必须用 React 19 可用的 API 语义；② **必须保留** `forwardRef` + `displayName`（明确外部「React 19 弃用 `forwardRef`」的说法**不成立** —— 那个规则的依据是「`use()` 替代 `useContext()`」，与 ref 转发**无关**）；③ **禁止**用手写 `useEffect` + `useState` **模拟** React 19 并发语义；④ `useContext` **继续**用于 Context 读取（本库 16 处全在顶层，`use()` 的条件调用能力会诱使破坏「无条件订阅」语义）；⑤ 禁止引入 React 18 及以下的已废弃 API；② **扫描维度由 12 项增至 13 项** —— 新增 ⑬「禁止 barrel 运行时循环导入」（**明确「对外走 barrel」与「内部不走 barrel」不矛盾**：前者是公开 API 契约，后者是循环依赖防护）；基线 **2 处**（`TableCardContainer.tsx:1` / `CellValue.tsx:6`）；③ **§M+1 基线全量校正** —— `external` 49（**此前误记 56**，实测 `tsup.config.ts` 为 React 4 + Radix 28 + 其他 17）/ `dependencies` **17**（此前误记 18）/ 测试文件 **123**（此前 111）/ Story **79**（此前 77）/ 新增 React 版本（19.3.1）/ 文案域 21 + 聚合表 1 / `React.memo` 7 / 动态 `import()` 0 / barrel 运行时循环 2；④ **§M+3 冲突裁决由 9 条增至 14 条（C10~C14）** —— **保留** `forwardRef`（C10）、**不强制引入** React 19 并发 API（C11，说明其服务**应用层**场景）、**部分采纳** barrel 建议（C12）、**保留**扁平多导出（C13）、**不适用**数据获取 / SSR 优化（C14，本库是纯组件库）；⑤ §M+4 检查清单新增「无 barrel 运行时循环导入」与「未用手写模式模拟并发语义」两条；⑥ frontmatter 补 2 份 `related` 与版本升 **2.1.0**。**规范条文本身不过期，只有数据基准会过期**。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| 2.2.0 | 2026-11-05 | **全量评审修正 + 探针接入**。① **维度⑥判定修正** —— 「48 处全部在 …」的枚举与 §M+1 自相矛盾（列举仅 33 处），改为实测 **57 处**及真实分布（table 28 / ui 其他 17 / typings 9 / ds 1 / theme-provider 1 / classnames 1）；② **§M+1 基线校正** —— script 数 23 → **27**（`check:spec` / `probe` 等新增）；③ **typography 豁免行修正** —— 实测仅 `index.tsx` 存在（无 `index.ts`），与 component 维度⑫「Bundler 下 `.tsx` 优先解析」口径统一，消除「`index.ts` 胜出」的跨文档矛盾；④ **§2.1 目录树补实存的 `src/components/` 应用层**；⑤ **C10 行修复表格断裂**（多出的一列并入裁决）；⑥ **§M+2 登记 G-AR1** —— `notify-provider` 反向依赖 `src/ui/toast` / `use-toast`（硬约束 5 违规，`pnpm probe arch` 可复现，待修）；⑦ scripts 树更新 —— `check-i18n.ts` / `check-spec.ts` 迁至 `spec/scripts/`，`spec/` 计数 14 份。**规范条文本身不过期，只有数据基准会过期**。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 ---
 

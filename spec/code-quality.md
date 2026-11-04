@@ -2,8 +2,8 @@
 name: code-quality
 description: 该规范定义 easbot-ui 组件库的代码质量门禁与工程化契约，含 Biome 2 配置基线（格式化参数 / 规则归属表 / 刻意关闭的规则）、TypeScript 配置基线（strict / verbatimModuleSyntax / noUncheckedIndexedAccess / jsx react-jsx）、构建链路（tsup 浏览器库模式 + Tailwind CSS 构建期编译 + 产物契约）、依赖三分区（dependencies / peerDependencies / peerDependenciesMeta.optional）与红线（含 external 同步）、Zod 数据契约层约定（schema 即校验器 / z.infer 推导 / 递归 schema 写法 / Zod v4 破坏性变更）、exports 字段与 files 字段、发布前自检清单、11 项扫描维度（每项含命令 + 判定 + 修正模式）、豁免清单与门禁清单。当配置 lint / type-check / 构建、调整依赖、编写数据契约、发布新版本或排查 CI 失败时参考。
 category: specification
-version: 2.0.0
-baseline-date: 2026-11-01
+version: 2.1.0
+baseline-date: 2026-11-05
 tags: [easbot-ui, quality, biome, typescript, tsup, build, dependency, release, ci]
 related:
   - spec-index.md
@@ -100,7 +100,7 @@ pnpm publish:npm:win      # 发布到 npm（Windows PowerShell）
 
 ### 2.1 配置文件
 
-- **唯一真值源 = 根 [`biome.json`](../biome.json)**（schema v2，biome 2.5.5）
+- **唯一真值源 = 根 [`biome.json`](../biome.json)**（schema v2，biome **2.6.4**）
 - **本库是单包**，**无**子包 `biome.json`
 
 ### 2.2 格式化基线
@@ -206,6 +206,7 @@ pnpm publish:npm:win      # 发布到 npm（Windows PowerShell）
 | `!**/node_modules/`     | 依赖                                                     |
 | `!**/*.md`              | markdown 走 prettier                                     |
 | `!**/storybook-static/` | Storybook 静态产物（**117 个生成文件**，会让 lint 卡死） |
+| `!**/docs/temp/`        | 消费方文档的临时草稿区（以 `biome.json` 实际配置为准）   |
 | `!**/coverage/`         | 覆盖率报告                                               |
 | `!**/.easbot/`          | L3 开发产物（不进 git）                                  |
 
@@ -255,16 +256,16 @@ pnpm publish:npm:win      # 发布到 npm（Windows PowerShell）
 
 **tsup 配置基线**（真值源：[`tsup.config.ts`](../tsup.config.ts)）：
 
-| 字段           | 值                                                                                           | 说明                                                    |
-| -------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| `platform`     | `'browser'`                                                                                  | ❌ **不是** `'node'` —— 这是浏览器组件库                |
-| `format`       | `['esm', 'cjs']`                                                                             | 双格式                                                  |
-| `outExtension` | ESM → `.mjs` / CJS → `.cjs`                                                                  | **决定产物文件名** —— `package.json` 必须对齐（维度 ⑩） |
-| `minify`       | `false`                                                                                      | **不压缩**，保留可调试性                                |
-| `sourcemap`    | `true`                                                                                       | 保留 sourcemap                                          |
-| `dts`          | `{ resolve: ['./src/index.ts'] }`                                                            | 只解析入口                                              |
-| `external`     | **57 个包**：react 运行时 4 + Radix 28 + 工具链 6 + 数据契约 1（zod）+ 日期 2 + 交互型底层 8 | 全部**不打包**                                          |
-| `onSuccess`    | 复制 `theme-*.css` 到 `dist/`                                                                | 便于调试与单独覆盖                                      |
+| 字段           | 值                                                   | 说明                                                    |
+| -------------- | ---------------------------------------------------- | ------------------------------------------------------- |
+| `platform`     | `'browser'`                                          | ❌ **不是** `'node'` —— 这是浏览器组件库                |
+| `format`       | `['esm', 'cjs']`                                     | 双格式                                                  |
+| `outExtension` | ESM → `.mjs` / CJS → `.cjs`                          | **决定产物文件名** —— `package.json` 必须对齐（维度 ⑩） |
+| `minify`       | `false`                                              | **不压缩**，保留可调试性                                |
+| `sourcemap`    | `true`                                               | 保留 sourcemap                                          |
+| `dts`          | `{ compilerOptions: { ignoreDeprecations: '6.0' } }` | TS 6 deprecation 兼容（以 `tsup.config.ts` 为真值源）   |
+| `external`     | **49 个包**：react 运行时 4 + Radix 28 + 其他 17     | 全部**不打包**                                          |
+| `onSuccess`    | 复制 `theme-*.css` 到 `dist/`                        | 便于调试与单独覆盖                                      |
 
 > ⛔ **禁止在 `tsup.config.ts` 里出现重复键** —— 对象字面量的重复键会**静默取最后一个**，
 > 前面的配置被无声吞掉（实测踩过：`minify` / `sourcemap` / `clean` 各写两次，
@@ -363,7 +364,7 @@ pnpm build && pnpm test && pnpm type-check && pnpm lint && pnpm storybook:build
 本库把「**消费方需要传入的配置对象**」定义为 **Zod Schema** ——
 schema 即运行时校验器，类型通过 `z.infer` 推导，**类型与校验逻辑同源**，避免双轨维护。
 
-**Schema 清单（14 个）**：
+**Schema 清单（15 个）**：
 
 | 模块                           | Schema                                                                                                       |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
@@ -597,6 +598,14 @@ $pkg.peerDependencies.PSObject.Properties.Name | Where-Object { $_ -like '@radix
 
 - ❌ 违规：react / react-dom 在 `dependencies`；或任一 Radix peer 未标 `optional`
 - ✅ 合规：无输出
+- 🔁 **探针**：`pnpm probe arch`（含依赖分区 + external 同步联合判定）
+
+**修正模式**：
+
+```jsonc
+// ❌ 违规：源码直接 import 的包进了 devDependencies / 或 radix 误入 dependencies
+// ✅ 修正：按三分区归位 —— 运行时工具库 → dependencies；react / radix → peer（radix 标 optional）
+```
 
 ### 维度 ⑨ 源码 import 的包必须有对应依赖声明
 
@@ -617,6 +626,14 @@ if ($missing) { "MISSING dependency: $($missing -join ', ')" } else { "OK" }
 
 - ❌ 违规：源码 import 了未声明的包 → **发布后运行时崩溃**
 - ✅ 合规：输出 `OK`
+- 🔁 **探针**：`pnpm probe arch`（dependencies ⊆ tsup external 联合判定）
+
+**修正模式**：
+
+```jsonc
+// ❌ 违规：src/ui/calendar/ 直接 import 'date-fns'，但 date-fns 不在任何依赖分区
+// ✅ 修正：pnpm add date-fns（进 dependencies）+ 同步登记进 tsup.config.ts 的 external
+```
 
 ### 维度 ⑩ `package.json` 声明的产物必须真实存在
 
@@ -684,22 +701,22 @@ sourcemap: true,
 
 > **作用域**：本节是**历史快照**。数据会过期，条文不过期。
 
-| 指标                                | 数值                   |
-| ----------------------------------- | ---------------------- |
-| Biome 版本                          | 2.5.5（schema v2）     |
-| TypeScript 版本                     | 6.0.3                  |
-| tsup 版本                           | 8.5.1                  |
-| Vitest 版本                         | 4.1.6                  |
-| Storybook 版本                      | 10.6.5                 |
-| Tailwind 版本                       | 4.3.3                  |
-| Zod 版本                            | 4.4.3                  |
-| Node 要求                           | `>=22.22.2`            |
-| pnpm 要求                           | `>=10.0.0`             |
-| `tsup` external 包数                | **57**                 |
-| `dependencies` / `peerDependencies` | 18 / 30                |
-| Zod Schema 数                       | **14**                 |
-| TS1484（类型导入未标记）命中        | **0**（已全量修复）    |
-| `pnpm test` 用例数                  | 1000+（89 个测试文件） |
+| 指标                                | 数值                    |
+| ----------------------------------- | ----------------------- |
+| Biome 版本                          | 2.6.4（schema v2）      |
+| TypeScript 版本                     | 6.0.3                   |
+| tsup 版本                           | 8.5.1                   |
+| Vitest 版本                         | ^5.0.5                  |
+| Storybook 版本                      | 10.6.5                  |
+| Tailwind 版本                       | 4.3.3                   |
+| Zod 版本                            | ^4.6.7                  |
+| Node 要求                           | `>=22.22.2`             |
+| pnpm 要求                           | `>=10.0.0`              |
+| `tsup` external 包数                | **49**                  |
+| `dependencies` / `peerDependencies` | 17 / 30                 |
+| Zod Schema 数                       | **15**                  |
+| TS1484（类型导入未标记）命中        | **0**（已全量修复）     |
+| `pnpm test` 用例数                  | 1000+（123 个测试文件） |
 
 ### 重测命令
 
@@ -783,7 +800,8 @@ npm pack --dry-run
 
 | 版本  | 日期       | 变更                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | ----- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2.0.0 | 2026-11-01 | **同步真实实现 + 引入 Zod 数据契约层**。① 新增 §4.5「数据契约层（Zod）」：Schema 清单（14 个）、7 条规则、Zod v4 破坏性变更（`z.function({ input, output })`）、递归 schema 正确写法；② 修正 M+2「`zod` 在 `devDependencies`」的错误豁免（源码 `src/models/` 4 个文件 + `src/utils/validation-rule.ts` 确实直接 import zod → **必须在 `dependencies`**）；③ 依赖三分区表补齐 18 个 `dependencies` / 28 个 Radix peer；④ `external` 基线从「22 个 Radix」更新为 **57 个包**并记录实测教训（漏配 zod → 消费方 `instanceof` 失败）；⑤ 冲突裁决新增 C6（Zod 依赖归置）；⑥ 命令清单补 `version:pre-commit` / `publish:npm:win`；⑦ `src/types/css.d.ts` 更正为 `src/types/typings.d.ts`                                                                                                                                    |
+| 2.0.0 | 2026-11-01 | **同步真实实现 + 引入 Zod 数据契约层**。① 新增 §4.5「数据契约层（Zod）」：Schema 清单（14 个）、7 条规则、Zod v4 破坏性变更（`z.function({ input, output })`）、递归 schema 正确写法；② 修正 M+2「`zod` 在 `devDependencies`」的错误豁免（源码 `src/models/` 4 个文件 + `src/utils/validation-rule.ts` 确实直接 import zod → **必须在 `dependencies`**）；③ 依赖三分区表补齐 18 个 `dependencies` / 28 个 Radix peer；④ `external` 基线从「22 个 Radix」更新为 57 个包并记录实测教训（漏配 zod → 消费方 `instanceof` 失败）；⑤ 冲突裁决新增 C6（Zod 依赖归置）；⑥ 命令清单补 `version:pre-commit` / `publish:npm:win`；⑦ `src/types/css.d.ts` 更正为 `src/types/typings.d.ts`                                                                                                                                        |
+| 2.1.0 | 2026-11-05 | **全量评审修正**。① **版本基线刷新** —— Biome 2.5.5 → **2.6.4**、Vitest 4.1.6 → **^5.0.5**、Zod 4.4.3 → **^4.6.7**（与 `package.json` 实测对齐；v1.0.0 / v2.0.0 历史行中的旧版本号按「历史记录不回写」原则保留）；② **数字基线刷新** —— external 57 → **49**、dependencies 18 → **17**、Zod Schema 14 → **15**、测试文件 89 → **123**；③ **`dts` 锚点修正** —— 现配置为 `compilerOptions.ignoreDeprecations`，以 `tsup.config.ts` 为真值源；④ **§2.7 排除清单补全**（`docs/temp/`）；⑤ **维度⑧⑨补修正模式**并注明 `pnpm probe arch` 探针入口。**规范条文本身不过期，只有数据基准会过期**                                                                                                                                                                                                                             |
 | 1.0.0 | 2026-10-31 | **首版**。基于 `eas-dev-docs` 技能的 `spec.md` 模板 + 全库实测**重写**（原 `code-quality.md` 189 行，引用 22 个子包 / `tsconfig.base.json` 的 `paths` 别名 / `easbot-build-commands.md` / `error-handling-standard.md` / `logging-standard.md` —— 本库**均不适用**）：① 确立**单包**工程化基线（Biome 2.5.5 / TS 6.0.3 / tsup 8.5.1 / Vitest 4.1.6 / Storybook 10.6.5 / Tailwind 4.3.3）；② 确立**构建链路**（tsup browser 库模式 + Tailwind CSS 构建期编译）与「为什么是 tsup 不是 Vite」的决策表；③ 确立**依赖三分区**与 5 条红线 + `exports` / `files` 契约；④ 确立 **11 项扫描维度**（新增「产物不得压缩」「产物中 react/radix 必须保持 import」「源码 import 必须有依赖声明」「**package.json 声明的产物必须真实存在**」「**tsup.config.ts 禁止重复键**」五项**面向发布正确性**的维度）；⑤ 全部维度**实测跑通** |
 
 > 📌 **v1.0.0 期间实测修复的两个发布级缺陷**（已修，规范同步记录）：

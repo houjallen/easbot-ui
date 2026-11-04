@@ -1,9 +1,9 @@
 ---
 name: storybook-standard
-description: 该规范定义 easbot-ui 组件库的 Storybook 契约，含 CSF3 写法（meta satisfies Meta / StoryObj / export default meta）、meta 必填字段（title 前缀 EASAI/ / component / tags autodocs / parameters）、story 导出命名规则与覆盖维度（Default / Variants / Sizes / 状态 / 组合）、argTypes 写法（control / options / description / table.defaultValue）、装饰器规范（全局主题装饰器与局部包裹装饰器）、主题切换机制（withThemeByClassName 与 data-theme 的对齐）、本地 addon 规范（eas-addon-locale 语言切换：双入口 exports / 绝对路径注册 / globals 通道 / 装饰器唯一挂载点）、Storybook 配置基线（react-vite builder / stories glob / addon 清单 / viteFinal alias）、10 项扫描维度（每项含命令 + 判定 + 修正模式）、豁免清单与新增组件 story 检查清单。当编写组件 story、配置 Storybook、扩展本地 addon 或排查 story 不显示时参考。
+description: 该规范定义 easbot-ui 组件库的 Storybook 契约，含 CSF3 写法（meta satisfies Meta / StoryObj / export default meta）、meta 必填字段（title 前缀 EASAI/ / component / tags autodocs / parameters）、story 导出命名规则与覆盖维度（Default / Variants / Sizes / 状态 / 组合）、argTypes 写法（control / options / description / table.defaultValue）、装饰器规范（全局主题装饰器与局部包裹装饰器）、主题切换机制（withThemeByClassName 与 data-theme 的对齐）、本地 addon 规范（eas-addon-locale 语言切换：双入口 exports / 绝对路径注册 / globals 通道 / 装饰器唯一挂载点）、Storybook 配置基线（react-vite builder / stories glob / addon 清单 / viteFinal alias）、11 项扫描维度（每项含命令 + 判定 + 修正模式）、豁免清单与新增组件 story 检查清单。当编写组件 story、配置 Storybook、扩展本地 addon 或排查 story 不显示时参考。
 category: specification
-version: 1.1.0
-baseline-date: 2026-10-31
+version: 1.2.0
+baseline-date: 2026-11-05
 tags: [easbot-ui, storybook, csf3, story, argtypes, decorator, docs, code-review]
 related:
   - spec-index.md
@@ -1144,7 +1144,7 @@ rg -n "#[0-9a-fA-F]{3,8}\b" -g "src/**/*.stories.tsx"
 # 检查 stories glob 与 framework
 rg -n "stories:|framework:|@storybook/react" .storybook/main.ts
 # 检查 preview 是否引入样式（入口 = src/theme/styles.css）
-rg -n "src/theme/style\.css" .storybook/preview.tsx
+rg -n "src/theme/styles\.css" .storybook/preview.tsx
 ```
 
 **判定规则**：
@@ -1282,18 +1282,18 @@ rg -n "<(Drawer|Dialog|AlertDialog|Sheet|Popover|Tooltip|HoverCard|DropdownMenu|
 
 ---
 
-## M+1. 历史基准（2026-11-01 实测）
+## M+1. 历史基准（2026-11-05 实测）
 
-> **作用域**：本节是**历史快照**。数据会过期，条文不过期。
+> **作用域**：本节是**历史快照**。数据会过期，条文不过期。一键刷新：`pnpm probe baseline`。
 
 | 指标                                     | 数值                        |
 | ---------------------------------------- | --------------------------- |
-| story 文件数                             | **82**                      |
-| story 文件全部在 `__tests__/` 下         | **82 / 82（100%）**         |
-| `title` 前缀全部为 `EASAI/`              | 82/82                       |
-| 声明 `autodocs` 的文件                   | 82/82                       |
-| 显式标注 `Meta<typeof X>` 的文件         | 82/82                       |
-| `StoryObj<typeof X>`（非 `typeof meta`） | 82/82                       |
+| story 文件数                             | **79**                      |
+| story 文件全部在 `__tests__/` 下         | **79 / 79（100%）**         |
+| `title` 前缀全部为 `EASAI/`              | 79/79                       |
+| 声明 `autodocs` 的文件                   | 79/79                       |
+| 显式标注 `Meta<typeof X>` 的文件         | 79/79                       |
+| `StoryObj<typeof X>`（非 `typeof meta`） | 79/79                       |
 | `pnpm storybook:build` 产物              | `storybook-static/`，exit 0 |
 
 ### 重测命令
@@ -1317,12 +1317,12 @@ pnpm storybook:build
 
 ## M+3. 冲突裁决
 
-| #   | 冲突点            | 旧规范声明（easbot monorepo 版） | 实际情况（本库）                                               | 裁决                                            |
-| --- | ----------------- | -------------------------------- | -------------------------------------------------------------- | ----------------------------------------------- |
-| C1  | Storybook builder | `addon-vitest`（浏览器模式）     | `addon-docs` / `a11y` / `themes` / `links` / `onboarding`      | **不装 `addon-vitest`**（维度 ⑨）               |
-| C2  | story 文件位置    | 未涉及                           | `src/ui/<component>/__tests__/<component>.stories.tsx`         | **与测试文件同目录**（§1.1）                    |
-| C3  | 主题机制          | 未涉及                           | `data-theme` attribute + `withThemeByClassName`                | **两者并存**（§4.1）                            |
-| C4  | meta 类型标注     | 未涉及                           | 全库 82/82 用 `Meta<typeof X>` 显式标注 + `StoryObj<typeof X>` | **必须显式标注 + Story 标注组件本体**（维度 ④） |
+| #   | 冲突点          | 旧规范声明（easbot monorepo 版）                      | 实际情况（本库）                                                      | 裁决                                                        |
+| --- | --------------- | ----------------------------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------- |
+| C1  | Storybook addon | `addon-vitest`（vitest 浏览器模式 addon，非 builder） | 在用 addon：`addon-docs` / `a11y` / `themes` / `links` / `onboarding` | **不装 `addon-vitest`**（vitest 走 jsdom 节点模式，维度 ⑨） |
+| C2  | story 文件位置  | 未涉及                                                | `src/ui/<component>/__tests__/<component>.stories.tsx`                | **与测试文件同目录**（§1.1）                                |
+| C3  | 主题机制        | 未涉及                                                | `data-theme` attribute + `withThemeByClassName`                       | **两者并存**（§4.1）                                        |
+| C4  | meta 类型标注   | 未涉及                                                | 全库 82/82 用 `Meta<typeof X>` 显式标注 + `StoryObj<typeof X>`        | **必须显式标注 + Story 标注组件本体**（维度 ④）             |
 
 ---
 
@@ -1345,7 +1345,7 @@ pnpm storybook:build
 
 ### 评审 story 时
 
-- [ ] 维度 ① ~ ⑩ 已全跑（一次跑全库）
+- [ ] 维度 ① ~ ⑪ 已全跑（一次跑全库）
 - [ ] `pnpm storybook:build` exit 0
 - [ ] light / dark 两种主题下样式都正常（`data-theme` 生效）
 - [ ] 移动端场景声明了 `viewport`
@@ -1369,6 +1369,7 @@ pnpm storybook:build
 | ----- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1.0.0 | 2026-10-31 | **首版**。基于 `eas-dev-docs` 技能的 `spec.md` 模板 + 全库实测**新建**：① 确立 **CSF3** 写法（`satisfies Meta` + `export default meta`）为唯一标准；② 确立 meta 四项必填（`title` 前缀 `EASAI/` / `component` / `tags: ['autodocs']` / `parameters`）；③ 确立 story 导出命名表（`Default` / `Variants` / `Sizes` / `Combination` / `Playground` 等）与 PascalCase 硬要求；④ 确立 `argTypes` 五项结构（`control` / `options` / `description` / `table.defaultValue`）与 `fn()` 桩规范；⑤ 确立**主题机制对齐**要求（装饰器设 `data-theme`，与主题文件 CSS 选择器一致）；⑥ 9 项扫描维度全部实跑验证（现状：33/34 声明 autodocs、9 个有 argTypes、2 个有 decorators） |
 | 1.1.0 | 2026-11-03 | **新增本地 addon 规范**。配合内置 i18n 验收落地 `eas-addon-locale`（工具栏中英文切换）：① 新增 §4.4「本地 addon —— 语言切换」，确立**双入口 `exports` 映射**（`./manager` + `./preview`）、**绝对路径注册**（相对路径会被当包名**静默跳过**）、**globals 通道**（键 `easLocale`）、**装饰器唯一挂载点**（addon 不导出 `decorators`，避免与 `preview.tsx` 合并导致 `withLocale` 应用两次）、**manager 端 classic JSX** 约束与 bundle 体积控制（不 import `component-messages.ts`）；② 新增**维度 ⑩**「本地 addon 必须正确注册」；③ 修订记录表 §M+4 增补「评审本地 addon 时」自查项                                                                                 |
+| 1.2.0 | 2026-11-05 | **全量评审修正**。① **维度⑧命令正则修复** —— `src/theme/style\.css` 漏 `s`，永远匹配不到 `styles.css`（preview 即便正确引样式也会误判违规）；② **description 维度数 10 → 11**（§M 实有 ①~⑪，⑪ asChild 未随上次修订登记 —— 本次补记并升版）；③ **§M+1 基线刷新** —— story 文件数 82 → **79**（与 spec-index / architecture 口径统一，2026-11-05 实测），重测命令改 `pnpm probe baseline`；④ **M+4 评审清单补维度⑪**；⑤ **§M+3 C1 表述修正** —— `addon-vitest` 是 **addon**（vitest 浏览器模式），不是 builder。**规范条文本身不过期，只有数据基准会过期**                                                                                                          |
 
 ---
 

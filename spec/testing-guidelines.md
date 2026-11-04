@@ -1,14 +1,15 @@
 ---
 name: testing-guidelines
-description: 该规范定义 easbot-ui 组件库的测试契约，含 Vitest 4 + jsdom 配置基线（environment / globals / include / setupFiles / css:false / pool / timeout / coverage）、测试文件位置与命名（__tests__ 子目录）、用例结构（describe 三层定位 + it 中文命名）、四大覆盖维度（渲染 / 状态 / 交互 / 无障碍）、断言选型（语义化查询优先，toHaveClass 断言 CSS 变量任意值）、mock 与 polyfill 规范（jsdom 未实现的 ResizeObserver / scrollIntoView / matchMedia）、共享 polyfill helper（tests/polyfills.ts）、测试文件头注解四段式、断言与实现同源原则、10 项扫描维度（每项含命令 + 判定 + 修正模式）、豁免清单与新增组件测试检查清单。当编写组件单测、修复测试失败或评审测试覆盖率时参考。
+description: 该规范定义 easbot-ui 组件库的测试契约，含 Vitest 5 + jsdom 配置基线（environment / globals / include / setupFiles / css:false / pool / timeout / coverage）、测试文件位置与命名（__tests__ 子目录）、用例结构（describe 三层定位 + it 中文命名）、四大覆盖维度（渲染 / 状态 / 交互 / 无障碍）、断言选型（语义化查询优先，toHaveClass 断言 CSS 变量任意值）、无障碍断言专项（可访问名称 / 键盘可达 / ARIA 状态 / focus-visible）、mock 与 polyfill 规范（jsdom 未实现的 ResizeObserver / scrollIntoView / matchMedia）、共享 polyfill helper（tests/polyfills.ts）、测试文件头注解四段式、断言与实现同源原则、11 项扫描维度（每项含命令 + 判定 + 修正模式）、豁免清单与新增组件测试检查清单。当编写组件单测、修复测试失败或评审测试覆盖率时参考。
 category: specification
-version: 2.0.0
-baseline-date: 2026-11-01
-tags: [easbot-ui, testing, vitest, vitest4, jsdom, rtl, mock, polyfill, coverage, bdd]
+version: 2.2.0
+baseline-date: 2026-11-05
+tags: [easbot-ui, testing, vitest, vitest5, jsdom, rtl, mock, polyfill, coverage, a11y, bdd]
 related:
   - spec-index.md
   - component-standard.md
   - css-standard.md
+  - a11y-interaction-standard.md
   - storybook-standard.md
   - code-annotation-standard.md
   - code-quality.md
@@ -17,7 +18,7 @@ related:
 # EASBot UI 测试规范 (Testing Guidelines)
 
 > **真值源**：本规范以 [`vitest.config.ts`](../vitest.config.ts)、[`tests/setup.ts`](../tests/setup.ts)、
-> [`tests/polyfills.ts`](../tests/polyfills.ts) 与 `src/**/__tests__/*.test.tsx` 的 89 个测试文件为唯一执行真值；
+> [`tests/polyfills.ts`](../tests/polyfills.ts) 与 `src/**/__tests__/*.test.tsx` 的 123 个测试文件为唯一执行真值；
 > 规范与实现冲突时**规范改**。
 >
 > **与其它规范的分工**（三者**不重复**）：
@@ -62,7 +63,7 @@ src/ui/<component>/__tests__/<component>.test.tsx
 
 | 规则                                                         | 真值源                                       |
 | ------------------------------------------------------------ | -------------------------------------------- |
-| **必须**放在组件目录的 `__tests__/` 子目录下                 | 89 个测试文件全部在 `__tests__/` 下          |
+| **必须**放在组件目录的 `__tests__/` 子目录下                 | 123 个测试文件全部在 `__tests__/` 下         |
 | **必须**命名 `<component>.test.tsx`（与实现同名）            | `src/ui/button/__tests__/button.test.tsx`    |
 | **禁止**测试 / Story 直接放在组件目录根下                    | 与组件源码分离，避免实现与测试代码混杂       |
 | **禁止**集中到 `tests/` 目录                                 | `tests/` 只放 `setup.ts` 与 `polyfills.ts`   |
@@ -120,7 +121,8 @@ afterEach(() => {
 | 3   | ❌ **禁止**在测试文件里逐个 `import '@testing-library/jest-dom'`       |
 | 4   | ❌ **禁止**在 `setup.ts` 里放**组件专属** polyfill（见 §6.2）          |
 
-> 📌 **v6+ 的子路径是 `/vitest`**：`@testing-library/jest-dom` 的 v6 已移除该子路径，v7 需写 `@testing-library/jest-dom/vitest`。
+> 📌 **版本口径**：`@testing-library/jest-dom` **v7** 起子路径为 `/vitest`（`setup.ts` 现用 v7 写法；
+> v6 及以下用 `jest-dom/extend-expect`）。
 
 ### 1.4 共享 polyfill helper（全局安装）
 
@@ -232,6 +234,10 @@ pnpm vitest run src/ui/button/__tests__/button.test.tsx # 单文件
 ```
 
 > 📌 **真值源**：[`src/ui/button/button.test.tsx:1-14`](../src/ui/button/button.test.tsx)、[`src/ui/alert/alert.test.tsx:1-13`](../src/ui/alert/alert.test.tsx)
+>
+> 📌 **「四段式」指结构四要素**（标题 / `@description` / 类别清单 / 手法），不是固定 4 类：
+> 头注可列 4~6 类 —— **渲染 / 状态 / 交互 / 无障碍**是必测四类（与维度⑨口径一致），
+> 图标 / 移动端是按需扩展类。
 
 ### 3.2 describe 三层定位
 
@@ -398,6 +404,91 @@ const createTouchEvent = () => ({ touches: [...], targetTouches: [...], changedT
 
 ---
 
+## 5A. 无障碍断言专项
+
+> 📌 **完整规范见** [`a11y-interaction-standard.md`](./a11y-interaction-standard.md)。
+> 本节只讲**怎么写断言**。
+
+### 5A.1 可访问名称必须被断言
+
+**图标按钮**的测试**必须**断言它的可访问名称 —— 否则「图标按钮有没有名字」这条**无法回归**。
+
+```tsx
+// ✅ 正例 —— 用 getByRole + name 查询（同时验证 role 与名称）
+const btn = screen.getByRole('button', { name: '关闭' });
+expect(btn).toBeInTheDocument();
+
+// ✅ 合规 —— 也可直接断言属性
+expect(btn).toHaveAttribute('aria-label', '关闭');
+```
+
+> 📌 **`getByRole(..., { name })` 是最强的断言** —— 它同时验证了
+> 「元素有正确的 role」+「有可访问名称」，**一条断言覆盖两个维度**。
+>
+> ⚠️ **反模式**：
+>
+> ```tsx
+> // ❌ 违规 —— 只断言存在，不验证名称；图标按钮去掉 aria-label 后测试仍会通过
+> expect(screen.getByRole('button')).toBeInTheDocument();
+> ```
+
+### 5A.2 键盘可达性必须被断言
+
+非语义元素做交互的组件，**必须**测试 **Enter / Space** 都能触发：
+
+```tsx
+// ✅ 正例
+const remove = screen.getByRole('button', { name: '删除选项' });
+await user.tab();
+expect(remove).toHaveFocus();
+
+await user.keyboard('{Enter}');
+expect(onRemove).toHaveBeenCalled();
+```
+
+> 📌 **`user.tab()`** 是 RTL 提供的焦点移动断言 —— 用来验证「Tab 能到达该元素」。
+>
+> 📌 **Space 必须测** —— 很多实现只处理了 Enter（详见
+> [`a11y-interaction-standard.md`](./a11y-interaction-standard.md) §2.2）。
+
+### 5A.3 ARIA 状态必须被断言
+
+| 状态        | 断言方式                                              |
+| ----------- | ----------------------------------------------------- |
+| 展开 / 折叠 | `expect(el).toHaveAttribute('aria-expanded', 'true')` |
+| 选中        | `expect(el).toHaveAttribute('aria-selected', 'true')` |
+| 禁用        | `expect(el).toHaveAttribute('aria-disabled', 'true')` |
+| 忙碌        | `expect(el).toHaveAttribute('aria-busy', 'true')`     |
+| 实时区域    | `expect(el).toHaveAttribute('aria-live', 'polite')`   |
+| 无效        | `expect(el).toHaveAttribute('aria-invalid', 'true')`  |
+
+> 📌 **注意 Radix 组件** —— Tabs / Accordion / Select / Dialog 的 ARIA 由 Radix **自动注入**，
+> **不要**手工断言具体属性值（Radix 版本升级可能变化），
+> **应该**断言**可见行为**（`data-state="open"` / 元素是否在文档中）。
+
+### 5A.4 焦点指示只能断言「存在」，不能断言「像素」
+
+```tsx
+// ✅ 正例 —— 断言有 focus-visible 类（存在性）
+expect(button.className).toContain('focus-visible:outline-2');
+
+// ❌ 违规 —— 断言具体样式值（jsdom 不计算 CSS，且 Tailwind 类名会变）
+expect(button).toHaveStyle({ outlineWidth: '2px' });
+```
+
+> ⚠️ **jsdom 不加载 CSS**（`css: false`）—— 所有样式断言**只能是类名断言**。
+> 详见 §4.3。
+
+### 5A.5 装饰性元素必须被断言为「对辅助技术隐藏」
+
+```tsx
+// ✅ 正例
+const icon = screen.getByTestId('loading-icon');
+expect(icon).toHaveAttribute('aria-hidden', 'true');
+```
+
+---
+
 ## 6. mock 与 polyfill
 
 ### 6.1 mock 策略
@@ -463,7 +554,7 @@ import { vi } from 'vitest';
 
 ---
 
-## M. 10 项扫描维度（评审必跑）
+## M. 11 项扫描维度（评审必跑）
 
 > **执行纪律**：⛔ **禁止按组件分批跑**，模式必须**一次跑全库**。
 
@@ -472,24 +563,30 @@ import { vi } from 'vitest';
 **扫描命令**：
 
 ```bash
-# 列出缺测试文件的组件目录（空 = 合规）
-Get-ChildItem src -Directory | Where-Object {$_.Name -notin @('types','utils')} | ForEach-Object {
-  $d = $_.Name
-  if (-not (Test-Path "src/$d/$d.test.tsx")) { "MISSING test: src/$d/$d.test.tsx" }
-}
+pnpm probe component
 ```
+
+> 手工等价命令（列出 `src/ui/` 下缺 `__tests__/` 测试的组件目录，PowerShell 可直跑）：
+>
+> ```powershell
+> Get-ChildItem src/ui -Directory | ForEach-Object {
+>   if (-not (Get-ChildItem "$($_.FullName)\__tests__" -Filter '*.test.tsx' -File -ErrorAction SilentlyContinue)) {
+>     "MISSING test: src/ui/$($_.Name)/__tests__/"
+>   }
+> }
+> ```
 
 **判定规则**：
 
-- ❌ 违规：组件目录无对应 `<component>.test.tsx`
+- ❌ 违规：组件目录在 `__tests__/` 下无对应 `*.test.tsx`
 - ✅ 合规：输出为空
 
 **修正模式**：
 
 ```bash
-# ❌ 违规 —— src/date-picker/date-picker.tsx 存在但无测试
+# ❌ 违规 —— src/ui/date-picker/ 有实现但 __tests__/ 无测试
 # ✅ 修正
-#   新建 src/date-picker/date-picker.test.tsx
+#   新建 src/ui/date-picker/__tests__/date-picker.test.tsx
 #   至少覆盖：渲染 / 状态 / 交互 / 无障碍 四类
 ```
 
@@ -498,12 +595,18 @@ Get-ChildItem src -Directory | Where-Object {$_.Name -notin @('types','utils')} 
 **扫描命令**：
 
 ```bash
-rg -n "\bjest\." -g "src/**/*.test.tsx"
+pnpm probe testing
 ```
+
+> 手工等价命令：
+>
+> ```powershell
+> Get-ChildItem src -Recurse -Include *.test.tsx,*.test.ts -File | Select-String -Pattern '\bjest\.|@jest/globals'
+> ```
 
 **判定规则**：
 
-- ❌ 违规：出现 `jest.` 调用
+- ❌ 违规：出现 `jest.` 调用或 `@jest/globals` import（探针 **ERROR**）
 - ✅ 合规：0 命中
 
 **修正模式**：
@@ -738,17 +841,54 @@ expect(button).toHaveClass('bg-primary');
 expect(button).toHaveClass('bg-[var(--destructive)]');
 ```
 
+### 维度 ⑪ 无障碍断言必须覆盖「可访问名称」
+
+> 📌 对应条文：§5A「无障碍断言专项」。
+
+**扫描命令**：
+
+```bash
+# 列出「无障碍测试」分组里没有用 getByRole + name 查询的测试文件（空 = 合规）
+Get-ChildItem src -Recurse -Filter "*.test.tsx" | ForEach-Object {
+  $t = Get-Content $_.FullName -Raw
+  if ($t -match '无障碍' -and $t -notmatch 'getByRole\([^)]*name:') {
+    $_.Name
+  }
+}
+```
+
+**判定规则**：
+
+- ❌ 违规：有「无障碍」分组，但**没有任何** `getByRole(..., { name })` 查询
+  → 「元素有没有可访问名称」这条**无法回归**
+- ✅ 合规：输出为空
+- ⚠️ **需人工确认**：部分组件的可访问名称来自**内部**元素（如 `DialogTitle`），
+  此时用 `getByRole('heading')` 也是合法的
+
+**修正模式**：
+
+```tsx
+// ❌ 违规 —— 只断言按钮存在，不验证名称
+expect(screen.getByRole('button')).toBeInTheDocument();
+
+// ✅ 修正 —— 同时验证 role 与可访问名称
+expect(screen.getByRole('button', { name: '关闭' })).toBeInTheDocument();
+```
+
+> 📌 **本维度的意义** —— 全库有 **18 处**图标按钮缺可访问名称（缺口 G-A10）。
+> 若测试不验证名称，这类缺陷**永远不会被测试发现**。
+
 ---
 
-## M+1. 历史基准（2026-11-01 实测）
+## M+1. 历史基准（2026-11-05 实测）
 
-> **作用域**：本节是**历史快照**。数据会过期，条文不过期。
+> **作用域**：本节是**历史快照**。数据会过期，条文不过期。一键刷新：`pnpm probe baseline`。
 
 | 指标                             | 数值                                        |
 | -------------------------------- | ------------------------------------------- |
-| 测试文件数                       | **89**（39 公开层 + 50 设计系统层）         |
-| 测试文件全部在 `__tests__/` 下   | **89 / 89（100%）**                         |
-| `jest.*` 命中                    | **14**（存量待迁移，见 §M+2）               |
+| 测试文件数                       | **123**（`src/**/*.{test.ts,test.tsx}`）    |
+| 测试文件全部在 `__tests__/` 下   | **123 / 123（100%）**                       |
+| `jest.*` 命中                    | **0**（G6 已消除，2026-11-05 实测）         |
 | 逐文件 import jest-dom 命中      | 3（`combobox` / `form` / `select`）         |
 | `vi.mock()` 命中                 | 0                                           |
 | 混用 `it(` / `test(` 的文件      | 2（`command` / `dialog`）                   |
@@ -766,16 +906,21 @@ rg -c "^\s*(it|test)\(" -g "src/**/*.test.tsx" | Measure-Object
 
 ## M+2. 豁免清单
 
-| 对象                                                             | 豁免依据                                                                                                                                        |
-| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/ui/use-toast/__tests__/use-toast.test.tsx` 仅 1 个用例      | `useToast` 是**状态 Hook**，`Toaster` 的渲染与 toast 队列逻辑由 `src/ui/toast/__tests__/toast.test.tsx` 覆盖；本文件只验证「Hook 返回值与订阅」 |
-| 14 个测试文件仍用 `jest.*`（含 `@jest/globals` import）          | **存量豁免**：历史上从 Jest 迁移到 Vitest 时遗漏。**新增**测试文件**禁止**使用 `jest.*`；**改动**既有测试时 MUST 顺手改成 `vi.*`（§3.3 规则）   |
-| `ResizeObserverStub` 在个别测试文件重复定义                      | **存量豁免**：共享 helper `tests/polyfills.ts` 已建立（§1.4），重复定义仅剩未迁移的存量文件。**新增**文件**必须**用共享 helper                  |
-| `src/ui/command/` 与 `src/ui/dialog/` 的测试混用 `it(` / `test(` | **存量豁免**：§M 维度 ④ 命中这两处；**新增**测试文件**禁止**混用（§3.3 规则 4）                                                                 |
-| 3 个测试文件逐个 import `@testing-library/jest-dom`              | **存量豁免**：`tests/setup.ts` 已全局注册；**新增**测试文件**禁止**逐个 import（§1.3 规则 3）                                                   |
-| 27 个测试文件缺文件头块注解（维度 ⑧）                            | **存量豁免**：**新增**测试文件 MUST 达标；**改动**既有测试时 MUST 顺手补齐（`code-annotation-standard.md` §1.4「改动即补」原则）                |
-| 部分测试未覆盖全部四维度（维度 ⑨）                               | **存量豁免**：维度 ⑨ 是**关键词近似匹配**（会漏判），命中项**需人工确认**后再判定；**新增**组件测试 MUST 覆盖四类                               |
-| 组件测试**不覆盖**覆盖率阈值                                     | 本库**无**覆盖率门槛（`vitest.config.ts` 未配 `thresholds`）；覆盖率用于**观察**，不作为**门禁**                                                |
+| 对象                                                                                       | 豁免依据                                                                                                                                        |
+| ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/ui/use-toast/__tests__/use-toast.test.tsx` 仅 1 个用例                                | `useToast` 是**状态 Hook**，`Toaster` 的渲染与 toast 队列逻辑由 `src/ui/toast/__tests__/toast.test.tsx` 覆盖；本文件只验证「Hook 返回值与订阅」 |
+| ~~14 个测试文件仍用 `jest.*`~~ —— **已消除**（2026-11-05 实测 0 命中，spec-index G6 关闭） | **新增**测试文件**禁止**使用 `jest.*`（维度② 探针 ERROR）                                                                                       |
+| `ResizeObserverStub` 在个别测试文件重复定义                                                | **存量豁免**：共享 helper `tests/polyfills.ts` 已建立（§1.4），重复定义仅剩未迁移的存量文件。**新增**文件**必须**用共享 helper                  |
+| `src/ui/command/` 与 `src/ui/dialog/` 的测试混用 `it(` / `test(`                           | **存量豁免**：§M 维度 ④ 命中这两处；**新增**测试文件**禁止**混用（§3.3 规则 4）                                                                 |
+| 3 个测试文件逐个 import `@testing-library/jest-dom`                                        | **存量豁免**：`tests/setup.ts` 已全局注册；**新增**测试文件**禁止**逐个 import（§1.3 规则 3）                                                   |
+| 27 个测试文件缺文件头块注解（维度 ⑧）                                                      | **存量豁免**：**新增**测试文件 MUST 达标；**改动**既有测试时 MUST 顺手补齐（`code-annotation-standard.md` §1.4「改动即补」原则）                |
+| 部分测试未覆盖全部四维度（维度 ⑨）                                                         | **存量豁免**：维度 ⑨ 是**关键词近似匹配**（会漏判），命中项**需人工确认**后再判定；**新增**组件测试 MUST 覆盖四类                               |
+
+> 📌 **v2.2.0（2026-11-05）全量评审修正**：Vitest 4 → **5**（package.json `^5.0.5`）；维度①命令改为
+> `pnpm probe component`（与 `__tests__/` 契约一致、范围限 `src/ui`）；M+4「局部 polyfill」改为
+> 「由 `tests/polyfills.ts` 全局提供」（消除与 §6.2 的矛盾）；`jest.*` 存量豁免标记**已消除**
+> （实测 0 命中，G6 关闭）；测试文件数 89 → **123**；§3.1 澄清「四段式 ≠ 4 类」。
+> | 组件测试**不覆盖**覆盖率阈值 | 本库**无**覆盖率门槛（`vitest.config.ts` 未配 `thresholds`）；覆盖率用于**观察**，不作为**门禁** |
 
 ---
 
@@ -798,19 +943,23 @@ rg -c "^\s*(it|test)\(" -g "src/**/*.test.tsx" | Measure-Object
 
 ### 新增组件测试时
 
-- [ ] 文件在 `src/<component>/<component>.test.tsx`
+- [ ] 文件在 `src/<component>/__tests__/<component>.test.tsx`
 - [ ] 有文件头块注释（覆盖类别 + 手法说明）
 - [ ] 顶层 `describe` 为 `<Component> 组件`，内层按测试维度分组
 - [ ] `it` 中文命名，同文件内句式统一，未混用 `test(`
 - [ ] 覆盖渲染 / 状态 / 交互 / 无障碍四类
 - [ ] 查询优先语义化，`getByTestId` 有正当理由
-- [ ] 需要的浏览器 API 已局部 polyfill（`globalThis.X = globalThis.X ?? stub`）
+- [ ] **无障碍断言用 `getByRole(..., { name })`** —— 验证可访问名称（§5A.1）
+- [ ] 非语义元素交互测了 **Enter 与 Space**（§5A.2）
+- [ ] ARIA 状态断言到位（§5A.3）；装饰性图标断言 `aria-hidden`（§5A.5）
+- [ ] 样式只断言**类名**，不断言像素值（§5A.4）
+- [ ] 需要的浏览器 API **由 `tests/polyfills.ts` 全局提供**（测试文件内**禁止**自定义 stub —— §1.4 / §6.2）
 - [ ] `vi` 已显式 import，未用 `jest.*`，未用 `vi.mock()`
 - [ ] 断言的类名**确实会生成 CSS**（`css-standard.md` §3.1）
 
 ### 评审测试时
 
-- [ ] 维度 ① ~ ⑩ 已全跑（一次跑全库）
+- [ ] 维度 ① ~ ⑪ 已全跑（一次跑全库）
 - [ ] `pnpm test` 全绿
 - [ ] 改实现时已同步改断言（断言与实现同源）
 - [ ] `pnpm type-check` 全绿（测试文件在 tsconfig `include` 内）
@@ -819,9 +968,10 @@ rg -c "^\s*(it|test)\(" -g "src/**/*.test.tsx" | Measure-Object
 
 ## M+5. 修订记录
 
-| 版本  | 日期       | 变更                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| ----- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.0.0 | 2026-10-31 | **首版**。基于 `eas-dev-docs` 技能的 `spec.md` 模板 + 全库实测**重写**（原 `testing-guidelines.md` 是 easbot monorepo 残留，2127 行，约束 22 个 workspace 包的 `test.projects` 双层配置 / 双 grammar 差分测试 / `Instance.provide` 上下文控制 / buddy 包覆盖率门槛 —— 本库**均不适用**）：① 确立**单包 Vitest + jsdom** 配置基线（8 项关键配置逐条列出）；② 确立测试文件**与组件同目录**的单体系（废弃双体系）；③ 确立**四大覆盖维度**（渲染 / 状态 / 交互 / 无障碍）；④ 确立**局部 polyfill** 规范（3 个 jsdom 缺失 API，含标准写法）；⑤ 确立**断言与实现同源**原则与「改实现必须同步改测试」；⑥ 新增维度 ⑩「断言的类名必须已注册为 token」（针对**恒真断言**这一隐蔽失效模式）；⑦ 10 项扫描维度全部实跑验证 |
+| 版本  | 日期       | 变更                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ----- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1.0.0 | 2026-10-31 | **首版**。基于 `eas-dev-docs` 技能的 `spec.md` 模板 + 全库实测**重写**（原 `testing-guidelines.md` 是 easbot monorepo 残留，2127 行，约束 22 个 workspace 包的 `test.projects` 双层配置 / 双 grammar 差分测试 / `Instance.provide` 上下文控制 / buddy 包覆盖率门槛 —— 本库**均不适用**）：① 确立**单包 Vitest + jsdom** 配置基线（8 项关键配置逐条列出）；② 确立测试文件**与组件同目录**的单体系（废弃双体系）；③ 确立**四大覆盖维度**（渲染 / 状态 / 交互 / 无障碍）；④ 确立**局部 polyfill** 规范（3 个 jsdom 缺失 API，含标准写法）；⑤ 确立**断言与实现同源**原则与「改实现必须同步改测试」；⑥ 新增维度 ⑩「断言的类名必须已注册为 token」（针对**恒真断言**这一隐蔽失效模式）；⑦ 10 项扫描维度全部实跑验证                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| 2.1.0 | 2026-11-04 | **新增无障碍断言专项 + 维度 ⑪，基线数据校正**。① **新增 §5A「无障碍断言专项」**（5 小节）—— §5A.1 可访问名称必须被断言（**`getByRole(..., { name })` 是最强断言**，同时验证 role 与名称；给出「只断言 `getByRole('button')` 存在」的反模式）、§5A.2 键盘可达性必须被断言（`user.tab()` + **Enter 与 Space 都要测**）、§5A.3 ARIA 状态断言表（6 类属性；**注意 Radix 组件的 ARIA 由 Radix 注入，不要手工断言具体值，应断言可见行为**）、§5A.4 焦点指示**只能断言存在性**（jsdom `css: false`，不计算 CSS，禁断言像素值）、§5A.5 装饰性元素断言 `aria-hidden="true"`；② **扫描维度由 10 项增至 11 项** —— 新增 ⑪「无障碍断言必须覆盖可访问名称」（命令：有「无障碍」分组但**无任何** `getByRole(..., { name })` 查询的文件；说明**本维度的意义** —— 全库 18 处图标按钮缺名，若测试不验证名称，这类缺陷**永远不会被发现**）；③ **§M+1 基线校正** —— 测试文件 89 → **123**（`src/**/*.{test.ts,test.tsx}` 实测）；④ **§M+4 检查清单**修正测试文件路径（补 `__tests__/` 子目录 —— 原清单漏写，与 §1.1 矛盾）+ 新增 4 条无障碍断言项；⑤ frontmatter 补 `a11y-interaction-standard.md` 与版本升 **2.1.0**。**规范条文本身不过期，只有数据基准会过期**。 |
 
 ---
 
