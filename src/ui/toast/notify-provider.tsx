@@ -14,7 +14,7 @@
  *    避免同一套通知出现两份实现（样式 / i18n / 关闭行为不一致）。
  * 3. **标题走内置文案表** —— 缺省标题按 `variant` 取语义化文案
  *    （提示 / 成功 / 警告 / 错误），由 `useComponentMessage('toast')` 读取，
- *    因此 **不出现内联中英文字符串字面量**（见 `spec/i18n-standard.md`）。
+ *    因此 **不出现内联中英文字符串字面量**（符合内置 i18n 规范）。
  * 4. **变体映射正确** —— 每种语义对应一个 `ToastVariant`，
  *    使 `error` 走 `destructive` 红色样式、`warning` 走 `warning` 黄色样式，
  *    而不是全部退化为 `default`。
@@ -36,11 +36,11 @@
 
 import * as React from 'react';
 
-import { useComponentMessage } from '../utils/use-component-message';
-import { Toaster } from '../ui/toast';
-import type { ToastPosition, ToastVariant } from '../ui/toast/types';
-import { dismiss, toast } from '../ui/use-toast';
-import type { ToastOptions } from '../ui/use-toast';
+import { useComponentMessage } from '../../utils/use-component-message';
+import { Toaster } from './toaster';
+import type { ToastPosition, ToastVariant } from './types';
+import { dismiss, toast } from '../use-toast';
+import type { ToastOptions } from '../use-toast';
 
 /**
  * 通知语义

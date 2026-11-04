@@ -58,7 +58,7 @@ export const Indeterminate: Story = {
       <Progress value={undefined} />
       <div className="mt-1 flex justify-between text-muted-foreground text-sm">
         <span>不确定状态</span>
-        <span>加载中...</span>
+        <span>加载中…</span>
       </div>
     </div>
   ),

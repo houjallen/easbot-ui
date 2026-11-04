@@ -29,7 +29,7 @@ describe('TableLoading 组件', () => {
       );
 
       // 默认文案取自内置表格文案表的 loading
-      expect(screen.getByText('加载中...')).toBeInTheDocument();
+      expect(screen.getByText('加载中…')).toBeInTheDocument();
     });
 
     it('应该渲染加载指示器', () => {
@@ -79,20 +79,20 @@ describe('TableLoading 组件', () => {
       );
 
       expect(screen.getByText('表格内容')).toBeInTheDocument();
-      expect(screen.queryByText('加载中...')).not.toBeInTheDocument();
+      expect(screen.queryByText('加载中…')).not.toBeInTheDocument();
       // spinning 关闭时不渲染任何包装容器
       expect(container.firstElementChild?.tagName).toBe('SPAN');
     });
 
     it('应该使用自定义提示替换默认加载文案', () => {
       render(
-        <TableLoading tip="正在同步数据...">
+        <TableLoading tip="正在同步数据…">
           <span>表格内容</span>
         </TableLoading>,
       );
 
-      expect(screen.getByText('正在同步数据...')).toBeInTheDocument();
-      expect(screen.queryByText('加载中...')).not.toBeInTheDocument();
+      expect(screen.getByText('正在同步数据…')).toBeInTheDocument();
+      expect(screen.queryByText('加载中…')).not.toBeInTheDocument();
     });
 
     it('应该在提示为空值时不渲染任何提示文案', () => {
@@ -102,7 +102,7 @@ describe('TableLoading 组件', () => {
         </TableLoading>,
       );
 
-      expect(screen.queryByText('加载中...')).not.toBeInTheDocument();
+      expect(screen.queryByText('加载中…')).not.toBeInTheDocument();
     });
 
     it('应该使用自定义指示器替换默认指示器', () => {
@@ -123,8 +123,8 @@ describe('TableLoading 组件', () => {
         </TableLoading>,
       );
 
-      expect(screen.getByText('Loading...')).toBeInTheDocument();
-      expect(screen.queryByText('加载中...')).not.toBeInTheDocument();
+      expect(screen.getByText('Loading…')).toBeInTheDocument();
+      expect(screen.queryByText('加载中…')).not.toBeInTheDocument();
     });
 
     it('应该按照 messages 覆盖加载文案', () => {
@@ -183,7 +183,7 @@ describe('TableLoading 组件', () => {
         </TableLoading>,
       );
 
-      const tip = screen.getByText('加载中...');
+      const tip = screen.getByText('加载中…');
       expect(tip.tagName).toBe('P');
     });
 

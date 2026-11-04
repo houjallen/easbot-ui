@@ -8,7 +8,7 @@ import type { TablePaginationProps as TablePaginationPropsFromAtoms } from '../a
  *
  * 📌 回归重点：包根导出的 props 类型必须与**组件实际签名**同源。
  *
- * ⚠️ **历史缺陷（ADR 0001 / A-3）**：
+ * ⚠️ **历史缺陷**：
  *    `AdvancedTableProps` 与 `TablePaginationProps` 各有两份定义 ——
  *    ① `organisms/AdvancedTable.tsx` / `atoms/TablePagination.tsx`（**组件实际使用**）
  *    ② `types/components.ts`（**死代码**）
@@ -18,7 +18,7 @@ import type { TablePaginationProps as TablePaginationPropsFromAtoms } from '../a
  *    消费方按导出类型写 props 会得到类型层面就错误的反馈。
  */
 describe('Table 导出面', () => {
-  describe('AdvancedTableProps（ADR 0001 / A-3）', () => {
+  describe('AdvancedTableProps', () => {
     it('包根导出的类型应该与组件实际签名同源', () => {
       // 📌 编译期断言：若两者结构不同，此处 tsc 会报错
       const _check: AdvancedTablePropsFromBarrel = {} as AdvancedTablePropsFromOrganisms;
@@ -37,7 +37,7 @@ describe('Table 导出面', () => {
     });
   });
 
-  describe('TablePaginationProps（ADR 0001 / A-3）', () => {
+  describe('TablePaginationProps', () => {
     it('包根应该导出 TablePaginationProps 且与组件签名同源', () => {
       const props = {} as TablePaginationPropsFromAtoms;
       // 📌 组件签名使用 `pagination` / `config` 对象，而非扁平的 `current`/`pageSize`/`total`

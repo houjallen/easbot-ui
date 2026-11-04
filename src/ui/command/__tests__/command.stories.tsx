@@ -23,7 +23,7 @@ export const Default: Story = {
 
     return (
       <Command className="rounded-lg border shadow-md" {...args}>
-        <CommandInput placeholder="输入命令..." />
+        <CommandInput placeholder="输入命令…" />
         <CommandList>
           <CommandEmpty>未找到结果</CommandEmpty>
           <CommandGroup heading="建议">
@@ -36,7 +36,7 @@ export const Default: Story = {
                 });
               }}
             >
-              搜索...
+              搜索…
             </CommandItem>
             <CommandItem
               onSelect={() => {
@@ -47,7 +47,7 @@ export const Default: Story = {
                 });
               }}
             >
-              过滤...
+              过滤…
             </CommandItem>
             <CommandItem
               onSelect={() => {
@@ -58,7 +58,7 @@ export const Default: Story = {
                 });
               }}
             >
-              设置...
+              设置…
             </CommandItem>
           </CommandGroup>
         </CommandList>
@@ -81,7 +81,7 @@ export const WithDialog: Story = {
         </button>
 
         <CommandDialog open={open} onOpenChange={setOpen}>
-          <CommandInput placeholder="输入命令..." />
+          <CommandInput placeholder="输入命令…" />
           <CommandList>
             <CommandEmpty>未找到结果</CommandEmpty>
             <CommandGroup heading="建议">
@@ -95,7 +95,7 @@ export const WithDialog: Story = {
                   setOpen(false);
                 }}
               >
-                搜索...
+                搜索…
               </CommandItem>
               <CommandItem
                 onSelect={() => {
@@ -107,7 +107,7 @@ export const WithDialog: Story = {
                   setOpen(false);
                 }}
               >
-                过滤...
+                过滤…
               </CommandItem>
               <CommandItem
                 onSelect={() => {
@@ -119,7 +119,7 @@ export const WithDialog: Story = {
                   setOpen(false);
                 }}
               >
-                设置...
+                设置…
               </CommandItem>
             </CommandGroup>
             <CommandSeparator />
@@ -159,9 +159,9 @@ export const WithDialog: Story = {
 export const LoadingState: Story = {
   render: () => (
     <CommandDialog>
-      <CommandInput placeholder="正在加载..." />
+      <CommandInput placeholder="正在加载…" />
       <CommandList>
-        <CommandEmpty>加载中...</CommandEmpty>
+        <CommandEmpty>加载中…</CommandEmpty>
       </CommandList>
     </CommandDialog>
   ),
@@ -170,7 +170,7 @@ export const LoadingState: Story = {
 export const Filtering: Story = {
   render: () => (
     <Command>
-      <CommandInput placeholder="搜索水果..." />
+      <CommandInput placeholder="搜索水果…" />
       <CommandList>
         <CommandGroup heading="水果">
           <CommandItem>苹果</CommandItem>

@@ -132,7 +132,7 @@ export const InButton: Story = {
   render: () => (
     <button type="button" className="flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground transition-colors hover:bg-primary/90">
       <Spinner size="sm" className="text-inherit" />
-      加载中...
+      加载中…
     </button>
   ),
 };

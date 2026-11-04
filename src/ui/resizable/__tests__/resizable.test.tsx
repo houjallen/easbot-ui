@@ -8,12 +8,12 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../resizab
  *
  * 📌 回归重点：`resizable` 必须能从**包根 barrel**（`src/ui/index.ts`）导出。
  *
- * ⚠️ **历史缺陷（ADR 0001 / A-1）**：
+ * ⚠️ **历史缺陷**：
  *    `src/ui/index.ts` 缺 `export * from './resizable'`，
  *    消费方 `import { ResizablePanel } from '@easbot/ui'` 直接失败。
  */
 describe('Resizable', () => {
-  describe('导出面回归测试（ADR 0001 / A-1）', () => {
+  describe('导出面回归测试', () => {
     it('应该从包根导出 ResizablePanelGroup', () => {
       expect(UiBarrel.ResizablePanelGroup).toBeDefined();
     });

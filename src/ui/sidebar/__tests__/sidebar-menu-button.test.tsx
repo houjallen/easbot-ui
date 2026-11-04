@@ -7,7 +7,7 @@ import { SidebarMenuButton, SidebarMenuItem, SidebarProvider } from '../sidebar'
  *
  * 📌 回归重点：`outline` 变体的 1px 描边必须**真的生效**。
  *
- * ⚠️ **历史缺陷（ADR 0001 / E-1）**：
+ * ⚠️ **历史缺陷**：
  *    `design-system/components/ui/sidebar.tsx` 的 `outline` variant 写成
  *    `shadow-[0_0_0_1px_hsl(var(--sidebar-border))]`，
  *    而 `--sidebar-border` 本身**已经是完整颜色值**（`hsl(240 4% 90%)`），
@@ -17,7 +17,7 @@ import { SidebarMenuButton, SidebarMenuItem, SidebarProvider } from '../sidebar'
  *    所以这里断言**类名本身**不含嵌套 `hsl(` 包装 —— 那才是根因所在。
  */
 describe('Sidebar 菜单按钮样式', () => {
-  describe('outline 变体描边（ADR 0001 / E-1）', () => {
+  describe('outline 变体描边', () => {
     it('不应该用 hsl() 包裹已经是完整颜色值的 CSS 变量', () => {
       render(
         <SidebarProvider>

@@ -113,7 +113,7 @@ pnpm publish:npm:win      # 发布到 npm（Windows PowerShell）
 │   │   ├── component-messages.ts # 内置文案表（21 个文案域，zh-CN + en-US）
 │   │   └── use-component-message.ts # React 侧文案 Hook（useComponentMessage）
 │   ├── hooks/                # 通用 React Hook（useDevice / useLocale / useTheme）
-│   ├── providers/            # 上下文 Provider（LocaleProvider / ThemeProvider / NotifyProvider）
+│   ├── providers/            # 上下文 Provider（LocaleProvider / ThemeProvider；NotifyProvider 在 src/ui/toast/）
 │   ├── theme/                # 主题资源层（唯一 CSS 入口 / 字体 / 多套主题 / tokens）
 │   │   ├── styles.css            # ⭐ Tailwind v4 唯一编译入口（@source 扫描 src/）
 │   │   └── themes/               #   light.css（706 个）/ dark.css（706 个）+ 5 套扩展主题

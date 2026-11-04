@@ -15,7 +15,7 @@
  * 本场景只是"读一次 context 值"，用不上 `use-context-selector` 的选择器优化。
  */
 
-import { useNotify } from '../../src/providers';
+import { useNotify } from '../../src/ui/toast';
 
 /** 通知 API */
 export type NotifyApi = ReturnType<typeof useNotify>['notify'];

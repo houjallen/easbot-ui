@@ -7,7 +7,7 @@ import { Tag } from '../tag';
  *
  * 📌 回归重点：`asChild` 路径必须能正常渲染。
  *
- * ⚠️ **历史缺陷（ADR 0001 / D-1）**：
+ * ⚠️ **历史缺陷**：
  *    修复前 `asChild` 分支把 `{icon}` / `{children}` / `{closable 按钮}` 三个兄弟节点
  *    直接作为 Radix `Slot` 的 children，而 `Slot` 要求**单个** React 元素子节点，
  *    于是运行时抛错：
@@ -37,7 +37,7 @@ describe('Tag', () => {
     });
   });
 
-  describe('asChild 回归测试（ADR 0001 / D-1）', () => {
+  describe('asChild 回归测试', () => {
     it('应该把 props 合并到子元素而不是抛错', () => {
       // 📌 修复前：Slot 因多子节点抛错 → 渲染直接失败
       expect(() =>

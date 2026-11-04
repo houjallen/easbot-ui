@@ -405,7 +405,7 @@ export interface EnhancedTableProps {
   children?: ReactNode;
 }
 
-// 📌 **原 `AdvancedTableProps` 定义已移除（ADR 0001 / A-3）** ——
+// 📌 **原 `AdvancedTableProps` 定义已移除** ——
 //    该定义与 `organisms/AdvancedTable.tsx` 中**组件实际使用**的那份字段结构完全不同
 //    （此处是 `plugins`/`searchPanel`，组件用的是 `plugin`/`search`），
 //    且从未被任何组件消费 —— 属死代码。
@@ -427,7 +427,7 @@ export interface TableCardViewProps extends React.HTMLAttributes<HTMLDivElement>
 
 // ============ 分页组件属性 ============
 
-// 📌 **原 `TablePaginationProps` 定义已移除（ADR 0001 / A-3）** ——
+// 📌 **原 `TablePaginationProps` 定义已移除** ——
 //    该定义与 `atoms/TablePagination.tsx` 中**组件实际使用**的那份字段结构完全不同
 //    （此处是扁平的 `current`/`pageSize`/`total`，组件用的是 `pagination`/`config` 对象），
 //    且从未被任何组件消费 —— 属死代码。

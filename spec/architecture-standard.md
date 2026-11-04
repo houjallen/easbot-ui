@@ -153,11 +153,12 @@ easbot-ui/
 │   ├── hooks/                    # 通用 React Hook（useDevice / useLocale / useTheme）
 │   │   └── index.ts              #   barrel
 │   │
-│   ├── providers/                # 上下文 Provider（LocaleProvider / ThemeProvider / NotifyProvider）
+│   ├── providers/                # 上下文 Provider（LocaleProvider / ThemeProvider）
 │   │   ├── index.ts              #   barrel
 │   │   ├── locale-provider.tsx   #   LocaleProvider（含 localStorage 持久化）
-│   │   ├── theme-provider.tsx    #   ThemeProvider（含 localStorage 持久化）
-│   │   └── notify-provider.tsx   #   NotifyProvider
+│   │   └── theme-provider.tsx    #   ThemeProvider（含 localStorage 持久化）
+│   │                             #   ⚠️ NotifyProvider 组合 Toaster / toast()，
+│   │                             #      归属 src/ui/toast/notify-provider.tsx（避免反向依赖 ui 层）
 │   │
 │   ├── components/               # 应用层组件（ThemeToggle / LocaleToggle；组合 ui 组件，不进 barrel 单独导出）
 │   │
@@ -808,19 +809,19 @@ import { useTableLogic } from '../context/TableContext';
 
 ## M+2. 豁免清单
 
-| 对象                                                                                                           | 豁免依据                                                                                                                                                                |
-| -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/design-system/index.tsx` 的 `export default DesignSystemProvider`                                         | **barrel 不传播 default** —— 消费方从 `src/index.ts` 拿到的是具名导出（登记在 [`spec-index.md`](./spec-index.md) G8）                                                   |
-| `src/design-system/lib/utils.ts` 的局部 `cn()`                                                                 | DS 层历史自持实现，**与真值源等价**；新增代码一律用 `src/utils/classnames.ts`（§4.3）                                                                                   |
-| `vitest.config.ts` / `.storybook/main.ts` 的 `'@' → src` alias                                                 | **工具侧历史兼容**，源码禁用该别名（维度 ⑤ 只约束源码 import）                                                                                                          |
-| `src/theme/styles.css` / `src/design-system/styles/globals.css`                                                | **死代码**，不进构建路径（§2.3）—— 清理前需确认无引用                                                                                                                   |
-| `src/theme/` 整体不在 `src/index.ts` barrel                                                                    | **资源层**（字体 / CSS / tokens），无运行时 API（§2.2）                                                                                                                 |
-| `src/types/typings.d.ts` 不进 barrel                                                                           | **环境声明**（模块增强），非运行时符号                                                                                                                                  |
-| `src/ui/table/` 的原子/分子/有机体（atom/molecule/organism）分层                                               | 表格是**唯一**的「胖」组件，采用生物式分层；其余 53 个组件用扁平结构（§2.1）                                                                                            |
-| `src/ui/typography/` 目录入口为 `index.tsx`（唯一例外，无 `index.ts`）                                         | `moduleResolution: 'Bundler'` 下 `.tsx` **优先解析**；`index.tsx` 内记录了 TS2308 冲突的规避说明（与 [`component-standard.md`](./component-standard.md) 维度⑫口径一致） |
-| `src/ui/table/types/` 的纯 TypeScript 契约层                                                                   | 含大量**函数值 props**，Zod 校验不了（见 [`model-standard.md`](./model-standard.md) §4.2）                                                                              |
-| `scripts/clean-test-fixtures.ts` / `rewrite-imports.mjs` 未挂 script                                           | 历史工具，按需手动执行                                                                                                                                                  |
-| 维度② 存量：`src/providers/notify-provider.tsx` 反向依赖 `src/ui/toast` / `use-toast`（实现 4 处 + 测试 2 处） | **已知缺口 G-AR1**：硬约束 5 违规，待修（`pnpm probe arch` 可复现）；**新增** providers / hooks 代码 MUST 遵守硬约束                                                    |
+| 对象                                                                          | 豁免依据                                                                                                                                                                |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/design-system/index.tsx` 的 `export default DesignSystemProvider`        | **barrel 不传播 default** —— 消费方从 `src/index.ts` 拿到的是具名导出（登记在 [`spec-index.md`](./spec-index.md) G8）                                                   |
+| `src/design-system/lib/utils.ts` 的局部 `cn()`                                | DS 层历史自持实现，**与真值源等价**；新增代码一律用 `src/utils/classnames.ts`（§4.3）                                                                                   |
+| `vitest.config.ts` / `.storybook/main.ts` 的 `'@' → src` alias                | **工具侧历史兼容**，源码禁用该别名（维度 ⑤ 只约束源码 import）                                                                                                          |
+| `src/theme/styles.css` / `src/design-system/styles/globals.css`               | **死代码**，不进构建路径（§2.3）—— 清理前需确认无引用                                                                                                                   |
+| `src/theme/` 整体不在 `src/index.ts` barrel                                   | **资源层**（字体 / CSS / tokens），无运行时 API（§2.2）                                                                                                                 |
+| `src/types/typings.d.ts` 不进 barrel                                          | **环境声明**（模块增强），非运行时符号                                                                                                                                  |
+| `src/ui/table/` 的原子/分子/有机体（atom/molecule/organism）分层              | 表格是**唯一**的「胖」组件，采用生物式分层；其余 53 个组件用扁平结构（§2.1）                                                                                            |
+| `src/ui/typography/` 目录入口为 `index.tsx`（唯一例外，无 `index.ts`）        | `moduleResolution: 'Bundler'` 下 `.tsx` **优先解析**；`index.tsx` 内记录了 TS2308 冲突的规避说明（与 [`component-standard.md`](./component-standard.md) 维度⑫口径一致） |
+| `src/ui/table/types/` 的纯 TypeScript 契约层                                  | 含大量**函数值 props**，Zod 校验不了（见 [`model-standard.md`](./model-standard.md) §4.2）                                                                              |
+| `scripts/clean-test-fixtures.ts` / `rewrite-imports.mjs` 未挂 script          | 历史工具，按需手动执行                                                                                                                                                  |
+| ~~`src/providers/notify-provider.tsx` 反向依赖 `src/ui/toast` / `use-toast`~~ | **已消除**（2026-11-05）：`notify-provider.tsx` 迁至 `src/ui/toast/`（`providers/index.ts` 不再导出，包根 API 不变）；**新增** providers / hooks 代码 MUST 遵守硬约束   |
 
 ---
 

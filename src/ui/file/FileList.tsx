@@ -151,11 +151,38 @@ export const FileList: React.FC<FileListProps> = ({
 
         {/* 操作按钮 */}
         <div className="flex items-center gap-2">
-          {showPreview && (file.url || file.thumbUrl) && <Button variant="ghost" size="sm" onClick={() => onPreview?.(file)} className="h-8 w-8 p-0" rightIcon={<Eye className="h-4 w-4" />} />}
+          {showPreview && (file.url || file.thumbUrl) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onPreview?.(file)}
+              className="h-8 w-8 p-0"
+              aria-label={processUiMessage('preview', { locale, messages: fileMessages })}
+              rightIcon={<Eye className="h-4 w-4" aria-hidden="true" />}
+            />
+          )}
 
-          {showDownload && file.url && <Button variant="ghost" size="sm" onClick={() => onDownload?.(file)} className="h-8 w-8 p-0" rightIcon={<Download className="h-4 w-4" />} />}
+          {showDownload && file.url && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDownload?.(file)}
+              className="h-8 w-8 p-0"
+              aria-label={processUiMessage('download', { locale, messages: fileMessages })}
+              rightIcon={<Download className="h-4 w-4" aria-hidden="true" />}
+            />
+          )}
 
-          {showRemove && <Button variant="ghost" size="sm" onClick={() => onRemove?.(file)} className="h-8 w-8 p-0 text-red-500 hover:text-red-600" rightIcon={<X className="h-4 w-4" />}></Button>}
+          {showRemove && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onRemove?.(file)}
+              className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
+              aria-label={processUiMessage('remove', { locale, messages: fileMessages })}
+              rightIcon={<X className="h-4 w-4" aria-hidden="true" />}
+            />
+          )}
         </div>
       </div>
     );
@@ -194,7 +221,19 @@ export const FileList: React.FC<FileListProps> = ({
           file.status === 'uploading' && 'cursor-not-allowed',
           showDownload && file.url && file.status === 'success' && 'hover:bg-primary/80',
         )}
+        role={showDownload && file.url && file.status === 'success' && !file.status.startsWith('upload') ? 'button' : undefined}
+        tabIndex={showDownload && file.url && file.status === 'success' ? 0 : undefined}
         onClick={handleTagClick}
+        onKeyDown={
+          showDownload && file.url && file.status === 'success'
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleTagClick();
+                }
+              }
+            : undefined
+        }
       >
         {/* 文件图标和状态 */}
         <div className="flex items-center gap-2">
@@ -217,7 +256,8 @@ export const FileList: React.FC<FileListProps> = ({
               onRemove?.(file);
             }}
             className="hover:bg-transparent"
-            rightIcon={<X className="h-3 w-3" />}
+            aria-label={processUiMessage('remove', { locale, messages: fileMessages })}
+            rightIcon={<X className="h-3 w-3" aria-hidden="true" />}
           />
         )}
       </Badge>
@@ -262,11 +302,15 @@ export const FileList: React.FC<FileListProps> = ({
 
         {/* 操作按钮（右上角） */}
         <div className="absolute top-1 right-1 flex gap-1">
-          {showPreview && imageUrl && <IconButton variant="default" size={20} onClick={() => onPreview?.(file)} icon="eye" />}
+          {showPreview && imageUrl && (
+            <IconButton variant="default" size={20} onClick={() => onPreview?.(file)} icon="eye" aria-label={processUiMessage('preview', { locale, messages: fileMessages })} />
+          )}
 
-          {showDownload && file.url && <IconButton variant="default" size={20} onClick={() => onDownload?.(file)} icon="download" />}
+          {showDownload && file.url && (
+            <IconButton variant="default" size={20} onClick={() => onDownload?.(file)} icon="download" aria-label={processUiMessage('download', { locale, messages: fileMessages })} />
+          )}
 
-          {showRemove && <IconButton variant="destructive" size={20} onClick={() => onRemove?.(file)} icon="x" />}
+          {showRemove && <IconButton variant="destructive" size={20} onClick={() => onRemove?.(file)} icon="x" aria-label={processUiMessage('remove', { locale, messages: fileMessages })} />}
         </div>
 
         {/* 文件名 */}

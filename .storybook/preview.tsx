@@ -3,7 +3,8 @@ import type { Preview } from '@storybook/react';
 import { useGlobals } from 'storybook/preview-api';
 import ThemeProvider from './providers/theme-provider';
 import { GLOBAL_KEY, normalizeLocale } from './addon/eas-addon-locale/constants';
-import { LocaleProvider, NotifyProvider } from '../src/providers';
+import { LocaleProvider } from '../src/providers';
+import { NotifyProvider } from '../src/ui/toast';
 import '../src/theme/styles.css';
 // 图标字体 —— `Icon` 的 `type="class"` 模式依赖它提供字形。
 //

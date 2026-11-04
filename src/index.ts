@@ -14,7 +14,8 @@
  * 4. `components` —— 应用组件（`ThemeToggle` / `LocaleToggle` 等**开箱即用**的成品组件）
  * 5. `design-system` —— 设计系统 Provider 组合（主题 / Tooltip / Toast）
  * 6. `hooks` —— 通用 React Hook（`useDevice` / `useLocale` / `useTheme`）
- * 7. `providers` —— 上下文 Provider（`LocaleProvider` / `ThemeProvider` / `NotifyProvider`）
+ * 7. `providers` —— 上下文 Provider（`LocaleProvider` / `ThemeProvider`；
+ *    `NotifyProvider` 属于通知组件族，经 `ui` 层（`src/ui/toast`）导出）
  *
  * @remarks
  * `src/design-system/components/ui/sonner` 的 `Toaster` 已在 `design-system/index.tsx` 内被

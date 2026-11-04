@@ -108,7 +108,7 @@ describe('Button 组件', () => {
     });
   });
 
-  // 回归测试（ADR 0001 / 批次二-3）
+  // 回归测试：shape 形状必须真实生效
   describe('shape 形状回归测试', () => {
     it('shape="circle" 应该渲染圆形（rounded-full）', () => {
       render(<Button shape="circle">圆形</Button>);

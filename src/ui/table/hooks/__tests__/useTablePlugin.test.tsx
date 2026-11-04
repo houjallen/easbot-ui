@@ -210,7 +210,7 @@ describe('useTablePlugin Hook', () => {
     });
 
     it('应该在插件配置 enabled 为 false 时放弃注册（外部 config 传入）', () => {
-      // 📌 回归测试（ADR 0001 / 批次二-1）——
+      // 📌 回归测试——
       //    `TablePlugin['config']` 声明的字段是 `enabled`（少一个 d 的 `enable` 是拼写错误），
       //    且**全部内置插件**（Add / BatchDelete / Export / Fullscreen / Import / Print /
       //    Refresh / ColumnManager / CellCopy / CellEdit / Sort / Filter / 各 Row 插件）

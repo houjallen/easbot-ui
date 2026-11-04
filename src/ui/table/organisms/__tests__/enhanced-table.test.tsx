@@ -118,7 +118,7 @@ describe('EnhancedTable 组件', () => {
         </TableProvider>,
       );
 
-      expect(screen.getByText('加载中...')).toBeInTheDocument();
+      expect(screen.getByText('加载中…')).toBeInTheDocument();
     });
 
     it('应该在出错时展示错误状态', () => {

@@ -8,7 +8,7 @@ import { Badge } from '../badge';
  *
  * 📌 回归重点：圆点（dot）模式必须透传 `className` / 原生属性 / `ref`。
  *
- * ⚠️ **历史缺陷（ADR 0001 / C-1）**：
+ * ⚠️ **历史缺陷**：
  *    修复前 dot 分支直接 `return`，导致
  *    ① `className` 被静默吞掉（解构出来但从不使用）；
  *    ② 全部原生属性（`id` / `data-*` / `aria-*` / `onClick` / `title`）丢失；
@@ -42,7 +42,7 @@ describe('Badge', () => {
     });
   });
 
-  describe('dot 模式回归测试（ADR 0001 / C-1）', () => {
+  describe('dot 模式回归测试', () => {
     it('应该渲染圆点', () => {
       const { container } = render(<Badge dot>内容</Badge>);
       expect(container.querySelector('.rounded-full')).toBeInTheDocument();

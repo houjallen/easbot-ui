@@ -52,7 +52,29 @@ export const TableRow = memo(
 
     // 如果启用了右键菜单且有行数据，则包装右键菜单
     const rowElement = (
-      <tr ref={ref} data-slot="table-row" data-selected={selected} data-expanded={expanded} className={rowClasses} onClick={handleClick} data-index={index} {...props}>
+      <tr
+        ref={ref}
+        data-slot="table-row"
+        data-selected={selected}
+        data-expanded={expanded}
+        className={rowClasses}
+        onClick={handleClick}
+        data-index={index}
+        // 📌 可点击行必须键盘可达 —— `<tr onClick>` 不是交互元素，
+        //    补 `tabIndex={0}` + Enter/Space 触发，否则纯键盘用户无法选中该行。
+        tabIndex={clickable && onClick ? 0 : undefined}
+        onKeyDown={
+          clickable && onClick
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  e.currentTarget.click();
+                }
+              }
+            : undefined
+        }
+        {...props}
+      >
         {children}
       </tr>
     );

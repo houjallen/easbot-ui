@@ -189,10 +189,10 @@ export function useTableI18n({
 
         // 状态
         emptyText: '暂无数据',
-        loadingText: '加载中...',
+        loadingText: '加载中…',
         errorText: '加载失败',
         noData: '暂无数据',
-        loading: '加载中...',
+        loading: '加载中…',
         error: '加载失败',
         retry: '重试',
         reload: '重新加载',
@@ -380,10 +380,10 @@ export function useTableI18n({
 
         // Status
         emptyText: 'No Data',
-        loadingText: 'Loading...',
+        loadingText: 'Loading…',
         errorText: 'Load Failed',
         noData: 'No Data',
-        loading: 'Loading...',
+        loading: 'Loading…',
         error: 'Load Failed',
         retry: 'Retry',
         reload: 'Reload',

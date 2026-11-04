@@ -98,12 +98,25 @@ export const Dropzone: React.FC<DropzoneProps> = ({ enabled = true, text, hint, 
   if (children) {
     return (
       <div
-        className={cn('relative', enabled && !disabled && 'cursor-pointer', className)}
+        className={cn('relative outline-offset-2 focus-visible:outline-2 focus-visible:outline-ring', enabled && !disabled && 'cursor-pointer', className)}
+        role={enabled && !disabled ? 'button' : undefined}
+        tabIndex={enabled && !disabled ? 0 : undefined}
+        aria-disabled={disabled || undefined}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         onClick={handleClick}
+        onKeyDown={
+          enabled && !disabled
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleClick();
+                }
+              }
+            : undefined
+        }
       >
         {children}
         {isDragOver && (
@@ -131,6 +144,19 @@ export const Dropzone: React.FC<DropzoneProps> = ({ enabled = true, text, hint, 
       onDragOver={handleDragOver}
       onDrop={handleDrop}
       onClick={handleClick}
+      role={enabled && !disabled ? 'button' : undefined}
+      tabIndex={enabled && !disabled ? 0 : undefined}
+      aria-disabled={disabled || undefined}
+      onKeyDown={
+        enabled && !disabled
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleClick();
+              }
+            }
+          : undefined
+      }
     >
       <div className="text-center">
         {isDragOver ? <Upload className="mx-auto h-12 w-12 text-primary" /> : <FileText className="mx-auto h-12 w-12 text-muted-foreground" />}

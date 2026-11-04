@@ -1,8 +1,7 @@
 /**
  * Table 组件 Storybook 示例（规范主入口）
  *
- * 位置遵循 `spec/storybook-standard.md` §1.1：
- * `src/ui/<component>/__tests__/<component>.stories.tsx`
+ * 位置与全库统一：`src/ui/<component>/__tests__/<component>.stories.tsx`
  *
  * 覆盖维度：默认形态 / 变体（列类型）/ 尺寸 / 状态 / 选择 / 展开 / 排序 / 分页 / 卡片模式 / Playground
  */

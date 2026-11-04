@@ -14,6 +14,7 @@ import type { TableSize, ToolbarConfig } from '../types/base';
 import { TablePluginContributionPoint } from '../types/hooks';
 import { TooltipProvider } from '../../tooltip';
 import { processUiMessage } from '../../../utils/ui-message';
+import { tableMessages } from '../../../utils/component-messages';
 import type { UiMessages } from '../../../utils/ui-message';
 import { cn } from '../../../utils/classnames';
 import { deepMerge } from '../../../utils/object';
@@ -182,6 +183,9 @@ const ActionButton: React.FC<{
       }}
       className={cn('shrink-0 p-1', action.className)}
       leftIcon={renderIcon}
+      // 📌 纯图标模式（size="icon"）必须有可访问名称 ——
+      //    优先取可见 label 文本，其次取 tooltip（title 不算可访问名称）。
+      aria-label={showLabel ? undefined : (typeof renderLabel === 'string' ? renderLabel : action.tooltip) || undefined}
     >
       {showLabel && renderLabel && <>{renderLabel}</>}
     </Button>
@@ -217,7 +221,13 @@ const MoreMenu: React.FC<{
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="shrink-0 p-1" rightIcon={<Icon name="more-vertical" size={16} />} />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="shrink-0 p-1"
+          rightIcon={<Icon name="more-vertical" size={16} aria-hidden="true" />}
+          aria-label={processUiMessage('moreActions', { locale: currentLocale, messages: tableMessages, fallbackLocale: 'zh-CN' })}
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="eas-table-toolbar-right-moremenu">
         {visibleActions.map((action, index) => {

@@ -1,4 +1,4 @@
-import { TableEmpty } from '../index';
+import { TableEmpty } from './TableEmpty';
 import { ScrollArea } from '../../scroll-area';
 import { cn } from '../../../utils/classnames';
 import React, { forwardRef, useEffect, useRef } from 'react';

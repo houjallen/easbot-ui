@@ -2,8 +2,35 @@ import * as React from 'react';
 
 import { cn } from '../../lib/utils';
 
-function Card({ className, ...props }: React.ComponentProps<'div'>) {
-  return <div data-slot="card" className={cn('flex flex-col gap-6 rounded-xl border bg-card py-6 text-card-foreground shadow-sm', className)} {...props} />;
+function Card({ className, onClick, onKeyDown, tabIndex, role, ...props }: React.ComponentProps<'div'>) {
+  // 📌 可点击卡片必须键盘可达 —— 传入 `onClick` 时自动补
+  //    `role="button"` + `tabIndex={0}` + Enter/Space 触发（消费方可显式覆盖任一项）。
+  const interactive = typeof onClick === 'function';
+  return (
+    <div
+      data-slot="card"
+      className={cn(
+        'flex flex-col gap-6 rounded-xl border bg-card py-6 text-card-foreground shadow-sm',
+        interactive && 'cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+        className,
+      )}
+      onClick={onClick}
+      role={role ?? (interactive ? 'button' : undefined)}
+      tabIndex={tabIndex ?? (interactive ? 0 : undefined)}
+      onKeyDown={
+        onKeyDown ??
+        (interactive
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.currentTarget.click();
+              }
+            }
+          : undefined)
+      }
+      {...props}
+    />
+  );
 }
 
 function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {

@@ -24,8 +24,7 @@
  * | `iconfont.woff` / `iconfont.ttf`| 图标字体主格式 + 兜底格式                  |
  * | `symbol.ttf` / `wingding.ttf`    | officefont 的 Symbol / Wingdings 家族      |
  *
- * ⚠️ **字体文件不随 npm 包发布** —— 由消费方自行放置到 `public/icon/`。
- * 详见 [`spec/css-standard.md`](../../../../spec/css-standard.md) §1.8。
+ * ⚠️ **字体文件不随 npm 包发布** —— 由消费方自行放置到 `public/icon/`，部署后映射到站点根路径。
  *
  * ## 为什么只保留 woff + ttf
  *
@@ -56,8 +55,7 @@ export const ICONFONT_FAMILY = 'iconfont';
  * 约定：消费方把图标字体放到 `public/icon/`（Vite / Next.js 等约定为
  * `public/` 目录，部署后映射到站点根路径），故引用路径为 `/icon/xxx`。
  *
- * ⚠️ **字体文件不随 npm 包发布** —— 由消费方自行放置到 `public/icon/`。
- * 详见 [`spec/css-standard.md`](../../../../spec/css-standard.md) §1.8。
+ * ⚠️ **字体文件不随 npm 包发布** —— 由消费方自行放置到 `public/icon/`，部署后映射到站点根路径。
  */
 export const ICONFONT_DIR = '/icon';
 

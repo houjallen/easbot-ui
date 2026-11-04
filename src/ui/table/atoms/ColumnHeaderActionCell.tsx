@@ -13,6 +13,7 @@ import type { TableContextValue } from '../context/TableContext';
 import type { ColumnActionConfig, TableColumnActionConfig } from '../types/base';
 import type { TableColumn, TableSize } from '../types/base';
 import { processUiMessage } from '../../../utils/ui-message';
+import { tableMessages } from '../../../utils/component-messages';
 import { cn } from '../../../utils/classnames';
 import { deepMerge } from '../../../utils/object';
 import { isEmpty } from '../../../utils/object';
@@ -269,7 +270,7 @@ const ActionButton: React.FC<{
   return action.render ? (
     action.render(column, context, action)
   ) : (
-    <IconButton size={20} shape="circle" variant={variant as IconVariant} disabled={isDisabled} className="shrink-0" onClick={handleClick} title={getTooltip()}>
+    <IconButton size={20} shape="circle" variant={variant as IconVariant} disabled={isDisabled} className="shrink-0" onClick={handleClick} title={getTooltip()} aria-label={getTooltip() || undefined}>
       {renderIcon}
     </IconButton>
   );
@@ -292,7 +293,7 @@ const MoreMenu: React.FC<{
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <IconButton icon="more-horizontal" size={20} className="shrink-0" />
+        <IconButton icon="more-horizontal" size={20} className="shrink-0" aria-label={processUiMessage('moreActions', { locale: currentLocale, messages: tableMessages, fallbackLocale: 'zh-CN' })} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="eas-table-column-header-action-moremenu">
         {visibleActions.map((action, index) => {

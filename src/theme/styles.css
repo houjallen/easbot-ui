@@ -272,3 +272,26 @@
     background: color-mix(in srgb, var(--muted-foreground) 50%, transparent);
   }
 }
+
+/* ============================================================================
+ * 动效降级（prefers-reduced-motion 兜底）
+ *
+ * 全局媒体查询统一兜底：用户系统开启「减少动态效果」时，
+ * 把全部动画 / 过渡压缩到近零时长（含 @utility 动画 animate-ripple /
+ * animate-gradient、tw-animate-css 的 animate-in / animate-out、
+ * 各组件的 transition-*）。
+ *
+ * ⚠️ 必须放在唯一编译入口 styles.css —— 组件目录里的 CSS 不进产物
+ *   （见 spec/css-standard.md §4.7.1 写法 B）。
+ * ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

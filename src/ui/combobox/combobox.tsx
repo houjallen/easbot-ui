@@ -325,7 +325,7 @@ const EunCombobox = React.forwardRef<EunComboboxRef, EunComboboxProps>(
     //    React 会告警 "In HTML, <button> cannot be a descendant of <button>"，
     //    SSR 场景还会触发 hydration 错误。
     //    改用 `<span role="button">` + `tabIndex` + `onKeyDown`，
-    //    既规避非法嵌套，又保持键盘可达（符合 spec §3.7 无障碍要求 1/2）。
+    //    既规避非法嵌套，又保持键盘可达（满足无障碍的语义与键盘可达要求）。
     const renderRemoveControl = (option: SelectOption) => (
       <span
         role="button"

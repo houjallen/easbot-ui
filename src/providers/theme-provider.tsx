@@ -46,7 +46,7 @@ export interface ThemeProviderProps {
    *
    * @description
    * 写入 `<html>` 的属性名，需与主题 CSS 的选择器约定一致
-   * （本库为 `:root[data-theme='light|dark']`，见 `spec/css-standard.md`）。
+   * （本库为 `:root[data-theme='light|dark']`，与主题 CSS 的选择器约定一致）。
    */
   attribute?: string;
   /**

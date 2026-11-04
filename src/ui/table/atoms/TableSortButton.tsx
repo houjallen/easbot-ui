@@ -123,6 +123,7 @@ export const TableSortButton: React.FC<TableSortButtonProps> = ({ action, column
       className={cn(currentSort ? 'shrink-0 bg-primary/10' : 'shrink-0', className)}
       onClick={(e) => handleSort(e)}
       title={getSortTitle()}
+      aria-label={getSortTitle() ?? getSortLabel()}
     />
   );
 };

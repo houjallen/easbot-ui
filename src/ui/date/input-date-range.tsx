@@ -362,7 +362,26 @@ export const InputDateRange = React.forwardRef<HTMLInputElement, InputDateRangeP
               required={required}
               className="pr-10"
               suffix={
-                <Icon className={cn('cursor-pointer opacity-50 hover:opacity-100', disabled && 'cursor-not-allowed opacity-30')} name="calendar" size={16} onClick={() => !disabled && setOpen(true)} />
+                <span
+                  role="button"
+                  tabIndex={disabled ? -1 : 0}
+                  aria-label={pickerLocale.placeholderDateRange}
+                  aria-disabled={disabled || undefined}
+                  className={cn(
+                    'inline-flex cursor-pointer opacity-50 outline-offset-2 hover:opacity-100 focus-visible:outline-2 focus-visible:outline-ring',
+                    disabled && 'cursor-not-allowed opacity-30',
+                  )}
+                  onClick={() => !disabled && setOpen(true)}
+                  onKeyDown={(e) => {
+                    if (disabled) return;
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setOpen(true);
+                    }
+                  }}
+                >
+                  <Icon name="calendar" size={16} aria-hidden="true" />
+                </span>
               }
               {...props}
             />

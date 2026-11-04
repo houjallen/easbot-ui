@@ -395,7 +395,7 @@ export const LoadingAndErrorStates: Story = {
 
         <div className="flex gap-2">
           <Button onClick={handleLoadData} disabled={loading}>
-            {loading ? '加载中...' : '加载数据'}
+            {loading ? '加载中…' : '加载数据'}
           </Button>
           <Button onClick={handleSimulateError} variant="destructive">
             模拟错误

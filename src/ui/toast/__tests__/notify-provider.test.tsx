@@ -19,8 +19,8 @@
 import { act, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { dismiss, useToast } from '../../ui/use-toast';
-import type { State } from '../../ui/use-toast';
+import { dismiss, useToast } from '../../use-toast';
+import type { State } from '../../use-toast';
 import { NotifyProvider, useNotify } from '../notify-provider';
 
 /**

@@ -60,7 +60,7 @@ export type {
   TableCardViewProps,
 } from './components';
 
-// 📌 **原从 `./components` 导出的 `AdvancedTableProps` 已移除（ADR 0001 / A-3）** ——
+// 📌 **原从 `./components` 导出的 `AdvancedTableProps` 已移除** ——
 //    该定义是死代码（字段结构与组件实际签名不同），且从未被组件消费。
 //    唯一定义源：`src/ui/table/organisms/AdvancedTable.tsx`，
 //    由 `organisms/index.ts` 导出（包根经 `table/index.ts` 的 `export * from './organisms'` 暴露）。

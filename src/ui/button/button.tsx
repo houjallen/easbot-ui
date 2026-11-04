@@ -142,7 +142,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
  * <Button leftIcon={<UserIcon />}>用户</Button>
  *
  * // 加载状态
- * <Button loading>加载中...</Button>
+ * <Button loading>加载中…</Button>
  *
  * // 不同变体和尺寸
  * <Button variant="destructive" size="sm">删除</Button>

@@ -3,7 +3,7 @@
  * 根据列类型渲染不同的值展示
  */
 
-import { useTableLogic } from '../index';
+import { useTableLogic } from '../context/TableContext';
 import React from 'react';
 import type { TableColumn } from '../types/base';
 import { generateTableCell } from '../utils/field-generator';

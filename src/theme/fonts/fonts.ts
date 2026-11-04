@@ -136,8 +136,7 @@ export const FONT_FAMILY = 'Source Han Sans CN';
  * 约定：消费方把字体文件放到 `public/font/`（Vite / Next.js 等约定为
  * `public/` 目录，部署后映射到站点根路径），故引用路径为 `/font/xxx`。
  *
- * ⚠️ **字体文件不随 npm 包发布** —— 由消费方自行放置到 `public/font/`。
- * 详见 [`spec/css-standard.md`](../../spec/css-standard.md) §1.7。
+ * ⚠️ **字体文件不随 npm 包发布** —— 由消费方自行放置到 `public/font/`，部署后映射到站点根路径。
  */
 export const FONT_DIR = '/font';
 

@@ -1663,8 +1663,8 @@ rg -n "transition-\[|animate-" -g "src/**/*.tsx" -g "!*stories.tsx" --no-heading
 - ❌ 违规 2：组件内动效类未配 `motion-reduce:`
 - ✅ 合规：两条均通过
 
-> 📌 **实测基线**：`styles.css` 的 `animate-ripple` / `animate-gradient` **均无**兜底 →
-> 缺口 G-A3。
+> 📌 **实测基线**：`styles.css` **已补**全局 `prefers-reduced-motion` 兜底
+> （2026-11-05，缺口 G-A3 已消除）。
 
 **修正模式**：
 

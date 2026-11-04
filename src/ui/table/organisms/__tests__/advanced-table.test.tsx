@@ -169,7 +169,7 @@ describe('AdvancedTable 组件', () => {
     it('应该在加载时展示加载蒙层', () => {
       renderTable(<AdvancedTable data={sampleData} columns={sampleColumns} loading />);
 
-      expect(screen.getByText('加载中...')).toBeInTheDocument();
+      expect(screen.getByText('加载中…')).toBeInTheDocument();
     });
 
     it('应该在出错时展示错误状态', () => {

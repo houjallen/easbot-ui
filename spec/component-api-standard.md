@@ -783,8 +783,8 @@ rg -n "^import \{[^}]*\} from '(\.\./)*(index|\.)'" -g "src/ui/**/*.tsx" --no-he
 - ❌ 违规：组件内部从目录 barrel 做**运行时**导入 → 循环依赖
 - ✅ 合规：0 命中（`import type` 不产生运行时循环，**豁免**）
 
-> 📌 **实测**：**2 处**运行时循环（`src/ui/table/atoms/TableCardContainer.tsx:1`、
-> `src/ui/table/atoms/CellValue.tsx:6`）→ 见 §M+2 G-P2。
+> 📌 **实测**：**0 处**（2026-11-05 已修复 —— `TableCardContainer` 直连 `./TableEmpty`、
+> `CellValue` 直连 `../context/TableContext`，不再经目录 barrel）。
 > 详见 [`architecture-standard.md`](./architecture-standard.md) §M 维度 ②。
 
 **修正模式**：
@@ -918,14 +918,14 @@ rg -n "^\s{2}render[A-Z]\w*\??:" -g "src/ui/**/*.tsx" -g "!*stories.tsx" --no-he
 
 ### 缺口登记（需排期修复）
 
-| #    | 缺口                                                                                                                                                                                | 涉及维度 | 影响                                                                                    |
-| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------- |
-| G-P1 | **52 / 56** 个组件**不暴露** `asChild`                                                                                                                                              | §2.3     | 消费方无法把 Radix wrapper 透传进来                                                     |
-| G-P2 | barrel **运行时**循环导入 **2** 处                                                                                                                                                  | 维度 ⑦   | 初始化顺序不确定（`CellValue` / `TableCardContainer`）                                  |
-| G-P3 | `file/types.ts` 布尔 **6** 个（`showList` / `showRemove` / `showDownload` / `showPreview` / `showUploadButton` / `withCredentials`）                                                | 维度 ①   | 组合爆炸 + 语义歧义                                                                     |
-| G-P4 | `TableFixedColumn.tsx` 布尔 **6** 个                                                                                                                                                | 维度 ①   | 同上                                                                                    |
-| G-P5 | `React.memo` 仅 **7** 处（全在表格原子组件）                                                                                                                                        | —        | 长列表场景的重渲染成本（详见 [`architecture-standard.md`](./architecture-standard.md)） |
-| G-P6 | 零动态 `import()` —— 56 个组件 + `recharts` / `react-day-picker` / `embla` / `vaul` 全部静态耦合（与 [`react-performance-standard.md`](./react-performance-standard.md) G-R1 同源） | 维度 ⑥   | 全量 `recharts` 打进首屏（消费方侧）                                                    |
+| #        | 缺口                                                                                                                                                                                | 涉及维度 | 影响                                                                                    |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------- |
+| G-P1     | **52 / 56** 个组件**不暴露** `asChild`                                                                                                                                              | §2.3     | 消费方无法把 Radix wrapper 透传进来                                                     |
+| ~~G-P2~~ | ~~barrel **运行时**循环导入 **2** 处~~ —— **已消除**（2026-11-05，改为直连源模块）                                                                                                  | 维度 ⑦   | ~~初始化顺序不确定~~                                                                    |
+| G-P3     | `file/types.ts` 布尔 **6** 个（`showList` / `showRemove` / `showDownload` / `showPreview` / `showUploadButton` / `withCredentials`）                                                | 维度 ①   | 组合爆炸 + 语义歧义                                                                     |
+| G-P4     | `TableFixedColumn.tsx` 布尔 **6** 个                                                                                                                                                | 维度 ①   | 同上                                                                                    |
+| G-P5     | `React.memo` 仅 **7** 处（全在表格原子组件）                                                                                                                                        | —        | 长列表场景的重渲染成本（详见 [`architecture-standard.md`](./architecture-standard.md)） |
+| G-P6     | 零动态 `import()` —— 56 个组件 + `recharts` / `react-day-picker` / `embla` / `vaul` 全部静态耦合（与 [`react-performance-standard.md`](./react-performance-standard.md) G-R1 同源） | 维度 ⑥   | 全量 `recharts` 打进首屏（消费方侧）                                                    |
 
 ---
 
@@ -947,7 +947,7 @@ rg -n "^\s{2}render[A-Z]\w*\??:" -g "src/ui/**/*.tsx" -g "!*stories.tsx" --no-he
 | C10 | 组件内定义组件            | 「不要在组件内部定义组件」                                                                    | 未涉及                                                  | **采纳**（§3.2 配套）—— 内联定义的组件**每次渲染都是新类型**，会导致子树**完全重挂载**。本库 `src/ui/**` 实测**无**此反模式（组件均在模块级定义）—— **已合规**                                                                                        |
 | C11 | 派生状态而非 effect       | 「在渲染期派生，不要用 effect 同步状态」                                                      | 未涉及                                                  | **采纳为方向** —— 本库 `src/ui/table/hooks/useTableStorePage.ts:190-193` 有 `useMemo(() => context.state.pagination                                                                                                                                   |     | EMPTY_OBJECT, [...])` 形态（**正是**「派生而非 effect」的范式）。**已合规**，无需改 |
 | C12 | `defaultValue` vs `value` | 「优先非受控输入」                                                                            | 未涉及（仅规范了 `value` / `defaultValue` 命名）        | **采纳**（§5.1）—— 补「两者都没给」的默认行为与优先级定义                                                                                                                                                                                             |
-| C13 | barrel 导入               | 「直接导入，避免 barrel 文件」                                                                | **必须**用 barrel 导出（`export *`）                    | **部分采纳**（维度 ⑦）—— **对外**必须走 barrel（公开 API 契约）；但**组件内部**从 barrel 运行时导入会**循环依赖**，必须直连源模块。本库已有 2 处违规（缺口 G-P2）                                                                                     |
+| C13 | barrel 导入               | 「直接导入，避免 barrel 文件」                                                                | **必须**用 barrel 导出（`export *`）                    | **部分采纳**（维度 ⑦）—— **对外**必须走 barrel（公开 API 契约）；但**组件内部**从 barrel 运行时导入会**循环依赖**，必须直连源模块（原 2 处违规已修复）                                                                                                |
 | C14 | 状态提升到 Provider       | 「把状态提升到 Provider 供兄弟组件访问」                                                      | 组件层 Context 极少（`src/ui/**` 仅 2 个）              | **采纳为原则，不强制推广**（§4.4）—— Context 是「跨多层传递」的手段，**不是默认选项**；能用 props 下钻就**不该**上 Context。本库现状（组件层仅 2 个 Context）**是良好实践**，不需改                                                                   |
 | C15 | 代码分割 / 动态 import    | 「重组件用 `next/dynamic`」                                                                   | 单 barrel 入口 + `splitting: true`                      | **不适用 `next/dynamic`**（本库不是 Next.js 应用），但**「按需加载」的诉求成立** —— 见 §M+2 G-P6（零动态 `import()`，56 个组件 + recharts / react-day-picker / embla / vaul 全部静态耦合）                                                            |
 

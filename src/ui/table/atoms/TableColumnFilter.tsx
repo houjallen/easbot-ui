@@ -633,7 +633,7 @@ export const TableColumnFilter: React.FC<TableColumnFilterProps> = ({ action, co
       );
     }
 
-    return <IconButton icon="filter" size={20} shape="square" variant="default" className={cn(active ? 'shrink-0 bg-primary/10' : 'shrink-0', className)} />;
+    return <IconButton icon="filter" size={20} shape="square" variant="default" className={cn(active ? 'shrink-0 bg-primary/10' : 'shrink-0', className)} aria-label={t('filterText')} />;
   };
 
   // 根据 showInMore 决定使用 Dialog 还是 Popover
