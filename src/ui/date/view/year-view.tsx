@@ -12,6 +12,7 @@ import dayjs from 'dayjs';
 import React from 'react';
 import { Button } from '../../button';
 import { useDatePickerLocale } from '../hooks/use-date-picker-locale';
+import { truncateToGranularity } from './granularity';
 import type { BaseRangeViewProps, BaseViewProps } from './types';
 
 // 年份视图组件
@@ -20,7 +21,9 @@ export function YearView({ viewDate, selectedDate, onSelect, minDate, maxDate, i
   const years = Array.from({ length: 12 }, (_, i) => startYear + i);
 
   const isYearDisabled = (year: number) => {
-    const yearDate = dayjs().year(year);
+    // ⚠️ 必须归一到「该年 1 月 1 日 00:00:00」——
+    //    否则 `viewDate` 的月 / 日 / 时分秒会带入判定，导致误禁用。
+    const yearDate = truncateToGranularity(viewDate.year(year), 'year');
     if (minDate && year < minDate.year()) return true;
     if (maxDate && year > maxDate.year()) return true;
     if (isValidDate && !isValidDate(yearDate)) return true;
@@ -64,7 +67,9 @@ export function YearRangeView({ viewDate, selectedStartDate, selectedEndDate, on
   const years = Array.from({ length: 12 }, (_, i) => startYear + i);
 
   const isYearDisabled = (year: number) => {
-    const yearDate = dayjs().year(year);
+    // ⚠️ 必须归一到「该年 1 月 1 日 00:00:00」——
+    //    否则 `viewDate` 的月 / 日 / 时分秒会带入判定，导致误禁用。
+    const yearDate = truncateToGranularity(viewDate.year(year), 'year');
     if (minDate && year < minDate.year()) return true;
     if (maxDate && year > maxDate.year()) return true;
     if (isValidDate && !isValidDate(yearDate)) return true;
@@ -73,7 +78,7 @@ export function YearRangeView({ viewDate, selectedStartDate, selectedEndDate, on
 
   const isYearInRange = (year: number) => {
     if (!selectedStartDate || !selectedEndDate) return false;
-    const yearDate = dayjs().year(year);
+    const yearDate = truncateToGranularity(viewDate.year(year), 'year');
     return yearDate.isAfter(selectedStartDate, 'year') && yearDate.isBefore(selectedEndDate, 'year');
   };
 

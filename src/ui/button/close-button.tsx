@@ -11,7 +11,10 @@ const closeButtonVariants = cva(
   //   若用 `focus:ring-2`，程序化聚焦也会画出焦点环，
   //   表现为「打开即选中态」（用户反馈的缺陷）。
   //   `focus-visible` 只在**键盘操作**聚焦时显示焦点环，可访问性不降级。
-  'inline-flex items-center justify-center rounded-md p-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50',
+  // 📌 **禁用态用 `disabled:cursor-not-allowed` 而非 `disabled:pointer-events-none`** ——
+  //    `pointer-events: none` 会让元素对鼠标完全透明，`cursor: not-allowed` 永远不会生效。
+  //    详见 `src/theme/styles/prefix.css` 的「全局 button 鼠标样式」说明。
+  'inline-flex items-center justify-center rounded-md p-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50',
   {
     variants: {
       variant: {

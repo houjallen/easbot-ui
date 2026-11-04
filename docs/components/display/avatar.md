@@ -1,138 +1,94 @@
 # Avatar 头像
 
-> 用于展示用户头像，支持图片 / 文字 / 图标三种内容形式，以及尺寸、形状与在线状态指示。
+> 展示用户 / 对象的圆形或方形头像，支持图片、回退文本与在线状态指示点。
+
+---
 
 **导入**
 
 ```tsx
-import { Avatar, AvatarImage, AvatarFallback } from '@easbot/ui';
+import { Avatar, AvatarFallback, AvatarImage } from '@easbot/ui';
 ```
 
 ## 基础用法
 
 ```tsx
-<Avatar>
-  <AvatarImage src="https://example.com/avatar.png" alt="用户头像" />
-  <AvatarFallback>候</AvatarFallback>
-</Avatar>
+import { Avatar, AvatarFallback, AvatarImage } from '@easbot/ui';
+
+export default function App() {
+  return (
+    <Avatar>
+      <AvatarImage src="/avatar.png" alt="用户头像" />
+      <AvatarFallback>FB</AvatarFallback>
+    </Avatar>
+  );
+}
 ```
 
-渲染结构：根节点为 `<span role="img" aria-label="用户头像">`（基于 Radix `Avatar.Root`），
-`AvatarImage` 加载失败或未加载时 Radix 会自动显示 `AvatarFallback`。
+方形头像与状态指示点：
 
-## 组成部分
+```tsx
+import { Avatar, AvatarFallback } from '@easbot/ui';
 
-| 子组件           | 说明                                                             |
-| ---------------- | ---------------------------------------------------------------- |
-| `AvatarImage`    | 头像图片，渲染为 `<img>`，加载失败时自动隐藏自身并显示 fallback  |
-| `AvatarFallback` | 图片未就绪时的占位内容，渲染为 `<span>`，用于文字 / 图标首字缩写 |
-
-## 变体
-
-### size
-
-| 取值 | 说明                           |
-| ---- | ------------------------------ |
-| `sm` | 小尺寸（`--avatar-size-sm`）   |
-| `md` | 中等尺寸（`--avatar-size-md`） |
-| `lg` | 大尺寸（`--avatar-size-lg`）   |
-
-默认值：`md`。
-
-### shape
-
-| 取值     | 说明                                 |
-| -------- | ------------------------------------ |
-| `circle` | 圆形（`--avatar-radius-circle`）     |
-| `square` | 圆角方形（`--avatar-radius-square`） |
-
-默认值：`circle`。
-
-### status
-
-| 取值      | 说明                              |
-| --------- | --------------------------------- |
-| `online`  | 在线（`--avatar-status-online`）  |
-| `offline` | 离线（`--avatar-status-offline`） |
-| `busy`    | 忙碌（`--avatar-status-busy`）    |
-| `away`    | 离开（`--avatar-status-away`）    |
-
-默认值：`—`（不传则不渲染状态指示点）。
+export default function App() {
+  return (
+    <Avatar shape="square" showStatus statusPosition="bottom-right" statusColor="var(--success)">
+      <AvatarFallback>FB</AvatarFallback>
+    </Avatar>
+  );
+}
+```
 
 ## 属性
 
-| 属性           | 类型                                        | 默认值     | 说明                            |
-| -------------- | ------------------------------------------- | ---------- | ------------------------------- |
-| `size`         | `'sm' \| 'md' \| 'lg'`                      | `'md'`     | 头像尺寸                        |
-| `shape`        | `'circle' \| 'square'`                      | `'circle'` | 头像形状                        |
-| `status`       | `'online' \| 'offline' \| 'busy' \| 'away'` | —          | 状态指示类型                    |
-| `statusOffset` | `[number \| string, number \| string]`      | `[0, 0]`   | 状态指示位置偏移 `[水平, 垂直]` |
-| `className`    | `string`                                    | —          | 自定义类名，合并到根节点        |
+继承自 `React.ComponentProps<typeof DSAvatar>`。
 
-本表只列组件自有属性；此外还透传 Radix `Avatar.Root`（`<span>`）的全部原生属性，如 `id` / `aria-*` / `data-*` / `on*` 事件。
+| 属性              | 类型                                                           | 默认值 | 说明                                       |
+| ----------------- | -------------------------------------------------------------- | ------ | ------------------------------------------ |
+| `shape?`          | `'circle' \| 'square'`                                         | —      | 头像形状，默认圆形                         |
+| `statusColor?`    | `string`                                                       | —      | 状态指示点颜色，仅扩展用（如在线、离线等） |
+| `statusPosition?` | `'top-left' \| 'top-right' \| 'bottom-left' \| 'bottom-right'` | —      | 状态指示点位置，默认为右下角               |
+| `showStatus?`     | `boolean`                                                      | —      | 是否显示状态点                             |
 
-`AvatarImage` 的属性类型为 `React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> & { onError?: React.ReactEventHandler<HTMLImageElement> }`，
-即透传 `<img>` 原生属性（含 Radix 的 `onLoadingStatusChange`），并额外提供 `onError` 回调。
-`AvatarFallback` 的属性类型为 `React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>`，额外支持 Radix 的 `delayMs`。
+`AvatarProps` 是 `Avatar` 的属性接口，继承设计系统层 `Avatar`（Radix `AvatarPrimitive.Root`）的全部原生属性。
 
-### statusOffset 的实际映射
-
-源码中 `statusOffset` 的类型标注为 `[水平, 垂直]`，但**实际映射到 CSS 的 `bottom` 与 `right`**：
-
-```tsx
-style={{ bottom: statusOffset[0], right: statusOffset[1] }}
-```
-
-也就是说数组的第 0 项作用于 `bottom`（垂直方向），第 1 项作用于 `right`（水平方向），
-与「水平在前、垂直在后」的直觉顺序相反。状态点默认绝对定位在 `bottom-0 right-0`，
-因此 `statusOffset={[2, 2]}` 表示向下、向右各偏移 `2px`（会移出头像边界外侧）。
-
-## 导出
-
-| 导出名               | 类型 | 说明                                                  |
-| -------------------- | ---- | ----------------------------------------------------- |
-| `Avatar`             | 组件 | 头像根组件，渲染为 `<span role="img">`                |
-| `AvatarImage`        | 组件 | 图片子组件，渲染为 `<img>`                            |
-| `AvatarFallback`     | 组件 | 占位子组件，渲染为 `<span>`                           |
-| `AvatarProps`        | 类型 | `Avatar` 的 props 类型                                |
-| `AvatarVariantProps` | 类型 | `class-variance-authority` 的 `VariantProps` 类型别名 |
+本表只列组件自有属性；此外还透传 `<span>` 的全部原生属性（`id` / `style` / `aria-*` / `data-*` / `on*` 事件等）。
 
 ## 无障碍
 
-- 根节点固定设置 `role="img"` 与 `aria-label="用户头像"`，可被屏幕阅读器识别为一张图片。
-- `AvatarImage` 默认 `alt="用户头像"`；如需更精确的描述，请通过 `alt` 覆盖。
-- `AvatarImage` 加载失败时会把自身 `display` 置为 `none` 并回调 `onError`，Radix 随后显示 `AvatarFallback`。
-- 状态指示点是纯装饰元素，带 `aria-hidden="true"`，同时带 `data-testid="avatar-status"` 便于测试定位。
-- 状态颜色（在线 / 离线 / 忙碌 / 离开）仅靠颜色区分，若状态具有语义，建议在业务层补充文案说明。
+- 底层基于 Radix `AvatarPrimitive.Root`，渲染为 `<span>`，**不提供** `img` 语义角色；可访问名称需由调用方通过 `aria-label` 补充。
+- `AvatarImage` 只在图片**加载成功**后才渲染 `<img>`，加载失败或未加载时自动回退到 `AvatarFallback` 的内容。
+- `AvatarImage` 的 `alt` 由调用方提供；`AvatarFallback` 的文本内容会作为可读文本被读屏播报（如缩写「FB」）。
+- 状态指示点是纯装饰 `<span>`，无文本、无 `aria-*`；若它承载了「在线 / 离线」语义，请自行补充可读文案或 `aria-label`。
+
+## 注意事项
+
+- **`src/ui` 层是设计系统层的再封装**：主题样式与尺寸（`size-8`）全部由设计系统层 `Avatar` 控制，`src/ui` 只额外提供 `shape` 与状态点扩展。
+- **`shape` 只改圆角**：默认 `'circle'` 渲染 `rounded-full`；`'square'` 渲染 `rounded-[var(--radius-md)]`（使用主题圆角变量），不会改变组件尺寸。
+- **`shape` 与 `statusPosition` 不会透传给底层**：这两个属性在 `src/ui` 层被消费掉，最终落到 DOM 上的只有 `className` 与其余原生属性。
+- **`className` 作用于外层包裹 `<span>`**（`relative inline-block align-middle`），而不是内部的头像本体 —— 需要给本体加样式请使用 `AvatarImage` / `AvatarFallback` 上的 `className`。
+- **状态点尺寸使用 `em` 单位**（`0.6em`），会随父级字号缩放；其描边使用 `box-shadow: 0 0 0 2px var(--background)`，因此在非 `--background` 底色上可能出现色差。
+- **状态点默认颜色为 `var(--success)`**，需要表达其他状态请显式传 `statusColor`。
+- **状态点位置四个取值**：`top-left` / `top-right` / `bottom-left` / `bottom-right`，默认 `'bottom-right'`。
+- **组件不渲染 `children` 以外的任何默认内容**：`Avatar` 内部只负责容器与状态点，图片与回退内容需自行传入。
+- **头像尺寸固定为 `size-8`（32px）**：需要更大 / 更小的头像请通过 `className` 覆盖。
 
 ## 主题变量
 
-| 变量                            | 说明                                   |
-| ------------------------------- | -------------------------------------- |
-| `--avatar-size-sm`              | `size="sm"` 的宽高                     |
-| `--avatar-size-md`              | `size="md"` 的宽高                     |
-| `--avatar-size-lg`              | `size="lg"` 的宽高                     |
-| `--avatar-radius-circle`        | `shape="circle"` 的圆角                |
-| `--avatar-radius-square`        | `shape="square"` 的圆角                |
-| `--avatar-border-width`         | 边框宽度（通过 `--border-width` 注入） |
-| `--avatar-border-color`         | 边框颜色                               |
-| `--avatar-background`           | 根节点背景色                           |
-| `--avatar-foreground`           | 根节点文字颜色                         |
-| `--avatar-status-size`          | 状态点尺寸                             |
-| `--avatar-status-border`        | 状态点边框                             |
-| `--avatar-status-online`        | `status="online"` 的填充色             |
-| `--avatar-status-offline`       | `status="offline"` 的填充色            |
-| `--avatar-status-busy`          | `status="busy"` 的填充色               |
-| `--avatar-status-away`          | `status="away"` 的填充色               |
-| `--avatar-fallback-background`  | 占位内容背景色                         |
-| `--avatar-fallback-foreground`  | 占位内容文字色                         |
-| `--avatar-fallback-font-size`   | 占位内容字号                           |
-| `--avatar-fallback-font-weight` | 占位内容字重                           |
+本组件直接消费以下 CSS 变量（完整清单见 [主题定制](../../theming.md)）：
 
-## 组合用法 / 注意事项
+- `--background`
+- `--border`
+- `--radius-md`
+- `--success`
 
-1. `AvatarImage` 与 `AvatarFallback` 建议成对使用：前者用于真实图片，后者用于图片未就绪 / 加载失败时的兜底。
-2. 根节点已固定 `role="img"` 与 `aria-label`，若需要更具体的语义（如「张三的头像」），可通过
-   `aria-label` 覆盖默认文案。
-3. `statusOffset` 的数组顺序是「`bottom` 在前、`right` 在后」，调整时注意方向，不要按 `[水平, 垂直]` 理解。
-4. 尺寸由 CSS 变量控制，若需要覆盖尺寸，用 `className` 传入 `h-*` / `w-*` 即可（`className` 合并在末位，优先级最高）。
+## 导出
+
+### 组件
+
+| 导出名           | 说明 |
+| ---------------- | ---- |
+| `Avatar`         |      |
+| `AvatarFallback` |      |
+| `AvatarImage`    |      |
+| `AvatarProps`    |      |

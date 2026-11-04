@@ -28,7 +28,15 @@ export interface InputDateRangeProps {
   onChange?: (value: [string, string] | undefined) => void;
   /** 占位符文本 */
   placeholder?: string;
-  /** 日期格式 */
+  /**
+   * 日期格式
+   *
+   * @description
+   * **唯一真值源** —— 所有模式（`day` / `month` / `year`）均按此格式解析与输出。
+   *
+   * ⚠️ 未传时按 `mode` 取对应精度的默认格式：
+   * `day` → `'YYYY-MM-DD'` · `month` → `'YYYY-MM'` · `year` → `'YYYY'`。
+   */
   format?: string;
   /** 选择器模式，控制选择的精度 */
   mode?: 'day' | 'month' | 'year';
@@ -58,7 +66,7 @@ export const InputDateRange = React.forwardRef<HTMLInputElement, InputDateRangeP
       value,
       onChange,
       placeholder,
-      format = DEFAULT_DATE_FORMAT,
+      format: formatProp,
       mode = 'day',
       disabled = false,
       readOnly = false,
@@ -75,6 +83,19 @@ export const InputDateRange = React.forwardRef<HTMLInputElement, InputDateRangeP
   ) => {
     const pickerLocale = useDatePickerLocale();
     const finalPlaceholder = placeholder || pickerLocale.placeholderDateRange;
+
+    // 📌 **`format` 是唯一真值源，`mode` 只决定「未传 format 时的默认值」** ——
+    //    修复前，`mode === 'month' | 'year'` 会**硬编码**覆盖 `format`
+    //    （`'YYYY-MM'` / `'YYYY'`），导致消费方传的 `format`（如 `'MM/DD/YYYY'`）
+    //    在这两种模式下**完全失效** —— 与单选版 `InputDate`（所有模式一律走 `format`）行为不一致。
+    //    现在：`format` 显式传入时**始终生效**；未传时按 `mode` 取对应精度的默认格式。
+    const format = React.useMemo(() => {
+      if (formatProp) return formatProp;
+      if (mode === 'month') return 'YYYY-MM';
+      if (mode === 'year') return 'YYYY';
+      return DEFAULT_DATE_FORMAT;
+    }, [formatProp, mode]);
+
     const [open, setOpen] = React.useState(false);
     const [inputValue, setInputValue] = React.useState('');
     const [startViewMode, setStartViewMode] = React.useState<ViewMode>(mode === 'day' ? 'days' : mode === 'month' ? 'months' : 'years');
@@ -107,17 +128,9 @@ export const InputDateRange = React.forwardRef<HTMLInputElement, InputDateRangeP
           const parts = rangeStr.split(separator);
           if (parts.length !== 2) return undefined;
 
-          let parseFormat = format;
-          let outputFormat = format;
-
-          // 根据模式调整格式
-          if (mode === 'month') {
-            parseFormat = 'YYYY-MM';
-            outputFormat = 'YYYY-MM';
-          } else if (mode === 'year') {
-            parseFormat = 'YYYY';
-            outputFormat = 'YYYY';
-          }
+          // 📌 解析 / 输出格式统一走 `format`（`mode` 的默认格式已在上面派生）
+          const parseFormat = format;
+          const outputFormat = format;
 
           // `noUncheckedIndexedAccess` 下索引访问可能为 undefined，
           // 但此处已由 `parts.length !== 2` 的提前返回保证恰好两段
@@ -132,7 +145,9 @@ export const InputDateRange = React.forwardRef<HTMLInputElement, InputDateRangeP
           return undefined;
         }
       },
-      [format, separator, mode],
+      // 📌 `mode` 不再是依赖 —— 它只用于派生 `format`（见上方 useMemo），
+      //    `format` 变化即已覆盖 mode 变化的场景。
+      [format, separator],
     );
 
     // 同步外部值到内部状态
@@ -259,14 +274,8 @@ export const InputDateRange = React.forwardRef<HTMLInputElement, InputDateRangeP
     // 确认选择 - 根据模式返回不同精度的值
     const handleConfirm = () => {
       if (tempStartDate && tempEndDate) {
-        let outputFormat = format;
-
-        // 根据模式调整输出格式
-        if (mode === 'month') {
-          outputFormat = 'YYYY-MM';
-        } else if (mode === 'year') {
-          outputFormat = 'YYYY';
-        }
+        // 📌 输出格式统一走 `format`（`mode` 的默认格式已在上面派生）
+        const outputFormat = format;
 
         // 智能自动调整：确保结束时间大于等于开始时间
         let finalStartDate = tempStartDate;
@@ -416,9 +425,7 @@ export const InputDateRange = React.forwardRef<HTMLInputElement, InputDateRangeP
 
               {/* 开始日期显示 */}
               <div className="border-t p-2">
-                <div className="text-center text-muted-foreground text-sm">
-                  {tempStartDate ? tempStartDate.format(mode === 'month' ? 'YYYY-MM' : mode === 'year' ? 'YYYY' : format) : pickerLocale.notSelected}
-                </div>
+                <div className="text-center text-muted-foreground text-sm">{tempStartDate ? tempStartDate.format(format) : pickerLocale.notSelected}</div>
               </div>
             </div>
 
@@ -472,9 +479,7 @@ export const InputDateRange = React.forwardRef<HTMLInputElement, InputDateRangeP
 
               {/* 结束日期显示 */}
               <div className="border-t p-2">
-                <div className="text-center text-muted-foreground text-sm">
-                  {tempEndDate ? tempEndDate.format(mode === 'month' ? 'YYYY-MM' : mode === 'year' ? 'YYYY' : format) : pickerLocale.notSelected}
-                </div>
+                <div className="text-center text-muted-foreground text-sm">{tempEndDate ? tempEndDate.format(format) : pickerLocale.notSelected}</div>
               </div>
             </div>
           </div>
@@ -482,12 +487,7 @@ export const InputDateRange = React.forwardRef<HTMLInputElement, InputDateRangeP
           {/* 底部操作栏 */}
           <div className="border-t p-2">
             <div className="mb-2 text-center text-muted-foreground text-sm">
-              {pickerLocale.currentSelection}:{' '}
-              {tempStartDate && tempEndDate
-                ? `${tempStartDate.format(mode === 'month' ? 'YYYY-MM' : mode === 'year' ? 'YYYY' : format)}${separator}${tempEndDate.format(
-                    mode === 'month' ? 'YYYY-MM' : mode === 'year' ? 'YYYY' : format,
-                  )}`
-                : pickerLocale.notSelected}
+              {pickerLocale.currentSelection}: {tempStartDate && tempEndDate ? `${tempStartDate.format(format)}${separator}${tempEndDate.format(format)}` : pickerLocale.notSelected}
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" className="flex-1" onClick={handleCancel}>

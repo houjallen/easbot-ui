@@ -343,7 +343,9 @@ const BaseTable = forwardRef(function BaseTable(
                 <span className="flex items-center justify-center">
                   <Checkbox
                     className={cn(
-                      'cursor-pointer border-gray-300 focus:ring-1 focus:ring-primary',
+                      // 📌 边框用主题令牌 `border-input`（替代硬编码 `border-gray-300`，不随暗色主题变化）；
+                      //    焦点指示用 `focus-visible:outline-*`（绘制在元素之外），避免 `focus:` 被鼠标点击触发后常驻。
+                      'cursor-pointer border-input focus-visible:outline-2 focus-visible:outline-ring/70 focus-visible:outline-offset-2',
                       finalConfig?.size === 'sm' ? 'h-3 w-3' : (finalConfig?.size as any) === 'lg' ? 'h-5 w-5' : 'h-4 w-4',
                     )}
                     checked={(() => {
@@ -522,7 +524,9 @@ const BaseTable = forwardRef(function BaseTable(
                   <span className="flex items-center justify-center">
                     <Checkbox
                       className={cn(
-                        'cursor-pointer border-gray-300 focus:ring-1 focus:ring-primary',
+                        // 📌 边框用主题令牌 `border-input`（替代硬编码 `border-gray-300`，不随暗色主题变化）；
+                        //    焦点指示用 `focus-visible:outline-*`（绘制在元素之外），避免 `focus:` 被鼠标点击触发后常驻。
+                        'cursor-pointer border-input focus-visible:outline-2 focus-visible:outline-ring/70 focus-visible:outline-offset-2',
                         finalConfig?.size === 'sm' ? 'h-3 w-3' : (finalConfig?.size as any) === 'lg' ? 'h-5 w-5' : 'h-4 w-4',
                       )}
                       checked={isSelected}

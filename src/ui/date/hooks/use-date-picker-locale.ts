@@ -9,18 +9,21 @@ import type { DatePickerLocale } from '../locale';
  *
  * 使用场景：
  * 1. 在日期选择器组件中获取当前语言的文本配置
- * 2. 根据系统语言自动切换日期选择器的显示文本
+ * 2. 根据 `LocaleProvider` 注入的语言自动切换日期选择器的显示文本
  * 3. 提供格式化函数用于日期时间的显示
  *
- * @returns 当前语言的日期选择器配置和格式化函数
+ * @param curLocale 覆盖语言（优先级高于 `LocaleProvider` 注入的语言）
+ * @returns 当前语言的日期选择器配置
  */
 export const useDatePickerLocale = (curLocale?: Locale) => {
   const { locale } = useLocale();
 
   const datePickerLocale = useMemo(() => {
-    // 强制返回中文配置，忽略系统语言设置
-    return getDatePickerLocale('zh-CN');
-  }, []);
+    // 📌 语言来源与 `useDateFnsLocale` 保持一致 ——
+    //    组件 prop 覆盖 > `LocaleProvider` 注入 > 默认中文。
+    //    不可硬编码语言，也不可用空依赖数组 —— 否则语言切换后文案不更新。
+    return getDatePickerLocale(curLocale ?? (locale as Locale));
+  }, [locale, curLocale]);
 
   return datePickerLocale;
 };

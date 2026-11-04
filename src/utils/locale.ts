@@ -20,6 +20,20 @@ export const DEFAULT_LOCALE: Locale = 'zh-CN';
 export const LOCALE_COOKIE_NAME = 'locale';
 
 /**
+ * 语言 → 文案表 key 的映射
+ *
+ * @description
+ * 语言项的**显示名**走 i18n 文案表（`locale` 域），以便消费方覆盖；
+ * 本表只负责「哪个语言对应哪个 key」。
+ *
+ * ⚠️ 新增语言时**必须**同步：`SUPPORTED_LOCALES` + 本表 + `locale` 域文案表。
+ */
+export const LOCALE_MESSAGE_KEYS: Record<Locale, 'zhCN' | 'enUS'> = {
+  'zh-CN': 'zhCN',
+  'en-US': 'enUS',
+};
+
+/**
  * 判断字符串是否为受支持的语言
  *
  * @param locale 待判断的语言标识

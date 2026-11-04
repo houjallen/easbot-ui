@@ -183,16 +183,11 @@ export function DatePicker({
           {mode === 'day' && showShortcuts && finalShortcuts.length > 0 && <ShortcutView shortcuts={finalShortcuts} onSelect={handleShortcutSelect} show={true} title={pickerLocale.quickSelect} />}
 
           {/* 日期选择器 */}
-          <div className="flex-1">
+          {/* 📌 `shrink-0` —— 日历区宽度固定，快捷选择区变宽时由 Popover 整体变宽，
+              而不是压缩日历区（否则头部翻页箭头会被挤出边界）。 */}
+          <div className="flex-1 shrink-0">
             {/* 视图选择器头部 */}
-            <ViewSelectorHeader
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              viewDate={viewDate}
-              onViewDateChange={setViewDate}
-              selectedDate={tempSelected ? dayjs(tempSelected) : undefined}
-              isValidDate={disabledDate ? (date) => !disabledDate(date.toDate()) : undefined}
-            />
+            <ViewSelectorHeader viewMode={viewMode} onViewModeChange={setViewMode} viewDate={viewDate} onViewDateChange={setViewDate} />
 
             {/* 根据视图模式渲染不同组件 */}
             {viewMode === 'days' && (

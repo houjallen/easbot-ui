@@ -1,16 +1,27 @@
 # Dialog 对话框
 
-> 在当前页面之上弹出模态对话框，用于承载需要用户集中注意力处理的表单、确认或详情内容。
+> 模态对话框，用于在当前页面之上展示需要用户专注处理的内容。
+
+---
 
 **导入**
 
 ```tsx
-import { Dialog } from '@easbot/ui';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@easbot/ui';
 ```
 
 ## 基础用法
 
 ```tsx
+import { Button } from '@easbot/ui';
 import {
   Dialog,
   DialogContent,
@@ -24,15 +35,16 @@ import {
 export default function App() {
   return (
     <Dialog>
-      <DialogTrigger>打开对话框</DialogTrigger>
+      <DialogTrigger asChild>
+        <Button variant="outline">编辑个人资料</Button>
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>编辑个人资料</DialogTitle>
-          <DialogDescription>修改后会立即同步到你的账号。</DialogDescription>
+          <DialogDescription>请完善您的个人信息，点击保存后立即生效。</DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <button type="button">取消</button>
-          <button type="button">保存</button>
+          <Button type="submit">保存</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -40,198 +52,97 @@ export default function App() {
 }
 ```
 
-受控模式（自行管理打开状态）：
+受控用法：
 
 ```tsx
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogTitle } from '@easbot/ui';
 
-export default function App() {
-  const [open, setOpen] = useState(false);
+const [open, setOpen] = useState(false);
 
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
-        <DialogTitle>受控对话框</DialogTitle>
-        <button type="button" onClick={() => setOpen(false)}>
-          关闭
-        </button>
-      </DialogContent>
-    </Dialog>
-  );
-}
+<Dialog open={open} onOpenChange={setOpen}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>受控对话框</DialogTitle>
+    </DialogHeader>
+  </DialogContent>
+</Dialog>;
 ```
 
-## 组成部分
+支持最大化 / 还原：
 
-| 子组件              | 说明                                                                          |
-| ------------------- | ----------------------------------------------------------------------------- |
-| `Dialog`            | 根组件，管理打开状态（对应 Radix `Dialog.Root`）                              |
-| `DialogTrigger`     | 触发器按钮，点击后打开对话框（对应 Radix `Dialog.Trigger`）                   |
-| `DialogPortal`      | 传送门，把内容渲染到 `document.body`（对应 Radix `Dialog.Portal`）            |
-| `DialogOverlay`     | 遮罩层，覆盖整屏并提供淡入淡出动画（对应 Radix `Dialog.Overlay`）             |
-| `DialogContent`     | 内容容器，**已内置** `DialogPortal` + `DialogOverlay`，并渲染最大化与关闭按钮 |
-| `DialogHeader`      | 头部布局容器（纵向排列、`sm` 断点起左对齐）                                   |
-| `DialogFooter`      | 底部布局容器（移动端纵向反序、`sm` 断点起横向右对齐）                         |
-| `DialogTitle`       | 标题，渲染为 `<h2>`（对应 Radix `Dialog.Title`）                              |
-| `DialogDescription` | 描述文本，渲染为 `<p>`（对应 Radix `Dialog.Description`）                     |
-
-## 变体
-
-`DialogContent` 的样式由内部 `cva`（`dialogContentVariants`）定义，共 3 个维度。
-
-### size（尺寸）
-
-| 取值 | 说明                                                  |
-| ---- | ----------------------------------------------------- |
-| `sm` | 最大宽度 `--dialog-sm-max-width`（400px）             |
-| `md` | 最大宽度 `--dialog-md-max-width`（600px），**默认值** |
-| `lg` | 最大宽度 `--dialog-lg-max-width`（800px）             |
-
-### variant（配色）
-
-| 取值      | 说明                                                                       |
-| --------- | -------------------------------------------------------------------------- |
-| `default` | 使用 `--dialog-content-bg` / `--dialog-content-fg`，**默认值**             |
-| `dark`    | 使用 `--dialog-dark-bg` / `--dialog-dark-fg`（固定深色配色，不随主题切换） |
-
-### maximized（最大化）
-
-| 取值    | 说明                                                        |
-| ------- | ----------------------------------------------------------- |
-| `true`  | 覆盖为 `fixed inset-4` 贴边铺满，取消最大宽高限制与居中位移 |
-| `false` | 不启用最大化，**默认值**                                    |
-
-> `maximized` 是 `DialogContent` 内部的**受控状态**：`maximizable` 为 `true` 时才渲染最大化按钮，点击后在 `true` / `false` 之间切换；外部传入的 `maximized` 会被内部状态覆盖。
+```tsx
+<DialogContent maximizable>
+  <DialogHeader>
+    <DialogTitle>支持最大化的对话框</DialogTitle>
+  </DialogHeader>
+</DialogContent>
+```
 
 ## 属性
 
-### Dialog（根组件）
+继承自 `React.ComponentProps<typeof DsDialogContent>, UiMessageProps`。
 
-| 属性           | 类型                      | 默认值 | 说明                                                                                        |
-| -------------- | ------------------------- | ------ | ------------------------------------------------------------------------------------------- |
-| `open`         | `boolean`                 | —      | 受控打开状态，来自 Radix primitives（`Dialog.Root`）                                        |
-| `defaultOpen`  | `boolean`                 | —      | 非受控模式下的初始打开状态，来自 Radix primitives（`Dialog.Root`）                          |
-| `onOpenChange` | `(open: boolean) => void` | —      | 打开状态变化回调，来自 Radix primitives（`Dialog.Root`）                                    |
-| `modal`        | `boolean`                 | `true` | 是否为模态对话框（`true` 时锁定焦点、禁用外部交互），来自 Radix primitives（`Dialog.Root`） |
-| `children`     | `React.ReactNode`         | —      | 子节点，来自 Radix primitives（`Dialog.Root`）                                              |
+| 属性           | 类型      | 默认值 | 说明               |
+| -------------- | --------- | ------ | ------------------ |
+| `maximizable?` | `boolean` | —      | 是否显示最大化按钮 |
 
-### DialogTrigger
+`EunDialogContentProps` 是 `DialogContent` 的实际 Props 类型（`src/ui/dialog/dialog.tsx`）。本表只列组件自有属性（`maximizable`）；此外还透传 Radix Dialog Content 的全部原生属性（`open` / `onOpenChange` / `onEscapeKeyDown` / `onPointerDownOutside` / `onInteractOutside` / `forceMount` / `className` / `aria-*` / `data-*` 等），并继承 `UiMessageProps`（`locale` / `messages`）用于覆盖内置文案。
 
-| 属性       | 类型                                         | 默认值 | 说明                                                                            |
-| ---------- | -------------------------------------------- | ------ | ------------------------------------------------------------------------------- |
-| `asChild`  | `boolean`                                    | —      | 是否用 Slot 替换触发元素，来自 Radix primitives（`Dialog.Trigger`）             |
-| `onClick`  | `React.MouseEventHandler<HTMLButtonElement>` | —      | 点击事件（原生 `<button>` 属性），来自 Radix primitives（`Dialog.Trigger`）     |
-| `disabled` | `boolean`                                    | —      | 禁用触发按钮（原生 `<button>` 属性），来自 Radix primitives（`Dialog.Trigger`） |
-
-### DialogPortal
-
-| 属性         | 类型                  | 默认值          | 说明                                                                 |
-| ------------ | --------------------- | --------------- | -------------------------------------------------------------------- |
-| `container`  | `HTMLElement \| null` | `document.body` | 内容挂载的容器元素，来自 Radix primitives（`Dialog.Portal`）         |
-| `forceMount` | `true`                | —               | 强制挂载，用于接管退出动画，来自 Radix primitives（`Dialog.Portal`） |
-
-### DialogOverlay
-
-| 属性         | 类型     | 默认值 | 说明                                                                  |
-| ------------ | -------- | ------ | --------------------------------------------------------------------- |
-| `forceMount` | `true`   | —      | 强制挂载，用于接管退出动画，来自 Radix primitives（`Dialog.Overlay`） |
-| `className`  | `string` | —      | 自定义类名，合并到末位                                                |
-
-### DialogContent
-
-| 属性                   | 类型                                                            | 默认值      | 说明                                                                                                |
-| ---------------------- | --------------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------- |
-| `size`                 | `'sm' \| 'md' \| 'lg'`                                          | `'md'`      | 内容最大宽度变体，由 `cva` 定义                                                                     |
-| `variant`              | `'default' \| 'dark'`                                           | `'default'` | 内容配色变体，由 `cva` 定义                                                                         |
-| `maximizable`          | `boolean`                                                       | `false`     | 是否显示最大化按钮；为 `true` 时额外渲染一个切换最大化的按钮                                        |
-| `open`                 | `boolean`                                                       | —           | 受控打开状态，来自 Radix primitives（`Dialog.Content`）                                             |
-| `forceMount`           | `true`                                                          | —           | 强制挂载，用于接管退出动画，来自 Radix primitives（`Dialog.Content`）                               |
-| `onOpenAutoFocus`      | `(event: Event) => void`                                        | —           | 打开时自动聚焦的事件回调（可 `preventDefault` 阻止），来自 Radix primitives（`Dialog.Content`）     |
-| `onCloseAutoFocus`     | `(event: Event) => void`                                        | —           | 关闭时自动聚焦的事件回调（可 `preventDefault` 阻止），来自 Radix primitives（`Dialog.Content`）     |
-| `onEscapeKeyDown`      | `(event: KeyboardEvent) => void`                                | —           | 按下 `Escape` 时的回调（可 `preventDefault` 阻止关闭），来自 Radix primitives（`Dialog.Content`）   |
-| `onPointerDownOutside` | `(event: PointerDownOutsideEvent) => void`                      | —           | 在浮层外按下指针时的回调（可 `preventDefault` 阻止关闭），来自 Radix primitives（`Dialog.Content`） |
-| `onFocusOutside`       | `(event: FocusOutsideEvent) => void`                            | —           | 焦点移出浮层时的回调（可 `preventDefault` 阻止关闭），来自 Radix primitives（`Dialog.Content`）     |
-| `onInteractOutside`    | `(event: PointerDownOutsideEvent \| FocusOutsideEvent) => void` | —           | 浮层外发生指针按下或焦点移出时的回调，来自 Radix primitives（`Dialog.Content`）                     |
-| `className`            | `string`                                                        | —           | 自定义类名，合并到末位                                                                              |
-
-### DialogHeader / DialogFooter
-
-| 属性        | 类型     | 默认值 | 说明                   |
-| ----------- | -------- | ------ | ---------------------- |
-| `className` | `string` | —      | 自定义类名，合并到末位 |
-
-### DialogTitle / DialogDescription
-
-| 属性        | 类型      | 默认值 | 说明                                                                                     |
-| ----------- | --------- | ------ | ---------------------------------------------------------------------------------------- |
-| `className` | `string`  | —      | 自定义类名，合并到末位                                                                   |
-| `asChild`   | `boolean` | —      | 是否用 Slot 替换渲染元素，来自 Radix primitives（`Dialog.Title` / `Dialog.Description`） |
-
-本表只列组件自有属性；此外还透传 `<div>` / `<h2>` / `<p>` 的全部原生属性，如 `id` / `aria-*` / `data-*` / `on*` 事件。
+其余子组件（`Dialog` / `DialogTrigger` / `DialogPortal` / `DialogOverlay` / `DialogClose` / `DialogHeader` / `DialogFooter` / `DialogTitle` / `DialogDescription`）的 props 与 Radix `Dialog` 对应部件一致，组件未新增自有属性。
 
 ## 无障碍
 
-- `DialogContent` 渲染为 `role="dialog"` 的元素，标题渲染为 `role="heading"`，描述渲染为 `role="paragraph"`（Radix primitives 内部通过 `aria-labelledby` / `aria-describedby` 自动关联）。
-- `modal` 为 `true`（默认）时，Radix 会锁定焦点（`trapFocus`）并禁用浮层外的指针交互；关闭后焦点自动回到触发元素。
-- 键盘行为：`Escape` 关闭对话框；`Tab` / `Shift+Tab` 在内容区域内循环移动焦点。
-- 右上角关闭按钮带 `<span class="sr-only">关闭</span>`，最大化按钮带 `<span class="sr-only">最大化</span>` / `还原`，屏幕阅读器可读出按钮用途。
-- `DialogTitle` 与 `DialogDescription` 为**建议必填**：缺少标题会导致对话框缺少可访问名称。
+- 底层 Radix Dialog 渲染为 `<div role="dialog" aria-modal="true">`，并注入 `aria-labelledby`（指向 `DialogTitle`）/ `aria-describedby`（指向 `DialogDescription`）/ `data-state`（`open` / `closed`）。
+- 打开时焦点自动移入内容区并锁定（focus trap），关闭后焦点归还触发元素。
+- 键盘操作：`Esc` 关闭对话框；`Tab` / `Shift+Tab` 在内容区内的可聚焦元素之间循环。
+- 点击遮罩层（`onPointerDownOutside`）或点击内容区外部（`onInteractOutside`）默认关闭，可通过对应回调拦截。
+- 右上角关闭按钮是内容区内的原生 `<button>`，内含 `<span class="sr-only">` 提供读屏可读名称（内置文案「关闭」/ `Close`），图标本身为纯装饰。
+- 最大化按钮是原生 `<button type="button">`，带 `aria-label`（内置文案「最大化」/「还原」/ `Maximize` / `Restore`）与 `sr-only` 文本，图标为纯装饰。
+- 焦点样式使用 `focus-visible:ring-2`，仅键盘可见焦点才显示。
+
+## 注意事项
+
+- **内容必须挂在 `DialogContent` 内**：`DialogContent` 内部已自带 `DialogPortal` + `DialogOverlay`，无需再手动包裹 `DialogPortal`。
+- **`DialogContent` 与 `EunDialogContent` 是同一个组件**：源码里 `EunDialogContent` 被 `export { ... EunDialogContent as DialogContent ... }` 重命名导出，因此两个名字都可从包根 import（`EunDialogContentProps` / `DialogContentProps` 同样是同一个类型的两个别名）。
+- **`DialogContent` 默认带关闭按钮**：设计系统层在内容区右上角渲染关闭按钮，消费方无需自行添加；如需隐藏请覆盖 `className`。
+- **`maximizable` 只在 `EunDialogContent` 上生效**：传入 `maximizable` 后会在内容区右上角追加一个最大化 / 还原按钮（位于关闭按钮左侧），最大化时通过 `!max-w-none !w-full !h-full !top-0 !left-0 !translate-x-0 !translate-y-0 fixed inset-0` 覆盖布局类。
+- **最大化状态是组件内部状态**：切换后 `className` 会被组件的 `maximized` 类覆盖在前、`className` 在后（`cn` 末位优先），因此消费方自定义类名优先级最高。
+- **关闭按钮文案走内置文案表**：`dialog` 文案域提供 zh-CN「关闭」/ en-US `Close`（键名 `closeAriaLabel`），可用 `locale` / `messages` 覆盖。
+- **层级由主题变量控制**：内容用 `--eas-z-index-dialog`（1400），遮罩用 `--eas-z-index-dialog-overlay`（1300）。
+- **标题区右侧预留 `pr-10`**：标题不得被右上角关闭按钮压住（`overlayHeaderPrClass` 硬约束）。
 
 ## 主题变量
 
-| 变量                               | 说明                                                                     |
-| ---------------------------------- | ------------------------------------------------------------------------ |
-| `--dialog-overlay-bg`              | 遮罩层底色（与 `--dialog-overlay-opacity` 混合）                         |
-| `--dialog-overlay-opacity`         | 遮罩层透明度                                                             |
-| `--dialog-content-bg`              | 内容区背景色                                                             |
-| `--dialog-content-fg`              | 内容区文字色                                                             |
-| `--dialog-content-border`          | 内容区边框                                                               |
-| `--dialog-content-shadow`          | 内容区阴影                                                               |
-| `--dialog-content-gap`             | 内容区元素间距（同时用于 `DialogHeader` 间距与 `DialogFooter` 横向间距） |
-| `--dialog-content-padding`         | 内容区内边距                                                             |
-| `--dialog-content-radius`          | 内容区圆角                                                               |
-| `--dialog-sm-max-width`            | `size="sm"` 最大宽度                                                     |
-| `--dialog-md-max-width`            | `size="md"` 最大宽度                                                     |
-| `--dialog-lg-max-width`            | `size="lg"` 最大宽度                                                     |
-| `--dialog-transition-duration`     | 内容区过渡动画时长                                                       |
-| `--dialog-transition-timing`       | 内容区过渡缓动函数                                                       |
-| `--dialog-close-opacity`           | 关闭 / 最大化按钮默认透明度                                              |
-| `--dialog-close-hover-opacity`     | 关闭 / 最大化按钮 hover 透明度                                           |
-| `--dialog-close-focus-ring`        | 关闭 / 最大化按钮焦点环颜色                                              |
-| `--dialog-close-focus-ring-offset` | 关闭 / 最大化按钮焦点环偏移底色                                          |
-| `--dialog-title-font-size`         | 标题字号                                                                 |
-| `--dialog-title-font-weight`       | 标题字重                                                                 |
-| `--dialog-title-line-height`       | 标题行高                                                                 |
-| `--dialog-title-tracking`          | 标题字距                                                                 |
-| `--dialog-description-color`       | 描述文字颜色                                                             |
-| `--dialog-description-font-size`   | 描述字号                                                                 |
-| `--dialog-dark-bg`                 | `variant="dark"` 背景色                                                  |
-| `--dialog-dark-fg`                 | `variant="dark"` 文字色                                                  |
+本组件直接消费以下 CSS 变量（完整清单见 [主题定制](../../theming.md)）：
 
-## 组合用法 / 注意事项
-
-- **`DialogContent` 已内置 Portal 与 Overlay**：不要在其内部再次包裹 `DialogPortal`，否则会出现两层遮罩。若需要自定义挂载容器，请改用 `DialogPortal` + 裸 `DialogPrimitive.Content` 的组合。
-- **`maximizable` 与 `maximized` 的关系**：`maximizable` 只是"允许最大化"的开关，真正生效的是 `DialogContent` 内部的 `isMaximized` 状态；外部传入 `maximized` 无效。
-- **必须提供 `DialogTitle`**：Radix 会用它生成 `aria-labelledby`，缺失时对话框对屏幕阅读器没有名称。
-- **`className` 合并到末位**：`cn(dialogContentVariants(...), 'data-[state=open]:animate-in ...', className)`，自定义类名优先级最高，可覆盖内建的最大宽高与定位。
+- `--eas-z-index-dialog`
+- `--eas-z-index-dialog-overlay`
 
 ## 导出
 
-| 导出名                   | 类型                              | 说明                                                                                 |
-| ------------------------ | --------------------------------- | ------------------------------------------------------------------------------------ |
-| `Dialog`                 | `React.FC<DialogProps>`           | 对话框根组件（Radix `Dialog.Root`）                                                  |
-| `DialogTrigger`          | `React.ForwardRefExoticComponent` | 触发器，ref 指向 `HTMLButtonElement`                                                 |
-| `DialogPortal`           | `React.FC<DialogPortalProps>`     | 传送门                                                                               |
-| `DialogOverlay`          | `React.ForwardRefExoticComponent` | 遮罩层，ref 指向 `HTMLDivElement`                                                    |
-| `DialogContent`          | `React.ForwardRefExoticComponent` | 内容容器，ref 指向 `HTMLDivElement`                                                  |
-| `DialogHeader`           | `React.FC`                        | 头部容器                                                                             |
-| `DialogFooter`           | `React.FC`                        | 底部容器                                                                             |
-| `DialogTitle`            | `React.ForwardRefExoticComponent` | 标题，ref 指向 `HTMLHeadingElement`                                                  |
-| `DialogDescription`      | `React.ForwardRefExoticComponent` | 描述，ref 指向 `HTMLParagraphElement`                                                |
-| `DialogProps`            | `type`                            | 根组件属性别名（`React.ComponentPropsWithoutRef<typeof DialogPrimitive.Root>`）      |
-| `DialogContentProps`     | `interface`                       | 内容容器属性接口（Radix `Dialog.Content` 属性 + `size` / `variant` / `maximizable`） |
-| `DialogTitleProps`       | `type`                            | 标题属性别名（`React.HTMLAttributes<HTMLHeadingElement>`）                           |
-| `DialogDescriptionProps` | `type`                            | 描述属性别名（`React.HTMLAttributes<HTMLParagraphElement>`）                         |
-| `DialogHeaderProps`      | `type`                            | 头部属性别名（`React.HTMLAttributes<HTMLDivElement>`）                               |
-| `DialogFooterProps`      | `type`                            | 底部属性别名（`React.HTMLAttributes<HTMLDivElement>`）                               |
+### 组件
+
+| 导出名                   | 说明 |
+| ------------------------ | ---- |
+| `Dialog`                 |      |
+| `DialogClose`            |      |
+| `DialogCloseProps`       |      |
+| `DialogContent`          |      |
+| `DialogContentProps`     |      |
+| `DialogDescription`      |      |
+| `DialogDescriptionProps` |      |
+| `DialogFooter`           |      |
+| `DialogFooterProps`      |      |
+| `DialogHeader`           |      |
+| `DialogHeaderProps`      |      |
+| `DialogOverlay`          |      |
+| `DialogOverlayProps`     |      |
+| `DialogPortal`           |      |
+| `DialogPortalProps`      |      |
+| `DialogProps`            |      |
+| `DialogTitle`            |      |
+| `DialogTitleProps`       |      |
+| `DialogTrigger`          |      |
+| `DialogTriggerProps`     |      |
+| `EunDialogContent`       |      |
+| `EunDialogContentProps`  |      |

@@ -134,15 +134,28 @@ export function ViewSelectorHeader({
   };
 
   const handleTitleClick = () => {
+    // 📌 **标题点击的下一级视图必须受 `showQuarterView` / `showTimeView` 约束** ——
+    //    此前这两个 prop 虽然被传进来，但**从未被使用** → 标题点击恒定按
+    //    `days → months → years` 跳转，导致：
+    //    ① 开启 `showQuarterView` 时，用户从「月」点标题会跳到「年」，
+    //       **跳过了「季度」视图**（季度视图只能靠上方的视图切换按钮进入）；
+    //    ② 开启 `showTimeView` 时，从「年」点标题无处可去（`years` 已是最末级）。
     switch (viewMode) {
       case 'days':
         onViewModeChange('months');
         break;
       case 'months':
-        onViewModeChange('years');
+        // 有季度视图时，「月」的下一级是「季度」，否则才是「年」
+        onViewModeChange(showQuarterView ? 'quarters' : 'years');
         break;
       case 'quarters':
         onViewModeChange('years');
+        break;
+      case 'years':
+        // 开启时间视图时，「年」的下一级是「时间」
+        if (showTimeView) {
+          onViewModeChange('time');
+        }
         break;
       default:
         break;
@@ -150,11 +163,12 @@ export function ViewSelectorHeader({
   };
 
   // 判断标题是否可点击
-  const isTitleClickable = viewMode === 'days' || viewMode === 'months' || viewMode === 'quarters';
+  // 📌 `years` 开启 `showTimeView` 后**也可点击**（可进入时间视图）
+  const isTitleClickable = viewMode === 'days' || viewMode === 'months' || viewMode === 'quarters' || (viewMode === 'years' && showTimeView);
 
   return (
     <div className={cn('flex items-center justify-between border-b px-2 py-1', className)}>
-      <Button variant="ghost" size="sm" onClick={handlePrevious} disabled={!canNavigatePrevious} className="h-8 w-8 p-0">
+      <Button variant="ghost" size="sm" onClick={handlePrevious} disabled={!canNavigatePrevious} className="h-8 w-8 shrink-0 p-0">
         <ChevronLeft className="h-4 w-4" />
       </Button>
 
@@ -162,13 +176,13 @@ export function ViewSelectorHeader({
         variant="ghost"
         size="sm"
         onClick={isTitleClickable ? handleTitleClick : undefined}
-        className={cn('h-8 px-4 font-medium', isTitleClickable && 'hover:bg-accent', !isTitleClickable && 'cursor-default')}
+        className={cn('h-8 shrink-0 px-4 font-medium', isTitleClickable && 'hover:bg-accent', !isTitleClickable && 'cursor-default')}
         disabled={!isTitleClickable}
       >
         {getHeaderTitle()}
       </Button>
 
-      <Button variant="ghost" size="sm" onClick={handleNext} disabled={!canNavigateNext} className="h-8 w-8 p-0">
+      <Button variant="ghost" size="sm" onClick={handleNext} disabled={!canNavigateNext} className="h-8 w-8 shrink-0 p-0">
         <ChevronRight className="h-4 w-4" />
       </Button>
     </div>

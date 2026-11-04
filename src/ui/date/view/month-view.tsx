@@ -12,6 +12,7 @@ import dayjs from 'dayjs';
 import React from 'react';
 import { Button } from '../../button';
 import { useDatePickerFormatters, useDatePickerLocale } from '../hooks/use-date-picker-locale';
+import { truncateToGranularity } from './granularity';
 import type { BaseRangeViewProps, BaseViewProps } from './types';
 
 // 月份视图组件
@@ -20,7 +21,9 @@ export function MonthView({ viewDate, selectedDate, onSelect, minDate, maxDate, 
   const months = Array.from({ length: 12 }, (_, i) => i);
 
   const isMonthDisabled = (month: number) => {
-    const monthDate = viewDate.month(month);
+    // ⚠️ 必须归一到「该月 1 日 00:00:00」——
+    //    否则 `viewDate` 的日 / 时分秒会带入判定，导致误禁用。
+    const monthDate = truncateToGranularity(viewDate.month(month), 'month');
     if (minDate && monthDate.isBefore(minDate, 'month')) return true;
     if (maxDate && monthDate.isAfter(maxDate, 'month')) return true;
     if (isValidDate && !isValidDate(monthDate)) return true;
@@ -66,7 +69,9 @@ export function MonthRangeView({ viewDate, selectedStartDate, selectedEndDate, o
   const months = Array.from({ length: 12 }, (_, i) => i);
 
   const isMonthDisabled = (month: number) => {
-    const monthDate = viewDate.month(month);
+    // ⚠️ 必须归一到「该月 1 日 00:00:00」——
+    //    否则 `viewDate` 的日 / 时分秒会带入判定，导致误禁用。
+    const monthDate = truncateToGranularity(viewDate.month(month), 'month');
     if (minDate && monthDate.isBefore(minDate, 'month')) return true;
     if (maxDate && monthDate.isAfter(maxDate, 'month')) return true;
     if (isValidDate && !isValidDate(monthDate)) return true;

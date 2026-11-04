@@ -1,6 +1,8 @@
 # Progress 进度条
 
-> 用于可视化展示操作进度，基于 Radix `Progress` primitive，支持确定进度与不确定进度两种状态。
+> 展示任务完成度，支持确定进度与不确定（加载中）两种状态。
+
+---
 
 **导入**
 
@@ -11,81 +13,52 @@ import { Progress } from '@easbot/ui';
 ## 基础用法
 
 ```tsx
-<Progress value={60} />
+import { Progress } from '@easbot/ui';
+
+export default function App() {
+  return <Progress value={60} />;
+}
 ```
 
-渲染结构：根节点为 Radix `Progress.Root`（`<div role="progressbar">`），内部是一个
-Radix `Progress.Indicator`（`<div>`），通过 `transform: translateX(-N%)` 实现进度位移。
-
-## 组成部分
-
-`Progress` 为单组件，无子组件。
-
-## 变体
-
-本组件未使用 `cva`，没有 variant 维度。颜色变体通过 `indicatorClassName` 传入自定义类名实现：
+不确定状态（不传 `value`）：
 
 ```tsx
-<Progress value={60} indicatorClassName="bg-[var(--progress-indicator-success)]" />
+<Progress value={undefined} />
 ```
 
-## 属性
+自定义配色与尺寸（通过 `className` 覆盖）：
 
-| 属性                 | 类型     | 默认值 | 说明                                   |
-| -------------------- | -------- | ------ | -------------------------------------- |
-| `value`              | `number` | —      | 进度值（0-100），内部会 clamp 到 0-100 |
-| `indicatorClassName` | `string` | —      | 进度指示条自定义样式                   |
-| `className`          | `string` | —      | 根节点自定义类名                       |
+```tsx
+<Progress value={60} className="[&_[data-slot=progress-indicator]]:bg-green-500" />
+<Progress value={30} className="h-3" />
+```
 
-本表只列组件自有属性；此外还透传 Radix `Progress.Root`（`<div>`）的全部原生属性与 Radix 自身属性：
-
-| 属性            | 类型                                     | 默认值 | 说明                                                                    |
-| --------------- | ---------------------------------------- | ------ | ----------------------------------------------------------------------- |
-| `max`           | `number`                                 | `100`  | 进度最大值（Radix 内置）                                                |
-| `getValueLabel` | `(value: number, max: number) => string` | —      | 生成 `aria-valuetext` 文案（Radix 内置）；因 `value` 未透传，实际不生效 |
-
-## 导出
-
-| 导出名          | 类型 | 说明                                             |
-| --------------- | ---- | ------------------------------------------------ |
-| `Progress`      | 组件 | 进度条组件，`React.forwardRef` 到根 `<div>`      |
-| `ProgressProps` | 类型 | `Progress` 的 props 类型（`ProgressProps` 接口） |
+`ProgressProps` 是 `Progress` 的属性类型（`React.ComponentProps<typeof Progress>`），**无自有成员**，全部继承 Radix `ProgressPrimitive.Root` 的原生属性（`value` / `max` / `getValueLabel` / `aria-label` / `aria-valuetext` / `className` / `data-*` 等）。
 
 ## 无障碍
 
-- 根节点由 Radix 渲染为 `role="progressbar"`，并自动输出 `aria-valuemin="0"` 与 `aria-valuemax`。
-- **注意**：本组件把 `value` 从 `props` 中解构出来，**没有**透传给 Radix `Progress.Root`。
-  因此 Radix 收到的 `value` 为 `null`，根节点上**不会**出现 `aria-valuenow` 与 `aria-valuetext`，
-  `data-state` 恒为 `indeterminate`，`data-value` 也不会输出。
-  实际进度只体现在指示条的 `transform` 上。若需要正确的无障碍语义，需在业务层补齐。
-- `max` 未被组件显式处理时，Radix 默认取 `100`（`data-max="100"`）。
-- 进度条本身不是交互元素，无需键盘聚焦；若需播报进度，建议在业务层用 `aria-live` 包裹百分比文本。
+- 底层 Radix `ProgressPrimitive.Root` 渲染为 `<div role="progressbar">`，并注入 `aria-valuemin`（`0`）/ `aria-valuemax`（等于 `max`）/ `aria-valuenow`（等于 `value`，不确定状态下不渲染）。
+- 注入 `data-state`（`indeterminate` / `loading` / `complete`），供样式与测试定位使用。
+- 可通过 `getValueLabel` 自定义读屏播报的百分比文案，也可直接传 `aria-label` 说明进度条代表什么。
+- 进度条不可聚焦，本身无键盘交互；`value` 变化由调用方驱动。
 
-## 主题变量
+## 注意事项
 
-| 变量                             | 说明                       |
-| -------------------------------- | -------------------------- |
-| `--progress-background`          | 进度条轨道背景色           |
-| `--progress-indicator`           | 进度指示条颜色（默认主色） |
-| `--progress-height`              | 进度条高度                 |
-| `--progress-border-radius`       | 进度条圆角                 |
-| `--progress-transition-duration` | 进度位移过渡时长           |
-| `--progress-transition-timing`   | 进度位移过渡缓动函数       |
+- **`src/ui` 层是纯 re-export**：`Progress` 直接等于设计系统层 `src/design-system/components/ui/progress.tsx` 的实现，props 与 Radix `Progress` 完全一致。
+- **进度通过 `transform` 表达**：指示条的位移是 `translateX(-${100 - value}%)`，因此 `value` 应传入 `0 ~ max` 范围内的数值；超出范围会产生越界位移。
+- **`value` 为 `undefined` 时不确定**：此时指示条保持 `w-full` 全宽，状态标记为 `indeterminate`。
+- **默认 `max` 为 `100`**：`aria-valuemax` 与位移计算都基于 `max`；传入 `max={200}` 时 `value={60}` 表示 30%。
+- **轨道高度固定 `h-2`**：需要更粗的进度条请用 `className="h-3"` 覆盖。
+- **指示条类名是硬编码的**：组件**不支持** `indicatorClassName`，改色需通过 `className` 配合 `[&_[data-slot=progress-indicator]]:` 选择器（如上例）。
+- **配色走主色**：轨道为 `bg-primary/20`，指示条为 `bg-primary`；主题变量 `--progress-indicator-success` / `--progress-indicator-warning` 不由本组件直接引用。
+- **宽度撑满父容器**（`w-full`），自身不带固定宽度。
+- **组件不支持禁用态**：如需表达「禁用」，请自行叠加 `opacity-50 cursor-not-allowed`。
 
-以下变量**未**被组件源码直接引用，但已在主题中定义，可通过 `indicatorClassName` 使用：
-`--progress-indicator-success` / `--progress-indicator-warning` / `--progress-indicator-error`。
+## 导出
 
-## 组合用法 / 注意事项
+### 组件
 
-1. **`value` 会被 clamp**：源码用 `Math.min(Math.max(value || 0, 0), 100)` 计算百分比，
-   传入 `120` 等于 `100`，传入 `-10` 等于 `0`。
-2. **位移靠 `translateX` 实现**：指示条宽度恒为 `100%`，通过 `transform: translateX(-${100 - percentage}%)`
-   向左平移，因此过渡动画只需调整 `transform`，不会触发重排。
-3. **不确定进度**：不传 `value` 时进度条为空槽（Radix 标记 `data-state="indeterminate"`）；
-   如需展示动态条纹动画，需自行通过 `indicatorClassName` 添加动画样式。
-4. **调整高度**：用 `className` 传 `h-2` / `h-3` 等类名覆盖默认高度（`className` 合并在末位，优先级最高）。
-5. **百分比文案需自行渲染**：组件不显示数字，如需展示请在外部配合文本节点。
-6. **`value` 未透传给 Radix**：组件只把 `value` 用于计算 `translateX` 位移，
-   Radix `Progress.Root` 收到的 `value` 为 `null`，
-   因此根节点缺失 `aria-valuenow`、`data-state` 恒为 `indeterminate`。
-   这是源码实现现状，若对屏幕阅读器语义有要求需在业务层补齐。
+| 导出名          | 说明 |
+| --------------- | ---- |
+| `Progress`      |      |
+| `ProgressProps` |      |

@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 import { vi } from 'vitest';
 
 import { Toaster } from '../sonner';
-import { ThemeProvider } from '../../../providers/theme-provider';
+import { ThemeProvider } from '../../../../providers/theme-provider';
 
 describe('Toaster 组件', () => {
   describe('渲染测试', () => {

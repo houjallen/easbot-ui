@@ -34,7 +34,11 @@ import type { ButtonSize } from './size-tokens';
 // 按钮样式变体定义 - 使用统一的尺寸令牌系统
 const buttonVariants = cva(
   // 基础样式 - 移除固定的尺寸和文本大小，由 size 变体控制
-  'inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-md font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 motion-reduce:transition-none [&_svg]:pointer-events-none [&_svg]:shrink-0 border border-transparent',
+  // 📌 **禁用态用 `disabled:cursor-not-allowed` 而非 `disabled:pointer-events-none`** ——
+  //    `pointer-events: none` 会让元素对鼠标完全透明，浏览器解析光标时命中的是**下层元素**，
+  //    于是 `cursor: not-allowed` 永远不会生效（用户看到的仍是默认箭头）。
+  //    详见 `src/theme/styles/prefix.css` 的「全局 button 鼠标样式」说明。
+  'inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-md font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 motion-reduce:transition-none [&_svg]:pointer-events-none [&_svg]:shrink-0 border border-transparent',
   {
     variants: {
       variant: {
@@ -109,7 +113,16 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   rightIcon?: React.ReactNode;
   /** 按钮尺寸 - 使用统一的尺寸令牌系统 */
   size?: ButtonSize;
-  /** 按钮形状 */
+  /**
+   * 按钮形状
+   *
+   * @description
+   * - `circle` —— 圆形（`rounded-full`），适合纯图标按钮
+   * - `square` —— 方形圆角（`rounded-[var(--radius-md)]`），与 `Avatar` / `IconButton` 的 `shape` 语义一致
+   *
+   * ⚠️ **不传时保持默认的圆角矩形**（`rounded-md`）——
+   *    常规文字按钮不应被强制成圆形/方形。
+   */
   shape?: 'circle' | 'square';
 }
 
@@ -147,6 +160,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       className,
       variant,
       size = 'md',
+      shape,
       asChild = false,
       loading = false,
       leftIcon,
@@ -210,11 +224,18 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const sizeClasses = getSizeClasses(size as ButtonSize, locale);
     const sizeToken = buttonSizeTokens[buttonSizeMapping[size as ButtonSize] || 'md'];
 
+    // 📌 **形状类名** —— `shape` 此前是死 prop（声明了但既不解构也无分支），
+    //    导致 `shape="square"` 完全无效，且泄漏为非法 DOM 属性 `<button shape="square">`。
+    //    语义与 `Avatar` / `IconButton` 的 `shape` 保持一致；
+    //    不传时保留 base 里的 `rounded-md`（圆角矩形），常规文字按钮不应被强制变形。
+    const shapeClass = shape === 'circle' ? 'rounded-full' : shape === 'square' ? 'rounded-[var(--radius-md)]' : '';
+
     return (
       <Comp
         className={cn(
           buttonVariants({ variant, size: undefined, className }), // size 设为 undefined，使用我们的 sizeClasses
           sizeClasses, // 应用统一的尺寸类名
+          shapeClass, // 应用形状类名（覆盖 base 的 rounded-md）
         )}
         ref={ref}
         disabled={isDisabled} // 直接使用 isDisabled

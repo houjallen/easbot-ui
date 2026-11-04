@@ -72,7 +72,7 @@ related:
 | 运行时校验 | **Zod 4.6.7**（`dependencies`）                   | 数据契约即真值源（见 [`model-standard.md`](./model-standard.md)） |
 | 数据表     | **react-hook-form 7.91**                          | `Form` 组件的表单状态                                             |
 | 图表       | **recharts 3.10**                                 | `Chart` 组件                                                      |
-| 国际化     | **内置双语**（`src/utils/component-messages.ts`） | 20 个文案域 × zh-CN/en-US，不引外部库                             |
+| 国际化     | **内置双语**（`src/utils/component-messages.ts`） | 21 个文案域 × zh-CN/en-US，不引外部库                             |
 | 测试       | **Vitest 5 + jsdom 30**                           | 见 §6                                                             |
 | 文档       | **Storybook 10**（`@storybook/react-vite`）       | 见 §7                                                             |
 | 代码规范   | **Biome 2.6.4** + **Prettier**（仅 md）           | 见 §8                                                             |
@@ -98,13 +98,12 @@ easbot-ui/
 │   │   ├── button/               #   扁平结构：实现 + index.ts + __tests__/
 │   │   ├── table/                #   唯一「胖」组件：atoms / molecules / organisms /
 │   │   │                         #   plugins / hooks / context / store / types / utils
-│   │   └── ...                   #   其余 54 个组件目录
+│   │   └── ...                   #   其余 56 个组件目录
 │   │
 │   ├── design-system/            # 基础实现层（46 个组件 + Provider 组合）
-│   │   ├── index.tsx             #   ⭐ barrel（只导出 Provider 相关符号）
+│   │   ├── index.tsx             #   ⭐ barrel（只导出 DesignSystemProvider）
 │   │   ├── components/ui/        #   46 个基础组件 .tsx（各自有 __tests__/）
 │   │   ├── components/           #   mode-toggle.tsx（跨组件组合）
-│   │   ├── providers/            #   ThemeProvider（DS 内部）
 │   │   ├── hooks/                #   use-mobile
 │   │   ├── lib/                  #   DS 局部 cn() / capitalize() / handleError()
 │   │   └── styles/globals.css    #   ⚠️ 含未安装插件的死代码（§2.3）
@@ -122,16 +121,19 @@ easbot-ui/
 │   │   ├── object.ts             #   deepMerge / isEmpty / deepValueEqual
 │   │   ├── locale.ts             #   getLocaleOnClient
 │   │   ├── ui-message.ts         #   i18n 处理引擎（processUiMessage）
-│   │   ├── component-messages.ts #   ⭐ 20 个文案域（zh-CN + en-US）
+│   │   ├── component-messages.ts #   ⭐ 21 个文案域（zh-CN + en-US）
 │   │   ├── use-component-message.ts # React 侧文案 Hook
 │   │   ├── validation-rule.ts    #   Zod schema + 运行时校验函数
 │   │   ├── error.ts / clipboard.ts
 │   │
-│   ├── hooks/                    # 通用 React Hook（useDevice / useLocale）
+│   ├── hooks/                    # 通用 React Hook（useDevice / useLocale / useTheme）
 │   │   └── index.ts              #   barrel
 │   │
-│   ├── providers/                # 上下文 Provider（LocaleProvider）
-│   │   └── index.ts              #   barrel
+│   ├── providers/                # 上下文 Provider（LocaleProvider / ThemeProvider / NotifyProvider）
+│   │   ├── index.ts              #   barrel
+│   │   ├── locale-provider.tsx   #   LocaleProvider（含 localStorage 持久化）
+│   │   ├── theme-provider.tsx    #   ThemeProvider（含 localStorage 持久化）
+│   │   └── notify-provider.tsx   #   NotifyProvider
 │   │
 │   ├── theme/                    # 主题资源层（⭐ 唯一 CSS 编译入口在 styles.css）
 │   │   ├── styles.css            #   ⭐ 编译入口（@source / @theme inline / @custom-variant）
@@ -171,18 +173,18 @@ easbot-ui/
 
 ### 2.2 各层职责
 
-| 层                   | 职责                                    | **不得**包含                                      | 进公开 API                         |
-| -------------------- | --------------------------------------- | ------------------------------------------------- | ---------------------------------- |
-| `src/ui/`            | 对外暴露的组件实现（56 个目录）         | 通用工具（放 `utils/`）、数据契约（放 `models/`） | ✅ 经 `src/index.ts` → `ui`        |
-| `src/design-system/` | 基础组件 + `DesignSystemProvider` 组合  | 公开 API 的 props 类型（放 `ui/`）                | ✅ 仅 Provider 相关符号            |
-| `src/models/`        | Zod schema + `z.infer` 类型             | React 代码、运行时函数                            | ✅ 经 `src/index.ts` → `models`    |
-| `src/utils/`         | 通用工具（`cn` / `object` / i18n 引擎） | React 组件                                        | ✅ 经 `src/index.ts` → `utils`     |
-| `src/hooks/`         | `useDevice` / `useLocale`               | JSX 渲染                                          | ✅ 经 `src/index.ts` → `hooks`     |
-| `src/providers/`     | `LocaleProvider`                        | 业务状态机                                        | ✅ 经 `src/index.ts` → `providers` |
-| `src/theme/`         | 字体 / 主题 CSS / tokens（**资源**）    | **被运行时 import 的代码**（§2.3）                | ❌ 不在 barrel                     |
-| `src/types/`         | 环境类型声明（`typings.d.ts`）          | 业务类型                                          | ❌ 环境声明                        |
-| `scripts/`           | 构建期脚本（Node / tsx）                | 被运行时 import 的代码                            | ❌                                 |
-| `tests/`             | 全局设置与 polyfill                     | 模块测试                                          | ❌                                 |
+| 层                   | 职责                                                  | **不得**包含                                      | 进公开 API                         |
+| -------------------- | ----------------------------------------------------- | ------------------------------------------------- | ---------------------------------- |
+| `src/ui/`            | 对外暴露的组件实现（56 个目录）                       | 通用工具（放 `utils/`）、数据契约（放 `models/`） | ✅ 经 `src/index.ts` → `ui`        |
+| `src/design-system/` | 基础组件 + `DesignSystemProvider` 组合                | 公开 API 的 props 类型（放 `ui/`）                | ✅ 仅 Provider 相关符号            |
+| `src/models/`        | Zod schema + `z.infer` 类型                           | React 代码、运行时函数                            | ✅ 经 `src/index.ts` → `models`    |
+| `src/utils/`         | 通用工具（`cn` / `object` / i18n 引擎）               | React 组件                                        | ✅ 经 `src/index.ts` → `utils`     |
+| `src/hooks/`         | `useDevice` / `useLocale` / `useTheme`                | JSX 渲染                                          | ✅ 经 `src/index.ts` → `hooks`     |
+| `src/providers/`     | `LocaleProvider` / `ThemeProvider` / `NotifyProvider` | 业务状态机                                        | ✅ 经 `src/index.ts` → `providers` |
+| `src/theme/`         | 字体 / 主题 CSS / tokens（**资源**）                  | **被运行时 import 的代码**（§2.3）                | ❌ 不在 barrel                     |
+| `src/types/`         | 环境类型声明（`typings.d.ts`）                        | 业务类型                                          | ❌ 环境声明                        |
+| `scripts/`           | 构建期脚本（Node / tsx）                              | 被运行时 import 的代码                            | ❌                                 |
+| `tests/`             | 全局设置与 polyfill                                   | 模块测试                                          | ❌                                 |
 
 > ⚠️ **`src/design-system/components/ui/*` 不从 `src/design-system/index.tsx` 导出** ——
 > 它们只能通过 `src/ui/` 的**深相对路径** import。
@@ -252,7 +254,7 @@ src/index.ts (barrel)
     ├──► src/models/         （纯叶子层：只 import zod + 兄弟模块）
     ├──► src/utils/          （只 import src/hooks/use-locale）
     ├──► src/ui/             （import design-system / utils / hooks / models）
-    ├──► src/design-system/  （import utils / hooks / 自身 providers）
+    ├──► src/design-system/  （import utils / hooks / providers）
     ├──► src/hooks/          （import src/providers）
     └──► src/providers/      （纯 React，无内部依赖）
 ```
@@ -268,7 +270,12 @@ src/index.ts (barrel)
 | `src/design-system/` | `src/utils/` / `src/hooks/`         | 运行时     | `src/design-system/components/mode-toggle.tsx:7`  |
 | `src/utils/`         | `src/hooks/use-locale`              | 运行时     | `src/utils/use-component-message.ts:26`           |
 | `src/hooks/`         | `src/providers/locale-provider`     | 运行时     | `src/hooks/use-locale.ts:21`                      |
+| `src/hooks/`         | `src/providers/theme-provider`      | 运行时     | `src/hooks/use-theme.ts:24`                       |
 | `src/models/`        | `zod` + 兄弟模块                    | 运行时     | `src/models/data-store.ts:12-13`                  |
+
+> 📌 **`src/hooks/` → `src/providers/` 是**反向依赖**（Hook 从 Provider 读取 Context）——
+> 这是**有意设计**：Provider 只依赖 React，Hook 依赖 Provider，
+> 单向无环。**禁止**把 Hook 的实现搬回 Provider 文件（会造成循环依赖）。
 
 ### 4.2 五条硬约束
 
@@ -723,7 +730,7 @@ foreach ($e in @('.','./styles.css')) {
 | `tsup` `external` 包数      | **49**（React 4 + Radix 28 + 其他 17）          |
 | `dependencies` / `peerDeps` | **18** / **30**（28 Radix + react + react-dom） |
 | Radix peer 全部 `optional`  | ✅ **28 / 28**                                  |
-| 主题变量 light / dark       | **702 / 702**，集合完全一致                     |
+| 主题变量 light / dark       | **706 / 706**，集合完全一致                     |
 | 测试文件数                  | **111**（`src/**/*.test.{ts,tsx}`）             |
 | Story 文件数                | **77**（`src/**/*.stories.tsx`）                |
 | `export default` 处数       | **48**（`src/ui/table/` 28 + DS 2 + 其他 18）   |

@@ -91,6 +91,13 @@ interface EunComboboxProps extends Omit<React.ComponentPropsWithoutRef<'button'>
    */
   error?: boolean;
   /**
+   * @title 错误信息文案
+   * @description
+   * 传入后在触发器下方以 `text-destructive` 样式展示错误详情。
+   * 需配合 `error`（或 `variant="error"`）使用 —— 仅 `error` 时只有边框高亮，无文案。
+   */
+  errorMessage?: string;
+  /**
    * @title 成功状态，边框高亮为成功色
    */
   success?: boolean;
@@ -116,8 +123,6 @@ interface EunComboboxProps extends Omit<React.ComponentPropsWithoutRef<'button'>
   label?: string;
   /** 描述文本 */
   description?: string;
-  /** 错误信息 */
-  errorMessage?: string;
 }
 
 type EunComboboxRef = HTMLButtonElement;
@@ -128,6 +133,7 @@ const EunCombobox = React.forwardRef<EunComboboxRef, EunComboboxProps>(
       variant = 'default', // 兼容旧用法，推荐直接用 error/success
       error = false,
       success = false,
+      errorMessage,
       triggerClassName,
       popoverContentClassName,
       popoverContentStyle,
@@ -312,6 +318,37 @@ const EunCombobox = React.forwardRef<EunComboboxRef, EunComboboxProps>(
       );
     };
 
+    // 渲染「移除某个已选项」的控件
+    //
+    // 📌 **必须用 `<span role="button">`，不能用 `<button>`** ——
+    //    触发器本身就是 `<button>`，嵌套 `<button>` 是非法 HTML：
+    //    React 会告警 "In HTML, <button> cannot be a descendant of <button>"，
+    //    SSR 场景还会触发 hydration 错误。
+    //    改用 `<span role="button">` + `tabIndex` + `onKeyDown`，
+    //    既规避非法嵌套，又保持键盘可达（符合 spec §3.7 无障碍要求 1/2）。
+    const renderRemoveControl = (option: SelectOption) => (
+      <span
+        role="button"
+        tabIndex={0}
+        aria-label={t('removeOption')}
+        className="ml-1 inline-flex items-center justify-center"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleSelect(option.value);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            handleSelect(option.value);
+          }
+        }}
+      >
+        <X className="h-3 w-3 cursor-pointer hover:text-primary-foreground/80" aria-hidden="true" />
+      </span>
+    );
+
     // 渲染选中值的显示
     const renderSelectedValue = () => {
       if (currentSelectedValues.length === 0) {
@@ -334,18 +371,7 @@ const EunCombobox = React.forwardRef<EunComboboxRef, EunComboboxProps>(
             <div className="flex items-center gap-1">
               <span className={cn('flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-xs', 'bg-primary text-primary-foreground')}>
                 {option.label}
-                <button
-                  type="button"
-                  aria-label={t('removeOption')}
-                  className="ml-1 inline-flex items-center justify-center"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleSelect(option.value);
-                  }}
-                >
-                  <X className="h-3 w-3 cursor-pointer hover:text-primary-foreground/80" style={{ width: 12, height: 12 }} />
-                </button>
+                {renderRemoveControl(option)}
               </span>
             </div>
           );
@@ -361,18 +387,7 @@ const EunCombobox = React.forwardRef<EunComboboxRef, EunComboboxProps>(
           <div className="flex min-w-0 items-center gap-1">
             <span className={cn('flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-xs', 'bg-primary text-primary-foreground')}>
               <span className="max-w-[80px] truncate">{firstOption.label}</span>
-              <button
-                type="button"
-                aria-label={t('removeOption')}
-                className="ml-1 inline-flex items-center justify-center"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleSelect(firstOption.value);
-                }}
-              >
-                <X className="h-3 w-3 cursor-pointer text-sm hover:text-primary-foreground/80" style={{ width: 12, height: 12 }} />
-              </button>
+              {renderRemoveControl(firstOption)}
             </span>
             {remainingCount > 0 && <span className="whitespace-nowrap text-muted-foreground text-xs">+{remainingCount}</span>}
           </div>
@@ -388,7 +403,11 @@ const EunCombobox = React.forwardRef<EunComboboxRef, EunComboboxProps>(
     const listId = React.useId();
 
     return (
-      <div className="grid w-full gap-1.5">
+      // 📌 **`className` 作用于外层容器** ——
+      //    此前 `className` 被解构出来却从未使用，消费方传的类名被静默丢弃，
+      //    只能靠 `triggerClassName` 给内层 button 加样式，无法给外层 wrapper 加样式。
+      //    `cn()` 保证调用方类名在末位 → 优先级最高（符合 spec 的 className 末位约定）。
+      <div className={cn('grid w-full gap-1.5', className)}>
         {label && (
           <label
             htmlFor={id}
@@ -472,7 +491,13 @@ const EunCombobox = React.forwardRef<EunComboboxRef, EunComboboxProps>(
           </PopoverContent>
         </Popover>
 
-        {error && <p className="font-medium text-destructive text-sm">{error}</p>}
+        {/*
+         * 📌 **错误文案用 `errorMessage`** ——
+         *    此前这里渲染的是 `error`（boolean），React 渲染 boolean 为文本节点时
+         *    **不输出任何内容** → 这段错误提示实际恒为空。
+         *    现在渲染消费方传入的 `errorMessage` 文案；未传时整段不渲染。
+         */}
+        {errorMessage && <p className="font-medium text-destructive text-sm">{errorMessage}</p>}
       </div>
     );
   },

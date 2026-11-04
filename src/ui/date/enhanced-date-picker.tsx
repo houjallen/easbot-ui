@@ -255,9 +255,11 @@ export function EnhancedDatePicker({
       return null;
     }
 
-    const availableViews = [...allowedViews];
-    if (showTimeView) availableViews.push('time');
-    if (showQuarterView) availableViews.push('quarters');
+    // 📌 用 `Set` 去重 —— `allowedViews` 可能已含 `time` / `quarters`，
+    //    再 `push` 会产生**重复 key**（React 报 "Encountered two children with the same key"）。
+    const availableViews = new Set<ViewMode>(allowedViews);
+    if (showTimeView) availableViews.add('time');
+    if (showQuarterView) availableViews.add('quarters');
 
     // ViewMode 到 viewModes 键的映射
     const viewModeToKey = (mode: ViewMode): keyof DatePickerLocale['viewModes'] => {
@@ -279,7 +281,7 @@ export function EnhancedDatePicker({
 
     return (
       <div className="flex gap-1 border-b p-2">
-        {availableViews.map((mode) => (
+        {Array.from(availableViews).map((mode) => (
           <Button key={mode} variant={viewMode === mode ? 'default' : 'ghost'} size="sm" onClick={() => handleViewModeChange(mode)} className="text-xs">
             {formatViewMode(viewModeToKey(mode))}
           </Button>

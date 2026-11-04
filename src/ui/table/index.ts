@@ -27,7 +27,6 @@ export type {
   // 组件属性类型
   BaseTableProps,
   EnhancedTableProps,
-  AdvancedTableProps,
   TableContainerProps,
   TableGridProps,
   TableCellProps,

@@ -2,7 +2,7 @@
 
 # @easbot/ui — React Component Library
 
-> A React component library built on **Radix UI** + **Tailwind CSS v4**, with 54 ready-to-use accessible components.
+> A React component library built on **Radix UI** + **Tailwind CSS v4**, with 56 ready-to-use accessible components.
 
 ## Version
 
@@ -14,7 +14,7 @@ v0.3.31
 
 **Highlights**:
 
-- **54 components** — covering forms, overlays, navigation, and data display
+- **56 components** — covering forms, overlays, navigation, and data display
 - **Accessibility first** — all built on Radix UI primitives with ARIA semantics and keyboard navigation
 - **Zero-config styling** — Tailwind is fully compiled at build time; consumers just `import` the CSS
 - **Dual-format output** — ESM + CJS + TypeScript declarations
@@ -72,7 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-## Component List (54)
+## Component List (56)
 
 Component implementations live in `src/ui/<component>/`, each with its implementation file + `index.ts` barrel.
 
@@ -81,12 +81,17 @@ Component implementations live in `src/ui/<component>/`, each with its implement
 | **Forms**     | `Button` `Checkbox` `Combobox` `Edit` `Form` `Input` `InputOtp` `Label` `RadioGroup` `Select` `Slider` `Switch` `Textarea` `Toggle` `ToggleGroup`                                                                                                         |
 | **Overlays**  | `AlertDialog` `Command` `ContextMenu` `Dialog` `Drawer` `DropdownMenu` `HoverCard` `Menubar` `NavigationMenu` `Popover` `Sheet` `Toast` `Tooltip`                                                                                                         |
 | **Display**   | `Accordion` `Alert` `AspectRatio` `Avatar` `Badge` `Breadcrumb` `Calendar` `Card` `Carousel` `Chart` `Collapsible` `Date` `Icon` `Pagination` `Progress` `ScrollArea` `Separator` `Sidebar` `Skeleton` `Spinner` `Table` `Tabs` `Tag` `Tree` `Typography` |
-| **Hooks**     | `useToast`                                                                                                                                                                                                                                                |
-| **Providers** | `LocaleProvider` `NotifyProvider`                                                                                                                                                                                                                         |
+| **Input**     | `File`                                                                                                                                                                                                                                                    |
+| **Layout**    | `Resizable`                                                                                                                                                                                                                                               |
+| **App**       | `ThemeToggle` `LocaleToggle`                                                                                                                                                                                                                              |
+| **Hooks**     | `useToast` `useTheme`                                                                                                                                                                                                                                     |
+| **Providers** | `LocaleProvider` `NotifyProvider` `ThemeProvider`                                                                                                                                                                                                         |
 
-> The table groups **consumer-visible component families**; `src/ui/` contains **54** component
+> The table groups **consumer-visible component families**; `src/ui/` contains **56** component
 > directories in total — several of which export multiple sub-components (e.g. the `Dialog`,
 > `Table`, and `Date` families).
+> `ThemeToggle` / `LocaleToggle` are ready-made application-level components (outside `src/ui/`)
+> that switch the theme and the locale respectively.
 
 Each component directory (`src/ui/<component>/`) contains:
 
@@ -104,7 +109,7 @@ Each component directory (`src/ui/<component>/`) contains:
 
 ## Theming
 
-Theming is driven by CSS variables — **692** `--xxx` custom properties (the light / dark files
+Theming is driven by CSS variables — **706** `--xxx` custom properties (the light / dark files
 declare exactly the same set).
 
 ```html
@@ -120,7 +125,7 @@ Theme files live in `src/theme/themes/light.css` / `src/theme/themes/dark.css` a
 
 ## Internationalization (i18n)
 
-The library **ships built-in bilingual copy** (`zh-CN` / `en-US`) across **20** component message
+The library **ships built-in bilingual copy** (`zh-CN` / `en-US`) across **21** component message
 domains — buttons, tables, pagination, dates, files, dialogs and every other user-visible
 string work **out of the box**. Consumers install **no** i18n library.
 
@@ -576,19 +581,20 @@ Aimed at developers **using** the library, as opposed to `spec/` (aimed at devel
 .
 ├── src/
 │   ├── index.ts              # public API entry (the only tsup build input)
-│   ├── ui/                   # public component layer (54 component directories)
+│   ├── ui/                   # public component layer (56 component directories)
 │   │   └── <component>/      # implementation + __tests__/ + index.ts
+│   ├── components/           # application-level components (ThemeToggle / LocaleToggle)
 │   ├── design-system/        # design-system layer (48 base components + providers + hooks)
 │   ├── models/               # data contract layer (Zod schemas)
 │   ├── utils/                # shared utilities (cn / object / locale / validation-rule …)
 │   │   ├── ui-message.ts         # i18n processing engine (processUiMessage)
-│   │   ├── component-messages.ts # built-in message tables (20 domains, bilingual)
+│   │   ├── component-messages.ts # built-in message tables (21 domains, bilingual)
 │   │   └── use-component-message.ts # React-side message Hook
-│   ├── hooks/                # shared React hooks (useDevice / useLocale)
-│   ├── providers/            # context providers (LocaleProvider / NotifyProvider)
+│   ├── hooks/                # shared React hooks (useDevice / useLocale / useTheme)
+│   ├── providers/            # context providers (LocaleProvider / ThemeProvider / NotifyProvider)
 │   ├── theme/                # theme assets (single CSS entry / fonts / theme CSS / tokens)
 │   │   ├── styles.css            # ⭐ the only Tailwind v4 entry (scans src/ at build time)
-│   │   └── themes/               #   light.css (702) / dark.css (702) + 5 extra themes
+│   │   └── themes/               #   light.css (706) / dark.css (706) + 5 extra themes
 │   └── types/                # type declarations (typings.d.ts)
 ├── tests/
 │   ├── setup.ts              # Vitest global setup (jest-dom matchers + RTL cleanup)

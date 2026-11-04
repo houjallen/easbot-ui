@@ -1,5 +1,47 @@
 import type { StorybookConfig } from '@storybook/react-vite';
 import tailwindcss from '@tailwindcss/vite';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+/**
+ * 解析本地 addon 的绝对路径
+ *
+ * @description
+ * 本地 addon 在 `addons` 里用**相对路径**书写，由本函数包装成绝对路径。
+ *
+ * ## ⚠️ 为什么**必须**转成绝对路径
+ *
+ * Storybook 解析 addon 入口时走 `resolveAddonName()`，其内部逻辑是：
+ * - **相对路径**（`'./addon/eas-addon-locale'`）→ 交给 Node 的模块解析器，
+ *   会当作**包名**去找 → 解析失败 → 该 addon 被**静默跳过**（只打一条 warn）；
+ * - **绝对路径** → 直接按目录读取 `package.json` 的 `exports`，
+ *   正确解析出 `manager` / `preview` 入口。
+ *
+ * 实测（Storybook 10.6.5）确认：相对路径返回 `undefined`（解析失败），
+ * 绝对路径返回 `{ managerEntries: [...], previewAnnotations: [...] }`。
+ *
+ * ## ⚠️ 为什么函数名**不能**叫 `getAbsolutePath`
+ *
+ * `getAbsolutePath` 是 Storybook 的**保留名** —— 它通过**函数名**识别
+ * （`getAbsolutePathWrapperName`），一旦命中就会：
+ * 1. 把 `addons` 里的**所有**字符串（含 `@storybook/addon-docs` 等包名）
+ *    都改写成 `getAbsolutePath('...')` 调用；
+ * 2. 其官方实现用 `import.meta.resolve(value + '/package.json')` ——
+ *    对**包名**（如 `@storybook/addon-docs`）会解析失败，
+ *    导致那些 addon 被**静默跳过**，并触发
+ *    「Could not resolve addon ... Is it installed?」的误导性告警；
+ * 3. 触发 `storybook add` 的自动改写逻辑，往 `addons` 里**塞进**
+ *    `@storybook/addon-vitest`（本项目**明确不装**该 addon，见
+ *    `spec/storybook-standard.md` 维度 ⑨）。
+ *
+ * 故此处用**自定义名字** `resolveLocalAddon`，只服务于本地 addon 这一处。
+ *
+ * @param value 相对路径（相对于 `.storybook/` 目录）
+ * @returns 绝对路径
+ */
+function resolveLocalAddon(value: string): string {
+  return join(dirname(fileURLToPath(import.meta.url)), value);
+}
 
 /**
  * Storybook 配置（组件库模式）
@@ -47,7 +89,17 @@ import tailwindcss from '@tailwindcss/vite';
  */
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.@(ts|tsx)'],
-  addons: ['@storybook/addon-docs', '@storybook/addon-a11y', '@storybook/addon-themes', '@storybook/addon-links', '@storybook/addon-onboarding'],
+  addons: [
+    '@storybook/addon-docs',
+    '@storybook/addon-a11y',
+    '@storybook/addon-themes',
+    '@storybook/addon-links',
+    '@storybook/addon-onboarding',
+    // 本地 addon —— 工具栏中英文切换（详见 `.storybook/addon/eas-addon-locale/`）
+    // ⚠️ **必须**用绝对路径（`resolveLocalAddon`）—— 相对路径会被 Storybook
+    //    当作**包名**解析而静默跳过该 addon。
+    resolveLocalAddon('./addon/eas-addon-locale'),
+  ],
   framework: {
     name: '@storybook/react-vite',
     options: {},

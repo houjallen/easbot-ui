@@ -21,6 +21,10 @@ export type {
 // 视图选择器头部
 export { ViewSelectorHeader } from './view-selector-header';
 
+// 粒度归一化工具
+export { truncateToGranularity } from './granularity';
+export type { ViewGranularity } from './granularity';
+
 // 年份视图
 export { YearView, YearRangeView } from './year-view';
 

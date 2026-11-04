@@ -31,12 +31,33 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/**
+ * 触发器按钮样式
+ *
+ * 📌 走主题令牌，替代硬编码 `text-gray-700` / `hover:bg-gray-100`
+ *    （硬编码灰阶不随暗色主题变化）。
+ */
+const triggerClass = 'rounded-md border border-input bg-background px-4 py-2 font-medium text-sm text-foreground hover:bg-accent hover:text-accent-foreground';
+
+/**
+ * ⛔ `ContextMenuTrigger` **必须**用 `asChild`
+ *
+ * 📌 Radix 的 `ContextMenuTrigger` 自身渲染一个 `<span>` 包裹层，
+ *    若不加 `asChild`，触发区与按钮外观**脱节** ——
+ *    `<span>` 没有 `display:inline-block`、无边框内边距、`cursor` 也不是 `context-menu`，
+ *    导致右键命中范围明显小于按钮视觉范围。
+ *
+ *    `asChild` 让 Radix 把自己的 props（`onContextMenu` / `aria-*` / `data-*`）
+ *    **合并到子元素**上而不额外渲染包裹节点 —— 子元素必须是**单个**可交互元素。
+ *
+ * 📌 对齐 `ui/drawer/__tests__/drawer.stories.tsx` 的同类约定。
+ */
 export const Basic: Story = {
   render: () => (
     <div className="flex h-screen w-full items-center justify-center">
       <ContextMenu>
-        <ContextMenuTrigger>
-          <button type="button" className="rounded-md px-4 py-2 font-medium text-gray-700 text-sm hover:bg-gray-100">
+        <ContextMenuTrigger asChild>
+          <button type="button" className={triggerClass}>
             右键菜单
           </button>
         </ContextMenuTrigger>
@@ -63,8 +84,8 @@ export const WithCheckbox: Story = {
   render: () => (
     <div className="flex h-screen w-full items-center justify-center">
       <ContextMenu>
-        <ContextMenuTrigger>
-          <button type="button" className="rounded-md px-4 py-2 font-medium text-gray-700 text-sm hover:bg-gray-100">
+        <ContextMenuTrigger asChild>
+          <button type="button" className={triggerClass}>
             复选菜单
           </button>
         </ContextMenuTrigger>
@@ -92,8 +113,8 @@ export const WithRadio: Story = {
   render: () => (
     <div className="flex h-screen w-full items-center justify-center">
       <ContextMenu>
-        <ContextMenuTrigger>
-          <button type="button" className="rounded-md px-4 py-2 font-medium text-gray-700 text-sm hover:bg-gray-100">
+        <ContextMenuTrigger asChild>
+          <button type="button" className={triggerClass}>
             单选菜单
           </button>
         </ContextMenuTrigger>
@@ -129,8 +150,8 @@ export const WithSubmenu: Story = {
   render: () => (
     <div className="flex h-screen w-full items-center justify-center">
       <ContextMenu>
-        <ContextMenuTrigger>
-          <button type="button" className="rounded-md px-4 py-2 font-medium text-gray-700 text-sm hover:bg-gray-100">
+        <ContextMenuTrigger asChild>
+          <button type="button" className={triggerClass}>
             子菜单
           </button>
         </ContextMenuTrigger>

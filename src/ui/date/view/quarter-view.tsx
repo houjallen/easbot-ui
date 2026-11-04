@@ -13,6 +13,7 @@ import quarterOfYear from 'dayjs/plugin/quarterOfYear';
 import React from 'react';
 import { Button } from '../../button';
 import { useDatePickerFormatters, useDatePickerLocale } from '../hooks/use-date-picker-locale';
+import { truncateToGranularity } from './granularity';
 import type { BaseRangeViewProps, BaseViewProps } from './types';
 
 // 扩展dayjs支持季度操作
@@ -32,7 +33,9 @@ export function QuarterView({ viewDate, selectedDate, onSelect, minDate, maxDate
 
   const isQuarterDisabled = (quarter: number) => {
     const quarterStartMonth = (quarter - 1) * 3;
-    const quarterDate = viewDate.month(quarterStartMonth);
+    // ⚠️ 必须归一到「该季度首月 1 日 00:00:00」——
+    //    否则 `viewDate` 的日 / 时分秒会带入判定，导致误禁用。
+    const quarterDate = truncateToGranularity(viewDate.month(quarterStartMonth), 'quarter');
     if (minDate && quarterDate.isBefore(minDate, 'quarter')) return true;
     if (maxDate && quarterDate.isAfter(maxDate, 'quarter')) return true;
     if (isValidDate && !isValidDate(quarterDate)) return true;
@@ -90,7 +93,9 @@ export function QuarterRangeView({ viewDate, selectedStartDate, selectedEndDate,
 
   const isQuarterDisabled = (quarter: number) => {
     const quarterStartMonth = (quarter - 1) * 3;
-    const quarterDate = viewDate.month(quarterStartMonth);
+    // ⚠️ 必须归一到「该季度首月 1 日 00:00:00」——
+    //    否则 `viewDate` 的日 / 时分秒会带入判定，导致误禁用。
+    const quarterDate = truncateToGranularity(viewDate.month(quarterStartMonth), 'quarter');
     if (minDate && quarterDate.isBefore(minDate, 'quarter')) return true;
     if (maxDate && quarterDate.isAfter(maxDate, 'quarter')) return true;
     if (isValidDate && !isValidDate(quarterDate)) return true;
@@ -99,7 +104,7 @@ export function QuarterRangeView({ viewDate, selectedStartDate, selectedEndDate,
 
   const isQuarterInRange = (quarter: number) => {
     if (!selectedStartDate || !selectedEndDate) return false;
-    const quarterDate = viewDate.month((quarter - 1) * 3);
+    const quarterDate = truncateToGranularity(viewDate.month((quarter - 1) * 3), 'quarter');
     return quarterDate.isAfter(selectedStartDate, 'quarter') && quarterDate.isBefore(selectedEndDate, 'quarter');
   };
 

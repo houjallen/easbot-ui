@@ -29,7 +29,7 @@ export const DatePickerBasic: Story = {
       <div className="space-y-4">
         <div>
           <h3 className="mb-2 font-medium text-sm">基础日期选择器</h3>
-          <DatePicker selected={date} onSelect={setDate} placeholder="请选择日期" />
+          <DatePicker selected={date} onSelect={setDate} />
         </div>
         <div className="mt-4 text-gray-600 text-sm">选中的日期：{date ? date.toLocaleDateString('zh-CN') : '未选择'}</div>
       </div>
@@ -45,7 +45,7 @@ export const DatePickerDayMode: Story = {
       <div className="space-y-4">
         <div>
           <h3 className="mb-2 font-medium text-sm">日模式（默认）</h3>
-          <DatePicker mode="day" selected={date} onSelect={setDate} placeholder="选择具体日期" />
+          <DatePicker mode="day" selected={date} onSelect={setDate} />
         </div>
         <div className="mt-4 text-gray-600 text-sm">选中的日期：{date ? date.toLocaleDateString('zh-CN') : '未选择'}</div>
       </div>
@@ -61,7 +61,7 @@ export const DatePickerMonthMode: Story = {
       <div className="space-y-4">
         <div>
           <h3 className="mb-2 font-medium text-sm">月模式</h3>
-          <DatePicker mode="month" selected={date} onSelect={setDate} placeholder="选择月份" format="YYYY-MM" />
+          <DatePicker mode="month" selected={date} onSelect={setDate} format="YYYY-MM" />
         </div>
         <div className="mt-4 text-gray-600 text-sm">
           选中的月份：
@@ -85,7 +85,7 @@ export const DatePickerYearMode: Story = {
       <div className="space-y-4">
         <div>
           <h3 className="mb-2 font-medium text-sm">年模式</h3>
-          <DatePicker mode="year" selected={date} onSelect={setDate} placeholder="选择年份" format="YYYY" />
+          <DatePicker mode="year" selected={date} onSelect={setDate} format="YYYY" />
         </div>
         <div className="mt-4 text-gray-600 text-sm">{date ? date.getFullYear() + '年' : '未选择'}</div>
       </div>
@@ -101,7 +101,7 @@ export const DatePickerWithoutShortcuts: Story = {
       <div className="space-y-4">
         <div>
           <h3 className="mb-2 font-medium text-sm">隐藏快捷选择</h3>
-          <DatePicker selected={date} onSelect={setDate} showShortcuts={false} placeholder="不显示快捷选择" />
+          <DatePicker selected={date} onSelect={setDate} showShortcuts={false} />
         </div>
         <div className="mt-4 text-gray-600 text-sm">选中的日期：{date ? date.toLocaleDateString('zh-CN') : '未选择'}</div>
       </div>
@@ -119,7 +119,7 @@ export const InputDateBasic: Story = {
       <div className="space-y-4">
         <div>
           <h3 className="mb-2 font-medium text-sm">基础日期输入</h3>
-          <InputDate value={value} onChange={setValue} placeholder="请选择或输入日期" />
+          <InputDate value={value} onChange={setValue} />
         </div>
         <div className="mt-4 text-gray-600 text-sm">输入的日期：{value || '未输入'}</div>
       </div>
@@ -135,7 +135,7 @@ export const InputDateDayMode: Story = {
       <div className="space-y-4">
         <div>
           <h3 className="mb-2 font-medium text-sm">日模式（默认）</h3>
-          <InputDate mode="day" value={value} onChange={setValue} placeholder="选择具体日期" />
+          <InputDate mode="day" value={value} onChange={setValue} />
         </div>
         <div className="mt-4 text-gray-600 text-sm">输入的日期：{value || '未输入'}</div>
       </div>
@@ -151,7 +151,7 @@ export const InputDateMonthMode: Story = {
       <div className="space-y-4">
         <div>
           <h3 className="mb-2 font-medium text-sm">月模式</h3>
-          <InputDate mode="month" value={value} onChange={setValue} placeholder="选择月份" format="YYYY-MM" />
+          <InputDate mode="month" value={value} onChange={setValue} format="YYYY-MM" />
         </div>
         <div className="mt-4 text-gray-600 text-sm">输入的月份：{value || '未输入'}</div>
       </div>
@@ -167,7 +167,7 @@ export const InputDateYearMode: Story = {
       <div className="space-y-4">
         <div>
           <h3 className="mb-2 font-medium text-sm">年模式</h3>
-          <InputDate mode="year" value={value} onChange={setValue} placeholder="选择年份" format="YYYY" />
+          <InputDate mode="year" value={value} onChange={setValue} format="YYYY" />
         </div>
         <div className="mt-4 text-gray-600 text-sm">输入的年份：{value || '未输入'}</div>
       </div>
@@ -186,7 +186,6 @@ export const InputDateWithValidation: Story = {
           <InputDate
             value={value}
             onChange={setValue}
-            placeholder="只能选择未来日期"
             disabledDate={(date) => date <= new Date()}
             validate={(value) => {
               if (value && new Date(value) <= new Date()) {
@@ -210,7 +209,7 @@ export const InputDateReadOnly: Story = {
       <div className="space-y-4">
         <div>
           <h3 className="mb-2 font-medium text-sm">只读模式</h3>
-          <InputDate value={value} readOnly placeholder="只读模式" />
+          <InputDate value={value} readOnly />
         </div>
         <div className="mt-4 text-gray-600 text-sm">输入的日期：{value || '未输入'}</div>
       </div>
@@ -239,13 +238,13 @@ export const ModeComparison: Story = {
 
           <div>
             <span className="mb-2 block font-medium text-sm">InputDate</span>
-            <InputDate mode="day" value={dayValue} onChange={setDayValue} placeholder="选择日期" />
+            <InputDate mode="day" value={dayValue} onChange={setDayValue} />
             <p className="mt-1 text-gray-500 text-xs">格式：YYYY-MM-DD</p>
           </div>
 
           <div>
             <span className="mb-2 block font-medium text-sm">DatePicker</span>
-            <DatePicker mode="day" selected={dayDate} onSelect={setDayDate} placeholder="选择日期" />
+            <DatePicker mode="day" selected={dayDate} onSelect={setDayDate} />
           </div>
 
           <div className="text-gray-600 text-sm">
@@ -260,13 +259,13 @@ export const ModeComparison: Story = {
 
           <div>
             <span className="mb-2 block font-medium text-sm">InputDate</span>
-            <InputDate mode="month" value={monthValue} onChange={setMonthValue} placeholder="选择月份" format="YYYY-MM" />
+            <InputDate mode="month" value={monthValue} onChange={setMonthValue} format="YYYY-MM" />
             <p className="mt-1 text-gray-500 text-xs">格式：YYYY-MM</p>
           </div>
 
           <div>
             <span className="mb-2 block font-medium text-sm">DatePicker</span>
-            <DatePicker mode="month" selected={monthDate} onSelect={setMonthDate} placeholder="选择月份" format="YYYY-MM" />
+            <DatePicker mode="month" selected={monthDate} onSelect={setMonthDate} format="YYYY-MM" />
           </div>
 
           <div className="text-gray-600 text-sm">
@@ -289,13 +288,13 @@ export const ModeComparison: Story = {
 
           <div>
             <span className="mb-2 block font-medium text-sm">InputDate</span>
-            <InputDate mode="year" value={yearValue} onChange={setYearValue} placeholder="选择年份" format="YYYY" />
+            <InputDate mode="year" value={yearValue} onChange={setYearValue} format="YYYY" />
             <p className="mt-1 text-gray-500 text-xs">格式：YYYY</p>
           </div>
 
           <div>
             <span className="mb-2 block font-medium text-sm">DatePicker</span>
-            <DatePicker mode="year" selected={yearDate} onSelect={setYearDate} placeholder="选择年份" format="YYYY" />
+            <DatePicker mode="year" selected={yearDate} onSelect={setYearDate} format="YYYY" />
           </div>
 
           <div className="text-gray-600 text-sm">
@@ -345,7 +344,7 @@ export const InputDateRangeDayMode: Story = {
       <div className="space-y-4">
         <div>
           <h3 className="mb-2 font-medium text-sm">日期区间模式（默认）</h3>
-          <InputDateRange mode="day" value={value} onChange={setValue} placeholder="选择日期区间" format="YYYY-MM-DD" />
+          <InputDateRange mode="day" value={value} onChange={setValue} format="YYYY-MM-DD" />
         </div>
         <div className="mt-4 text-gray-600 text-sm">选择的日期区间：{value ? `${value[0]} ~ ${value[1]}` : '未选择'}</div>
       </div>
@@ -361,7 +360,7 @@ export const InputDateRangeMonthMode: Story = {
       <div className="space-y-4">
         <div>
           <h3 className="mb-2 font-medium text-sm">月份区间模式</h3>
-          <InputDateRange mode="month" value={value} onChange={setValue} placeholder="选择月份区间" format="YYYY-MM-DD" />
+          <InputDateRange mode="month" value={value} onChange={setValue} format="YYYY-MM-DD" />
         </div>
         <div className="mt-4 text-gray-600 text-sm">选择的月份区间：{value ? `${value[0]} ~ ${value[1]}` : '未选择'}</div>
       </div>
@@ -377,7 +376,7 @@ export const InputDateRangeYearMode: Story = {
       <div className="space-y-4">
         <div>
           <h3 className="mb-2 font-medium text-sm">年份区间模式</h3>
-          <InputDateRange mode="year" value={value} onChange={setValue} placeholder="选择年份区间" format="YYYY-MM-DD" />
+          <InputDateRange mode="year" value={value} onChange={setValue} format="YYYY-MM-DD" />
         </div>
         <div className="mt-4 text-gray-600 text-sm">选择的年份区间：{value ? `${value[0]} ~ ${value[1]}` : '未选择'}</div>
       </div>
@@ -399,7 +398,7 @@ export const InputDateRangeModeComparison: Story = {
           <h3 className="font-semibold text-lg">日期区间模式</h3>
           <div>
             <span className="mb-2 block font-medium text-sm">日期范围选择</span>
-            <InputDateRange mode="day" value={dayValue} onChange={setDayValue} placeholder="选择日期区间" format="YYYY-MM-DD" />
+            <InputDateRange mode="day" value={dayValue} onChange={setDayValue} format="YYYY-MM-DD" />
             <p className="mt-1 text-gray-500 text-xs">返回格式：['YYYY-MM-DD', 'YYYY-MM-DD']</p>
           </div>
           <div className="text-gray-600 text-sm">
@@ -413,7 +412,7 @@ export const InputDateRangeModeComparison: Story = {
           <h3 className="font-semibold text-lg">月份区间模式</h3>
           <div>
             <span className="mb-2 block font-medium text-sm">月份范围选择</span>
-            <InputDateRange mode="month" value={monthValue} onChange={setMonthValue} placeholder="选择月份区间" format="YYYY-MM-DD" />
+            <InputDateRange mode="month" value={monthValue} onChange={setMonthValue} format="YYYY-MM-DD" />
             <p className="mt-1 text-gray-500 text-xs">返回格式：['YYYY-MM', 'YYYY-MM']</p>
           </div>
           <div className="text-gray-600 text-sm">
@@ -427,7 +426,7 @@ export const InputDateRangeModeComparison: Story = {
           <h3 className="font-semibold text-lg">年份区间模式</h3>
           <div>
             <span className="mb-2 block font-medium text-sm">年份范围选择</span>
-            <InputDateRange mode="year" value={yearValue} onChange={setYearValue} placeholder="选择年份区间" format="YYYY-MM-DD" />
+            <InputDateRange mode="year" value={yearValue} onChange={setYearValue} format="YYYY-MM-DD" />
             <p className="mt-1 text-gray-500 text-xs">返回格式：['YYYY', 'YYYY']</p>
           </div>
           <div className="text-gray-600 text-sm">

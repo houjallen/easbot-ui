@@ -1,6 +1,6 @@
 # 快速开始
 
-> 安装 `@easbot/ui`、引入样式、在 React / Next.js 中使用。
+> 安装 `@easbot/ui`、引入样式、在 React / Next.js 中使用，并配置内置国际化。
 
 ---
 
@@ -16,19 +16,29 @@ yarn add @easbot/ui
 
 ### 环境要求
 
-| 依赖        | 版本    | 说明                             |
-| ----------- | ------- | -------------------------------- |
-| `react`     | `>= 19` | `peerDependency`，由宿主项目提供 |
-| `react-dom` | `>= 19` | `peerDependency`，由宿主项目提供 |
+| 依赖        | 版本      | 说明                             |
+| ----------- | --------- | -------------------------------- |
+| `react`     | `^19.0.0` | `peerDependency`，由宿主项目提供 |
+| `react-dom` | `^19.0.0` | `peerDependency`，由宿主项目提供 |
 
-> Radix UI primitives（22 个 `@radix-ui/react-*`）以 **optional peerDependency** 声明。
+> **Node.js**：`>= 22.22.2`　**pnpm**：`>= 10.0.0`（见 `package.json` 的 `engines`）
+
+> Radix UI primitives（**30** 个 `@radix-ui/react-*`）以 **optional peerDependency** 声明。
 > 只用到哪个组件，就只需安装对应的 Radix 包；全部安装也可以。
 
 ```bash
-# 只用 Button（内部不依赖任何 Radix 包）—— 无需额外安装
+# 只用 Button（内部只依赖 @radix-ui/react-slot）—— 需安装 slot
+pnpm add @radix-ui/react-slot
+
 # 用 Dialog —— 安装对应的 Radix 包
 pnpm add @radix-ui/react-dialog
 ```
+
+### 运行时依赖
+
+以下包是**普通依赖**（`dependencies`），安装 `@easbot/ui` 时自动装好，**无需**额外操作：
+
+`class-variance-authority` · `clsx` · `cmdk` · `date-fns` · `dayjs` · `embla-carousel-react` · `input-otp` · `lucide-react` · `react-day-picker` · `react-hook-form` · `react-moveable` · `react-resizable-panels` · `recharts` · `sonner` · `tailwind-merge` · `vaul` · `zod`
 
 ---
 
@@ -66,6 +76,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
+### 可选的独立产物
+
+除 `styles.css` 外，包内还提供 3 个**独立**产物，需按需显式引入：
+
+| 产物                   | 内容                                   | 引入方式                              |
+| ---------------------- | -------------------------------------- | ------------------------------------- |
+| `dist/fonts.css`       | 7 个 `@font-face`（思源黑体 7 个字重） | `import '@easbot/ui/fonts.css'`       |
+| `dist/iconfont.css`    | 796 个图标类的 `content` 映射          | `import '@easbot/ui/iconfont.css'`    |
+| `dist/theme-light.css` | `:root[data-theme='light']` 主题变量   | `import '@easbot/ui/theme-light.css'` |
+| `dist/theme-dark.css`  | `:root[data-theme='dark']` 主题变量    | `import '@easbot/ui/theme-dark.css'`  |
+
+> ⚠️ 字体与图标字体**二进制不随 npm 包发布**，需自行放到 `public/font/` 与 `public/icon/`。
+> 详见 [主题定制](./theming.md#字体opt-in)。
+
 ---
 
 ## 第一个组件
@@ -87,6 +111,73 @@ export function Example() {
   );
 }
 ```
+
+---
+
+## 国际化
+
+组件库**自带**用户可见文案的双语默认文案（zh-CN / en-US），
+**不引入** `react-i18next` / `i18next` 等外部 i18n 库。语言由消费方通过 `LocaleProvider` 注入。
+
+### 全局注入
+
+```tsx
+import { LocaleProvider } from '@easbot/ui';
+
+export function App() {
+  return <LocaleProvider locale="zh-CN">{/* ... */}</LocaleProvider>;
+}
+```
+
+### 语言切换
+
+```tsx
+import { useLocale } from '@easbot/ui';
+
+function LanguageToggle() {
+  const { locale, setLocale } = useLocale();
+
+  return (
+    <button onClick={() => setLocale(locale === 'zh-CN' ? 'en-US' : 'zh-CN')}>
+      {locale === 'zh-CN' ? 'Switch to English' : '切换到中文'}
+    </button>
+  );
+}
+```
+
+`LocaleProvider` 的行为：
+
+| 场景                 | 生效值                                                  |
+| -------------------- | ------------------------------------------------------- |
+| 传入 `locale`        | **受控模式**，该值优先于持久化与自动推断                |
+| 未传 `locale`        | 已存语言 → `defaultLocale` → 浏览器语言推断 → `zh-CN`   |
+| 语言持久化           | 写入 `localStorage`（键名 `eas-ui-locale`），刷新后保持 |
+| `reloadPageOnChange` | 传 `true` 时切换语言后刷新页面（默认 `false`）          |
+
+> 📌 持久化**不区分受控 / 非受控** —— 生效值由外部决定，但用户偏好始终被记住。
+
+### 单组件覆盖
+
+每个内置文案的组件都接受 `locale` 与 `messages` 两个属性（优先级高于 `LocaleProvider`）：
+
+```tsx
+import { Alert } from '@easbot/ui';
+
+<Alert locale="en-US" />
+
+<Alert
+  locale="zh-CN"
+  messages={{ 'zh-CN': { closeAriaLabel: '关闭这条提示' } }}
+/>
+```
+
+### 内置文案域
+
+内置文案表覆盖 **21** 个组件域：
+
+`alert` · `breadcrumb` · `button` · `carousel` · `command` · `date` · `dialog` · `drawer` · `edit` · `file` · `icon` · `locale` · `pagination` · `select` · `sheet` · `sidebar` · `table` · `theme` · `toast` · `tree` · `typography`
+
+> 完整文案表见 `src/utils/component-messages.ts`。
 
 ---
 
@@ -120,6 +211,28 @@ function ThemeToggle() {
 > ⚠️ **不要**使用 Tailwind 默认的 `dark:` 变体做主题切换 ——
 > 本库已通过 `@custom-variant dark` 把 `dark:` 重定向到 `[data-theme='dark']`，
 > 与主题文件的选择器约定一致。详见 [主题定制](./theming.md)。
+
+### 用 ThemeProvider 接管
+
+需要持久化主题、或让组件库管理主题状态时，使用 `ThemeProvider`：
+
+```tsx
+import { ThemeProvider } from '@easbot/ui';
+
+<ThemeProvider defaultTheme="light">
+  <App />
+</ThemeProvider>;
+```
+
+`DesignSystemProvider` 会一次性组合主题、Tooltip 与 Toast 三个 Provider：
+
+```tsx
+import { DesignSystemProvider } from '@easbot/ui';
+
+<DesignSystemProvider defaultTheme="light">
+  <App />
+</DesignSystemProvider>;
+```
 
 ---
 
@@ -174,6 +287,8 @@ export function ProfileForm() {
 }
 ```
 
+> `@hookform/resolvers` 与 `zod` 是**消费方**的依赖，需自行安装。
+
 ---
 
 ## TypeScript
@@ -207,14 +322,22 @@ import type { ButtonProps, DialogContentProps, ToastProps } from '@easbot/ui';
 pnpm add @radix-ui/react-dialog @radix-ui/react-avatar @radix-ui/react-tooltip
 ```
 
+> `resizable` 组件**已从包根导出**（`ResizablePanelGroup` / `ResizablePanel` / `ResizableHandle`），
+> 详见 [Resizable 可调整面板](./components/navigation/resizable.md)。
+
 ### 支持 React 18 吗？
 
-不支持。`peerDependencies` 要求 `react >= 19`，因为本库使用了 React 19 的相关特性。
+不支持。`peerDependencies` 要求 `react ^19.0.0`，因为本库使用了 React 19 的相关特性。
+
+### `Icon` 的 `class` 模式渲染空白？
+
+`type="class"` 依赖图标字体，需额外引入 `@easbot/ui/iconfont.css` 并把字体文件放到 `public/icon/`。
+详见 [Icon 图标](./components/data-entry/icon.md)。
 
 ---
 
 ## 下一步
 
-- 逐个组件的完整属性表 → [组件文档索引](./README.md#组件清单34-个)
+- 逐个组件的完整属性表 → [组件文档索引](./README.md#组件清单)
 - 定制颜色 / 圆角 / 尺寸 → [主题定制](./theming.md)
 - 交互式在线预览 → [Storybook](https://houjallen.github.io/easbot-ui/)

@@ -33,7 +33,7 @@ type Story = StoryObj<typeof EnhancedDatePicker>;
 export const Default: Story = {
   render: () => {
     const [value, setValue] = useState<Date | undefined>();
-    return <EnhancedDatePicker value={value} onChange={setValue} placeholder="请选择日期" />;
+    return <EnhancedDatePicker value={value} onChange={setValue} />;
   },
 };
 
@@ -41,7 +41,7 @@ export const Default: Story = {
 export const MultipleViews: Story = {
   render: () => {
     const [value, setValue] = useState<Date | undefined>();
-    return <EnhancedDatePicker value={value} onChange={setValue} allowedViews={['days', 'months', 'years']} placeholder="支持年月日视图切换" />;
+    return <EnhancedDatePicker value={value} onChange={setValue} allowedViews={['days', 'months', 'years']} />;
   },
 };
 
@@ -49,7 +49,7 @@ export const MultipleViews: Story = {
 export const QuarterView: Story = {
   render: () => {
     const [value, setValue] = useState<Date | undefined>();
-    return <EnhancedDatePicker value={value} onChange={setValue} viewMode="quarters" allowedViews={['quarters', 'days']} showQuarterView={true} placeholder="季度选择器" />;
+    return <EnhancedDatePicker value={value} onChange={setValue} viewMode="quarters" allowedViews={['quarters', 'days']} showQuarterView={true} />;
   },
 };
 
@@ -57,7 +57,7 @@ export const QuarterView: Story = {
 export const TimeView: Story = {
   render: () => {
     const [value, setValue] = useState<Date | undefined>();
-    return <EnhancedDatePicker value={value} onChange={setValue} viewMode="time" showTimeView={true} showSeconds={true} placeholder="时间选择器" />;
+    return <EnhancedDatePicker value={value} onChange={setValue} viewMode="time" showTimeView={true} showSeconds={true} />;
   },
 };
 
@@ -65,7 +65,7 @@ export const TimeView: Story = {
 export const DateTimeView: Story = {
   render: () => {
     const [value, setValue] = useState<Date | undefined>();
-    return <EnhancedDatePicker value={value} onChange={setValue} allowedViews={['days', 'months', 'years']} showTimeView={true} showSeconds={true} placeholder="日期时间选择器" />;
+    return <EnhancedDatePicker value={value} onChange={setValue} allowedViews={['days', 'months', 'years']} showTimeView={true} showSeconds={true} />;
   },
 };
 
@@ -84,7 +84,6 @@ export const TimeConstraints: Story = {
           seconds: { min: 0, max: 59, step: 30 },
         }}
         showSeconds={true}
-        placeholder="工作时间选择器"
       />
     );
   },
@@ -94,7 +93,7 @@ export const TimeConstraints: Story = {
 export const WithShortcuts: Story = {
   render: () => {
     const [value, setValue] = useState<Date | undefined>();
-    return <EnhancedDatePicker value={value} onChange={setValue} showShortcuts={true} placeholder="支持快捷选择" />;
+    return <EnhancedDatePicker value={value} onChange={setValue} showShortcuts={true} />;
   },
 };
 
@@ -106,12 +105,12 @@ export const BasicDatePicker: Story = {
       <div className="space-y-4">
         <div>
           <h3 className="mb-2 font-medium">基础日期选择器</h3>
-          <DatePicker selected={selected} onSelect={setSelected} placeholder="请选择日期" showShortcuts={true} />
+          <DatePicker selected={selected} onSelect={setSelected} showShortcuts={true} />
         </div>
 
         <div>
           <h3 className="mb-2 font-medium">无快捷选择</h3>
-          <DatePicker selected={selected} onSelect={setSelected} placeholder="请选择日期" showShortcuts={false} />
+          <DatePicker selected={selected} onSelect={setSelected} showShortcuts={false} />
         </div>
 
         <div className="mt-4 rounded bg-gray-50 p-4">
@@ -130,7 +129,7 @@ export const DateRange: Story = {
     const minDate = new Date(today.getFullYear(), today.getMonth(), 1);
     const maxDate = new Date(today.getFullYear(), today.getMonth() + 3, 0);
 
-    return <EnhancedDatePicker value={value} onChange={setValue} minDate={minDate} maxDate={maxDate} placeholder="限制日期范围" />;
+    return <EnhancedDatePicker value={value} onChange={setValue} minDate={minDate} maxDate={maxDate} />;
   },
 };
 
@@ -144,7 +143,7 @@ export const DisabledDates: Story = {
       return day === 0 || day === 6; // 周日或周六
     };
 
-    return <EnhancedDatePicker value={value} onChange={setValue} disabledDate={isWeekend} placeholder="禁用周末" />;
+    return <EnhancedDatePicker value={value} onChange={setValue} disabledDate={isWeekend} />;
   },
 };
 
@@ -152,7 +151,7 @@ export const DisabledDates: Story = {
 export const CustomFormat: Story = {
   render: () => {
     const [value, setValue] = useState<Date | undefined>();
-    return <EnhancedDatePicker value={value} onChange={setValue} format="YYYY年MM月DD日" placeholder="自定义格式显示" />;
+    return <EnhancedDatePicker value={value} onChange={setValue} format="YYYY年MM月DD日" />;
   },
 };
 
@@ -160,7 +159,7 @@ export const CustomFormat: Story = {
 export const YearOnly: Story = {
   render: () => {
     const [value, setValue] = useState<Date | undefined>();
-    return <EnhancedDatePicker value={value} onChange={setValue} viewMode="years" allowedViews={['years']} format="YYYY年" placeholder="年份选择器" />;
+    return <EnhancedDatePicker value={value} onChange={setValue} viewMode="years" allowedViews={['years']} format="YYYY年" />;
   },
 };
 
@@ -168,7 +167,7 @@ export const YearOnly: Story = {
 export const MonthOnly: Story = {
   render: () => {
     const [value, setValue] = useState<Date | undefined>();
-    return <EnhancedDatePicker value={value} onChange={setValue} viewMode="months" allowedViews={['months', 'years']} format="YYYY年MM月" placeholder="月份选择器" />;
+    return <EnhancedDatePicker value={value} onChange={setValue} viewMode="months" allowedViews={['months', 'years']} format="YYYY年MM月" />;
   },
 };
 
@@ -179,7 +178,7 @@ export const InputDateBasic: Story = {
     return (
       <div className="space-y-4">
         <h3 className="font-medium text-lg">InputDate 基础日期输入</h3>
-        <InputDate value={value} onChange={(val) => setValue(val || '')} placeholder="请输入日期" format="YYYY-MM-DD" />
+        <InputDate value={value} onChange={(val) => setValue(val || '')} format="YYYY-MM-DD" />
         <p className="text-muted-foreground text-sm">当前值: {value || '无'}</p>
       </div>
     );
@@ -193,7 +192,7 @@ export const InputTimeBasic: Story = {
     return (
       <div className="space-y-4">
         <h3 className="font-medium text-lg">InputTime 时间输入</h3>
-        <InputTime value={value} onChange={(val) => setValue(val || '')} placeholder="请选择时间" showSeconds={true} />
+        <InputTime value={value} onChange={(val) => setValue(val || '')} showSeconds={true} />
         <p className="text-muted-foreground text-sm">当前值: {value || '无'}</p>
       </div>
     );
@@ -216,7 +215,6 @@ export const InputDateTimeBasic: Story = {
               setValue(undefined);
             }
           }}
-          placeholder="请选择日期和时间"
           showSeconds={true}
           timeConstraints={{
             hours: { min: 0, max: 23, step: 1 },
@@ -236,7 +234,7 @@ export const InputDateRangeBasic: Story = {
     return (
       <div className="space-y-4">
         <h3 className="font-medium text-lg">InputDateRange 日期范围输入</h3>
-        <InputDateRange value={value} onChange={setValue} placeholder="请选择日期范围" separator={' 至 '} />
+        <InputDateRange value={value} onChange={setValue} separator={' 至 '} />
         <p className="text-muted-foreground text-sm">当前值: {value ? `${value[0]} 至 ${value[1]}` : '无'}</p>
       </div>
     );
@@ -250,7 +248,7 @@ export const InputTimeRangeBasic: Story = {
     return (
       <div className="space-y-4">
         <h3 className="font-medium text-lg">InputTimeRange 时间范围输入</h3>
-        <InputTimeRange value={value} onChange={setValue} placeholder="请选择时间范围" showSeconds={false} separator={' ~ '} />
+        <InputTimeRange value={value} onChange={setValue} showSeconds={false} separator={' ~ '} />
         <p className="text-muted-foreground text-sm">当前值: {value ? `${value[0]} ~ ${value[1]}` : '无'}</p>
       </div>
     );
@@ -267,7 +265,6 @@ export const InputDateTimeRangeBasic: Story = {
         <InputDateTimeRange
           value={value}
           onChange={setValue}
-          placeholder="请选择日期时间范围"
           showSeconds={true}
           separator={' ~ '}
           timeConstraints={{
@@ -388,7 +385,7 @@ export const ShortcutComponents: Story = {
                 mode="both"
                 dateTitle="单日期"
                 rangeTitle="日期范围"
-                minWidth="w-36"
+                minWidth="min-w-36"
               />
             </div>
             <div className="space-y-1 text-muted-foreground text-xs">
@@ -457,18 +454,13 @@ export const ComprehensiveExample: Story = {
           {/* 生日选择 */}
           <div className="space-y-2">
             <span className="font-medium text-sm">生日</span>
-            <InputDate
-              value={formData.birthday}
-              onChange={(value) => setFormData((prev) => ({ ...prev, birthday: value || '' }))}
-              placeholder="请选择生日"
-              disabledDate={(date) => date > new Date()}
-            />
+            <InputDate value={formData.birthday} onChange={(value) => setFormData((prev) => ({ ...prev, birthday: value || '' }))} disabledDate={(date) => date > new Date()} />
           </div>
 
           {/* 工作时间 */}
           <div className="space-y-2">
             <span className="font-medium text-sm">上班时间</span>
-            <InputTime value={formData.workTime} onChange={(value) => setFormData((prev) => ({ ...prev, workTime: value || '' }))} placeholder="请选择上班时间" showSeconds={false} />
+            <InputTime value={formData.workTime} onChange={(value) => setFormData((prev) => ({ ...prev, workTime: value || '' }))} showSeconds={false} />
           </div>
         </div>
 

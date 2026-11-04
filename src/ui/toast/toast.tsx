@@ -189,7 +189,10 @@ const ToastAction = React.forwardRef<React.ComponentRef<typeof ToastPrimitive.Ac
   <ToastPrimitive.Action
     ref={ref}
     className={cn(
-      'inline-flex h-8 shrink-0 items-center justify-center rounded-md bg-transparent px-3 font-medium text-sm ring-offset-background transition-colors hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 group-[.destructive]:focus:ring-destructive group-[.destructive]:hover:bg-destructive group-[.destructive]:hover:text-destructive-foreground',
+      // 📌 焦点指示用 `outline`（绘制在元素**之外**）而非 `ring`（紧贴边缘）——
+      //    `ring` 紧贴元素边缘时视觉等同描边，会被误读为「选中态」。
+      //    详见 `ui/icon/icon-button.tsx` 的「焦点态约定」。
+      'inline-flex h-8 shrink-0 items-center justify-center rounded-md bg-transparent px-3 font-medium text-sm transition-colors hover:bg-secondary focus:outline-none focus-visible:outline-2 focus-visible:outline-ring/70 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 group-[.destructive]:focus-visible:outline-destructive group-[.destructive]:hover:bg-destructive group-[.destructive]:hover:text-destructive-foreground',
       className,
     )}
     {...props}

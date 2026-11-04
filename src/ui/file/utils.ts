@@ -195,7 +195,16 @@ export async function uploadFile(
     };
 
     // 使用统一的HTTP客户端上传
-    const response = await httpClient?.uploadFile?.(requestConfig, uploadParams);
+    // ⚠️ `httpClient` 由消费方注入；未注入（或缺少 uploadFile 方法）时**不能**假成功，
+    //    必须返回失败结果，交由调用方把文件标记为 error。
+    if (typeof httpClient?.uploadFile !== 'function') {
+      return {
+        success: false,
+        message: getMessage('httpClientMissing'),
+      };
+    }
+
+    const response = await httpClient.uploadFile(requestConfig, uploadParams);
 
     // 转换为统一的响应格式
     return {

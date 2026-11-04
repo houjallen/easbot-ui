@@ -36,6 +36,11 @@ export function DayView({ viewDate, selectedDate, onSelect, minDate, maxDate, is
         components={{
           // ⚠️ `react-day-picker` v10 的组件键是 `MonthCaption`（v9 及更早叫 `Caption`）
           MonthCaption: () => <></>, // 隐藏月份标题
+          // 📌 **必须隐藏 `Nav`** —— 翻页由 `ViewSelectorHeader` 统一提供。
+          //    否则 react-day-picker 自带的 `PreviousMonthButton` / `NextMonthButton`
+          //    （样式为 `absolute left-1` / `absolute right-1`）会因 `MonthCaption`
+          //    为空而失去定位参照，**飘到快捷选择区两侧**，且点击不生效。
+          Nav: () => <></>,
         }}
       />
     </div>
@@ -116,6 +121,8 @@ export function DayRangeView({ viewDate, selectedStartDate, selectedEndDate, onS
           components={{
             // ⚠️ `react-day-picker` v10 的组件键是 `MonthCaption`（v9 及更早叫 `Caption`）
             MonthCaption: () => <></>, // 隐藏月份标题
+            // 📌 同 `DayView` —— 隐藏 `Nav`，翻页由 `ViewSelectorHeader` 统一提供
+            Nav: () => <></>,
           }}
         />
       </div>

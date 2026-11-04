@@ -9,11 +9,12 @@
  * 导出分层：
  * 1. `models` —— 数据契约（Zod Schema + 推导类型），消费方传入配置时的运行时校验器
  * 2. `utils` —— 通用工具函数
- * 3. `ui` —— UI 组件（`src/ui/**` 是本库的**公开组件层**，与 `src/design-system/components/ui/**`
+ * 3. `ui` —— 基础 UI 组件（`src/ui/**` 是本库的**公开组件层**，与 `src/design-system/components/ui/**`
  *    的基础实现层并存；同名组件以 `src/ui` 版本为准，它额外附带 Props 类型）
- * 4. `design-system` —— 设计系统 Provider 组合（主题 / Tooltip / Toast）
- * 5. `hooks` —— 通用 React Hook（`useDevice` / `useLocale`）
- * 6. `providers` —— 上下文 Provider（`LocaleProvider`）
+ * 4. `components` —— 应用组件（`ThemeToggle` / `LocaleToggle` 等**开箱即用**的成品组件）
+ * 5. `design-system` —— 设计系统 Provider 组合（主题 / Tooltip / Toast）
+ * 6. `hooks` —— 通用 React Hook（`useDevice` / `useLocale` / `useTheme`）
+ * 7. `providers` —— 上下文 Provider（`LocaleProvider` / `ThemeProvider` / `NotifyProvider`）
  *
  * @remarks
  * `src/design-system/components/ui/sonner` 的 `Toaster` 已在 `design-system/index.tsx` 内被
@@ -28,6 +29,9 @@ export * from './utils';
 
 /* ---------- UI 组件 ---------- */
 export * from './ui';
+
+/* ---------- 应用组件 ---------- */
+export * from './components';
 
 /* ---------- 设计系统 Provider ---------- */
 export * from './design-system';

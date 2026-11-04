@@ -1,0 +1,11 @@
+{
+  "name": "eas-addon-locale",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "EASBot UI 本地 Storybook addon —— 工具栏中英文切换",
+  "exports": {
+    "./manager": "./manager.tsx",
+    "./preview": "./preview.tsx"
+  }
+}

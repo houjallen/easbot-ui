@@ -1,11 +1,23 @@
-﻿# AlertDialog 警告对话框
+# AlertDialog 确认对话框
 
-> 弹出需要用户明确确认或取消的警告对话框，用于危险操作确认与关键决策打断。
+> 需要用户明确确认的模态对话框，用于危险操作、不可逆变更等关键决策场景。
+
+---
 
 **导入**
 
 ```tsx
-import { AlertDialog } from '@easbot/ui';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@easbot/ui';
 ```
 
 ## 基础用法
@@ -29,12 +41,12 @@ export default function App() {
       <AlertDialogTrigger>删除项目</AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>确定要删除该项目吗？</AlertDialogTitle>
-          <AlertDialogDescription>此操作无法撤销，相关数据将被永久清除。</AlertDialogDescription>
+          <AlertDialogTitle>确认删除</AlertDialogTitle>
+          <AlertDialogDescription>删除后不可恢复，确定继续吗？</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>取消</AlertDialogCancel>
-          <AlertDialogAction>删除</AlertDialogAction>
+          <AlertDialogAction>确认删除</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -42,238 +54,169 @@ export default function App() {
 }
 ```
 
-## 组成部分
-
-| 子组件                   | 说明                                                            |
-| ------------------------ | --------------------------------------------------------------- |
-| `AlertDialog`            | 根组件，管理打开状态（对应 Radix `AlertDialog.Root`）           |
-| `AlertDialogTrigger`     | 触发器按钮（对应 Radix `AlertDialog.Trigger`）                  |
-| `AlertDialogPortal`      | 传送门（对应 Radix `AlertDialog.Portal`）                       |
-| `AlertDialogOverlay`     | 遮罩层（对应 Radix `AlertDialog.Overlay`）                      |
-| `AlertDialogContent`     | 内容容器，**已内置** `AlertDialogPortal` + `AlertDialogOverlay` |
-| `AlertDialogHeader`      | 头部布局容器                                                    |
-| `AlertDialogFooter`      | 底部布局容器                                                    |
-| `AlertDialogTitle`       | 标题，渲染为 `<h2>`（对应 Radix `AlertDialog.Title`）           |
-| `AlertDialogDescription` | 描述文本，渲染为 `<p>`（对应 Radix `AlertDialog.Description`）  |
-| `AlertDialogAction`      | 确认按钮，点击后关闭对话框；支持 `loading` 与 `variant`         |
-| `AlertDialogCancel`      | 取消按钮，样式为 `buttonVariants({ variant: 'outline' })`       |
-
-### AlertDialogModal（高阶封装）
-
-`AlertDialogModal` 是位于 `src/ui/alert-dialog/alert-dialog-modal.tsx` 的**独立封装组件**，用一套简化的 props 直接生成带图标、标题、描述与双按钮的警告框：
-
-> ⚠️ **它当前未被导出**：`src/ui/alert-dialog/index.ts` 只 `export * from './alert-dialog'`，**没有**导出 `./alert-dialog-modal`；`src/index.ts` 也不包含它。因此 `import { AlertDialogModal } from '@easbot/ui'` **会失败**。消费方需自行从源码路径引入，或推动上游补齐导出。
+尺寸、关闭按钮与语义变体：
 
 ```tsx
-// 当前只能从源码路径引入（包根导出暂不可用）
-import { AlertDialogModal } from '@easbot/ui/src/ui/alert-dialog/alert-dialog-modal';
+<AlertDialogContent size="sm" showCloseButton={false} variant="destructive">
+  <AlertDialogHeader>
+    <AlertDialogTitle>重要操作确认</AlertDialogTitle>
+    <AlertDialogDescription>此操作不可撤销。</AlertDialogDescription>
+  </AlertDialogHeader>
+  <AlertDialogFooter>
+    <AlertDialogCancel>取消</AlertDialogCancel>
+    <AlertDialogAction>确认</AlertDialogAction>
+  </AlertDialogFooter>
+</AlertDialogContent>
+```
+
+高阶封装 `AlertDialogModal`（自带图标、标题与确认 / 取消按钮）：
+
+```tsx
+import { useState } from 'react';
+import { AlertDialogModal } from '@easbot/ui';
 
 export default function App() {
+  const [open, setOpen] = useState(false);
+
   return (
-    <AlertDialogModal
-      title="删除项目"
-      content="此操作无法撤销，相关数据将被永久清除。"
-      iconType="warning"
-      okText="删除"
-      cancelText="取消"
-      onOk={() => console.log('已确认')}
-      onCancel={() => console.log('已取消')}
-    />
+    <>
+      <button type="button" onClick={() => setOpen(true)}>
+        打开对话框
+      </button>
+      <AlertDialogModal
+        title="操作确认"
+        content="您确定要执行此操作吗？"
+        variant="warning"
+        open={open}
+        onOpenChange={setOpen}
+        onOk={() => setOpen(false)}
+        onCancel={() => setOpen(false)}
+      />
+    </>
   );
 }
 ```
 
-| 属性           | 类型                                          | 默认值   | 说明                                                              |
-| -------------- | --------------------------------------------- | -------- | ----------------------------------------------------------------- |
-| `title`        | `string`                                      | `''`     | 标题文本                                                          |
-| `content`      | `React.ReactNode \| string`                   | —        | 描述内容；传入字符串时会以 **HTML** 渲染（见下方 XSS 警告）       |
-| `onOk`         | `() => void`                                  | —        | 点击确认按钮的回调，随后会调用 `onOpenChange?.(false)` 关闭对话框 |
-| `onCancel`     | `() => void`                                  | —        | 点击取消按钮的回调，随后会调用 `onOpenChange?.(false)` 关闭对话框 |
-| `iconType`     | `'success' \| 'info' \| 'error' \| 'warning'` | `'info'` | 图标类型                                                          |
-| `open`         | `boolean`                                     | `false`  | 受控打开状态                                                      |
-| `onOpenChange` | `(open: boolean) => void`                     | —        | 打开状态变化回调                                                  |
-| `okText`       | `string`                                      | `'确认'` | 确认按钮文案                                                      |
-| `cancelText`   | `string`                                      | `'取消'` | 取消按钮文案                                                      |
+## 变体（继承自设计系统层）
 
-> ⚠️ **XSS 风险警告**：`AlertDialogModal` 的 `content` 为字符串时，内部通过 `dangerouslySetInnerHTML` 渲染（`<span dangerouslySetInnerHTML={{ __html: content }} />`）。若 `content` 来自用户输入或任何不可信来源，将**存在跨站脚本（XSS）攻击风险**。请务必先做 HTML 转义 / 白名单过滤，或改用 `React.ReactNode` 传入已渲染好的元素。库内其它组件均不提供该能力，此为该组件独有设计。
+### variant
 
-## 变体
+| 取值              | 说明                                               |
+| ----------------- | -------------------------------------------------- |
+| `default`（默认） | 主色实心按钮，`AlertDialogAction` 的默认样式       |
+| `destructive`     | 危险色实心按钮                                     |
+| `outline`         | 边框样式、透明背景，`AlertDialogCancel` 的默认样式 |
+| `secondary`       | 次色实心按钮                                       |
+| `ghost`           | 幽灵按钮，hover 时显示背景                         |
+| `link`            | 链接样式，主色文字 + hover 下划线                  |
 
-`AlertDialogContent` 的样式由组件内部的类名映射表定义（非 `cva`），共 2 个维度。
+### size
 
-### variant（配色）
-
-| 取值          | 说明                                                                                                                         |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `default`     | 使用 `--alert-dialog-default-border` / `--alert-dialog-default-background` / `--alert-dialog-default-foreground`，**默认值** |
-| `destructive` | 使用 `--alert-dialog-destructive-border` / `--alert-dialog-destructive-background` / `--alert-dialog-destructive-foreground` |
-| `success`     | 使用 `--alert-dialog-success-border` / `--alert-dialog-success-background` / `--alert-dialog-success-foreground`             |
-
-### size（尺寸）
-
-| 取值      | 说明                                                                                                                                         |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sm`      | 最大宽度 `--alert-dialog-sm-max-width`（24rem），内边距 `--alert-dialog-sm-padding`，间距 `--alert-dialog-sm-gap`                            |
-| `default` | 最大宽度 `--alert-dialog-default-max-width`（28rem），内边距 `--alert-dialog-default-padding`，间距 `--alert-dialog-default-gap`，**默认值** |
-| `lg`      | 最大宽度 `--alert-dialog-lg-max-width`（36rem），内边距 `--alert-dialog-lg-padding`，间距 `--alert-dialog-lg-gap`                            |
-
-### iconType（`AlertDialogModal` 图标）
-
-| 取值      | 图标          | 颜色类                      |
-| --------- | ------------- | --------------------------- |
-| `success` | `CheckCircle` | `text-green-500`            |
-| `info`    | `Info`        | `text-blue-500`，**默认值** |
-| `error`   | `XCircle`     | `text-red-500`              |
-| `warning` | `AlertCircle` | `text-yellow-500`           |
+| 取值              | 说明                                      |
+| ----------------- | ----------------------------------------- |
+| `default`（默认） | 默认，`h-9 px-4 py-2`（36px）             |
+| `sm`              | 小，`h-8 gap-1.5 rounded-md px-3`（32px） |
+| `lg`              | 大，`h-10 rounded-md px-6`（40px）        |
+| `icon`            | 图标按钮，正方形 `size-9`（36px）         |
 
 ## 属性
 
-### AlertDialog（根组件）
+继承自 `React.ComponentPropsWithoutRef<typeof DSAlertDialogContent>, UiMessageProps`。
 
-| 属性           | 类型                      | 默认值 | 说明                                                                    |
-| -------------- | ------------------------- | ------ | ----------------------------------------------------------------------- |
-| `open`         | `boolean`                 | —      | 受控打开状态，来自 Radix primitives（`AlertDialog.Root`）               |
-| `defaultOpen`  | `boolean`                 | —      | 非受控模式下的初始打开状态，来自 Radix primitives（`AlertDialog.Root`） |
-| `onOpenChange` | `(open: boolean) => void` | —      | 打开状态变化回调，来自 Radix primitives（`AlertDialog.Root`）           |
-| `children`     | `React.ReactNode`         | —      | 子节点，来自 Radix primitives（`AlertDialog.Root`）                     |
+| 属性                   | 类型                        | 默认值 | 说明                     |
+| ---------------------- | --------------------------- | ------ | ------------------------ |
+| `className?`           | `string`                    | —      | —                        |
+| `size?`                | `'sm' \| 'default' \| 'lg'` | —      | —                        |
+| `showCloseButton?`     | `boolean`                   | —      | // 内容区域大小          |
+| `closeAriaLabel?`      | `string`                    | —      | // 是否显示关闭按钮      |
+| `closeOnOverlayClick?` | `boolean`                   | —      | // 关闭按钮的 aria-label |
+| `variant?`             | `AlertDialogVariants`       | —      | // 点击遮罩层是否关闭    |
+| `children?`            | `React.ReactNode`           | —      | // 新增：关闭按钮的变体  |
 
-> 注意：Radix 的 `AlertDialog.Root` **不支持 `modal` 属性**（其类型显式 `Omit<DialogProps, 'modal'>`），警告对话框始终为强制交互模式。
+## 属性（AlertDialogModalProps）
 
-### AlertDialogTrigger
+继承自 `UiMessageProps`。
 
-| 属性       | 类型                                         | 默认值 | 说明                                                                                 |
-| ---------- | -------------------------------------------- | ------ | ------------------------------------------------------------------------------------ |
-| `asChild`  | `boolean`                                    | —      | 是否用 Slot 替换触发元素，来自 Radix primitives（`AlertDialog.Trigger`）             |
-| `onClick`  | `React.MouseEventHandler<HTMLButtonElement>` | —      | 点击事件（原生 `<button>` 属性），来自 Radix primitives（`AlertDialog.Trigger`）     |
-| `disabled` | `boolean`                                    | —      | 禁用触发按钮（原生 `<button>` 属性），来自 Radix primitives（`AlertDialog.Trigger`） |
+| 属性               | 类型                        | 默认值 | 说明 |
+| ------------------ | --------------------------- | ------ | ---- |
+| `title?`           | `string`                    | —      | —    |
+| `content`          | `React.ReactNode \| string` | —      | —    |
+| `onOk?`            | `() => void`                | —      | —    |
+| `onCancel?`        | `() => void`                | —      | —    |
+| `variant?`         | `AlertDialogVariants`       | —      | —    |
+| `open?`            | `boolean`                   | —      | —    |
+| `onOpenChange?`    | `(open: boolean) => void`   | —      | —    |
+| `okText?`          | `string`                    | —      | —    |
+| `cancelText?`      | `string`                    | —      | —    |
+| `showCloseButton?` | `boolean`                   | —      | —    |
+| `closeAriaLabel?`  | `string`                    | —      | —    |
+| `children?`        | `React.ReactNode`           | —      | —    |
 
-### AlertDialogPortal / AlertDialogOverlay
+## 属性（EunAlertDialogProps）
 
-| 属性         | 类型                  | 默认值          | 说明                                                                                              |
-| ------------ | --------------------- | --------------- | ------------------------------------------------------------------------------------------------- |
-| `container`  | `HTMLElement \| null` | `document.body` | 内容挂载的容器元素，来自 Radix primitives（`AlertDialog.Portal`）                                 |
-| `forceMount` | `true`                | —               | 强制挂载，用于接管退出动画，来自 Radix primitives（`AlertDialog.Portal` / `AlertDialog.Overlay`） |
+继承自 `React.ComponentPropsWithoutRef<typeof DSAlertDialog>`。
 
-### AlertDialogContent
+| 属性            | 类型                      | 默认值 | 说明                  |
+| --------------- | ------------------------- | ------ | --------------------- |
+| `children?`     | `React.ReactNode`         | —      | —                     |
+| `className?`    | `string`                  | —      | // 明确添加 children  |
+| `open?`         | `boolean`                 | —      | // 明确添加 className |
+| `onOpenChange?` | `(open: boolean) => void` | —      | // 明确添加 open      |
 
-| 属性               | 类型                                      | 默认值      | 说明                                                                                                 |
-| ------------------ | ----------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------- |
-| `variant`          | `'default' \| 'destructive' \| 'success'` | `'default'` | 对话框配色变体                                                                                       |
-| `size`             | `'sm' \| 'default' \| 'lg'`               | `'default'` | 对话框尺寸变体                                                                                       |
-| `forceMount`       | `true`                                    | —           | 强制挂载，用于接管退出动画，来自 Radix primitives（`AlertDialog.Content`）                           |
-| `onOpenAutoFocus`  | `(event: Event) => void`                  | —           | 打开时自动聚焦的事件回调（可 `preventDefault` 阻止），来自 Radix primitives（`AlertDialog.Content`） |
-| `onCloseAutoFocus` | `(event: Event) => void`                  | —           | 关闭时自动聚焦的事件回调（可 `preventDefault` 阻止），来自 Radix primitives（`AlertDialog.Content`） |
-| `onEscapeKeyDown`  | `(event: KeyboardEvent) => void`          | —           | 按下 `Escape` 时的回调，来自 Radix primitives（`AlertDialog.Content`）                               |
-| `className`        | `string`                                  | —           | 自定义类名，合并到末位                                                                               |
+`EunAlertDialogContentProps` 是 `AlertDialogContent` 的实际 Props 类型（`src/ui/alert-dialog/alert-dialog.tsx`）；`AlertDialogModalProps` 是高阶封装 `AlertDialogModal` 的属性接口；`EunAlertDialogProps` 是根组件 `AlertDialog` 的属性接口。
 
-> Radix 的 `AlertDialog.Content` 类型已 `Omit` 掉 `onPointerDownOutside` 与 `onInteractOutside`，即**警告对话框不允许通过点击外部来关闭**。
-
-### AlertDialogAction
-
-| 属性      | 类型                                         | 默认值  | 说明                                                                                                         |
-| --------- | -------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------ |
-| `loading` | `boolean`                                    | `false` | 是否显示加载状态；为 `true` 时按钮 `disabled` 且附加 `pointer-events-none opacity-75`，并渲染 `Spinner` 图标 |
-| `variant` | `'default' \| 'destructive' \| 'success'`    | —       | 按钮变体，透传给 `buttonVariants`；不传时使用 `buttonVariants()` 的默认样式                                  |
-| `onClick` | `React.MouseEventHandler<HTMLButtonElement>` | —       | 点击事件（原生 `<button>` 属性），来自 Radix primitives（`AlertDialog.Action`）                              |
-
-### AlertDialogCancel
-
-| 属性        | 类型                                         | 默认值 | 说明                                                                            |
-| ----------- | -------------------------------------------- | ------ | ------------------------------------------------------------------------------- |
-| `onClick`   | `React.MouseEventHandler<HTMLButtonElement>` | —      | 点击事件（原生 `<button>` 属性），来自 Radix primitives（`AlertDialog.Cancel`） |
-| `className` | `string`                                     | —      | 自定义类名，合并到末位                                                          |
-
-### AlertDialogHeader / AlertDialogFooter / AlertDialogTitle / AlertDialogDescription
-
-| 属性        | 类型      | 默认值 | 说明                                                                                               |
-| ----------- | --------- | ------ | -------------------------------------------------------------------------------------------------- |
-| `className` | `string`  | —      | 自定义类名，合并到末位                                                                             |
-| `asChild`   | `boolean` | —      | 是否用 Slot 替换渲染元素，来自 Radix primitives（`AlertDialog.Title` / `AlertDialog.Description`） |
-
-本表只列组件自有属性；此外还透传 `<div>` / `<h2>` / `<p>` / `<button>` 的全部原生属性，如 `id` / `aria-*` / `data-*` / `on*` 事件。
+本表只列组件自有属性；此外还透传 Radix AlertDialog 对应部件的全部原生属性（`open` / `defaultOpen` / `onOpenChange` / `onEscapeKeyDown` / `onPointerDownOutside` / `disabled` / `className` / `aria-*` / `data-*` 等），并继承 `UiMessageProps`（`locale` / `messages`）用于覆盖内置文案。
 
 ## 无障碍
 
-- `AlertDialogContent` 渲染为 `role="alertdialog"`（比普通 `dialog` 语义更强），标题与描述由 Radix 通过 `aria-labelledby` / `aria-describedby` 自动关联。
-- 警告对话框**强制模态**：焦点被锁定在内容区，页面其余部分被标记为 `aria-hidden`，用户无法通过点击外部或 `Tab` 离开。
-- 键盘行为：`Escape` 可关闭对话框（可被 `onEscapeKeyDown` 阻止）；`Tab` / `Shift+Tab` 在内容内循环；`Enter` 在聚焦于确认按钮时触发确认。
-- `AlertDialogAction` 在 `loading` 状态下会渲染 `Spinner`（`aria` 由 `Spinner` 自身提供），并把按钮置为 `disabled`，避免重复提交。
-- `AlertDialogModal` 的描述通过 `AlertDialogDescription` 的 `asChild` 包裹在一个 `<div>` 中，图标为纯装饰（`lucide-react` 的 `svg` 默认无 `aria-hidden`，如需屏蔽请自行覆盖）。
+- 底层 Radix AlertDialog 渲染为 `<div role="alertdialog" aria-modal="true">`，并注入 `aria-labelledby`（指向 `AlertDialogTitle`）/ `aria-describedby`（指向 `AlertDialogDescription`）/ `data-state`（`open` / `closed`）。
+- 打开时焦点自动移入内容区并锁定（focus trap），关闭后焦点归还触发元素。
+- 键盘操作：`Esc` 关闭对话框；`Tab` / `Shift+Tab` 在内容区内的可聚焦元素之间循环。
+- 右上角关闭按钮是 `CloseButton` 组件渲染的原生 `<button>`，带 `aria-label`（内置文案「关闭」/ `Close`），图标为纯装饰。
+- `AlertDialogAction` / `AlertDialogCancel` 渲染为原生 `<button>`，可直接被读屏定位与键盘触发。
+
+## 注意事项
+
+- **与 Dialog 的核心差异**：`AlertDialog` 是**强制决策**语义 —— 点击遮罩层不会关闭，必须通过「确认 / 取消」按钮明确表态；`Dialog` 是通用模态框。
+- **`variant` 有两套语义，别混淆**：`AlertDialogContent` 的 `variant` 取值是 `AlertDialogVariants`（`default` / `destructive` / `success` / `warning` / `info`），它**只作用于右上角关闭按钮的配色**（传给内部 `CloseButton`），不影响内容区配色；上表的 `ds_variant` 是设计系统层 `buttonVariants` 的取值，供 `AlertDialogAction` / `AlertDialogCancel` 使用。
+- **`AlertDialogVariants` 的取值**：`default` / `destructive` / `success` / `warning` / `info`（`src/ui/alert-dialog/alert-dialog.tsx` 中以联合类型声明）。
+- **`size` 只影响内容区最大宽度**：`sm` → `sm:max-w-sm`，`default` → `sm:max-w-lg`，`lg` → `sm:max-w-xl`，默认 `'default'`。
+- **`showCloseButton` 默认 `true`**：关闭按钮以 `AlertDialogCancel asChild` 包裹 `CloseButton` 渲染 —— `asChild` 场景下设计系统层**不会**注入 `buttonVariants`，只透传 `className`，因此按钮保持图标按钮的紧凑形态。
+- **`closeOnOverlayClick` 当前不生效**：源码中该分支的处理代码被注释掉，`false` 时既不会阻止 `onEscapeKeyDown` 也不会阻止 `onPointerDownOutside` —— 请改用 Radix 的 `onPointerDownOutside` / `onEscapeKeyDown` 自行拦截。
+- **关闭按钮形状为 `rounded-xs`（方角）**：源码注释说明此前用的是 `rounded-full`（圆形），与 Dialog / Drawer 不一致，现统一到 Dialog 基准（`overlayCloseIconButtonClass`）。
+- **`AlertDialogModal` 的文案兜底**：`okText` / `cancelText` / `closeAriaLabel` 未传时取内置 `alert` 文案域（zh-CN「确认」/「取消」/「关闭」，en-US `Confirm` / `Cancel` / `Close`）。
+- **`AlertDialogModal` 的图标由 `variant` 推导**：`warning` → `AlertCircle`（destructive 色）、`success` → `CheckCircle`（success 色）、`destructive` → `XCircle`（destructive 色）、其余 → `Info`（primary 色）。
+- **`AlertDialogModal` 的确认 / 取消会主动关闭**：`onOk` 与 `onCancel` 执行后都会调用 `onOpenChange?.(false)`。
+- **`AlertDialogModal` 的 `content` 传字符串时会被包进 `<span>`**，传 `ReactNode` 则原样渲染。
+- **`AlertDialogOverlay` 的层级**：使用内联 `zIndex: var(--eas-z-index-dialog-overlay)`（1300）；调用方传入的 `style` 在后，可覆盖该层级。
+- **根组件的 `className` 不会生效**：设计系统层的 `AlertDialog` 把 `className` 解构出来后**没有**传给 Radix Root —— `AlertDialog` 根组件不渲染 DOM 元素，因此 `className` 无处落地。请把样式写在 `AlertDialogContent` 上。
+- **`AlertDialogAction` / `AlertDialogCancel` 支持 `asChild`**，可把内部按钮替换成自定义元素（如 `Button`）。
 
 ## 主题变量
 
-| 变量                                     | 说明                           |
-| ---------------------------------------- | ------------------------------ |
-| `--alert-dialog-overlay-z-index`         | 遮罩层层级                     |
-| `--alert-dialog-content-z-index`         | 内容层层级                     |
-| `--alert-dialog-overlay-background`      | 遮罩层背景色                   |
-| `--alert-dialog-shadow`                  | 内容区阴影                     |
-| `--alert-dialog-transition`              | 内容区过渡动画                 |
-| `--alert-dialog-content-min-width`       | 内容区最小宽度                 |
-| `--alert-dialog-content-max-width`       | 内容区最大宽度（基准值）       |
-| `--alert-dialog-content-border-width`    | 内容区边框宽度                 |
-| `--alert-dialog-backdrop-filter`         | 内容区背景模糊半径             |
-| `--alert-dialog-sm-max-width`            | `size="sm"` 最大宽度           |
-| `--alert-dialog-sm-padding`              | `size="sm"` 内边距             |
-| `--alert-dialog-sm-gap`                  | `size="sm"` 元素间距           |
-| `--alert-dialog-default-max-width`       | `size="default"` 最大宽度      |
-| `--alert-dialog-default-padding`         | `size="default"` 内边距        |
-| `--alert-dialog-default-gap`             | `size="default"` 元素间距      |
-| `--alert-dialog-lg-max-width`            | `size="lg"` 最大宽度           |
-| `--alert-dialog-lg-padding`              | `size="lg"` 内边距             |
-| `--alert-dialog-lg-gap`                  | `size="lg"` 元素间距           |
-| `--alert-dialog-default-border`          | `variant="default"` 边框色     |
-| `--alert-dialog-default-background`      | `variant="default"` 背景色     |
-| `--alert-dialog-default-foreground`      | `variant="default"` 文字色     |
-| `--alert-dialog-destructive-border`      | `variant="destructive"` 边框色 |
-| `--alert-dialog-destructive-background`  | `variant="destructive"` 背景色 |
-| `--alert-dialog-destructive-foreground`  | `variant="destructive"` 文字色 |
-| `--alert-dialog-success-border`          | `variant="success"` 边框色     |
-| `--alert-dialog-success-background`      | `variant="success"` 背景色     |
-| `--alert-dialog-success-foreground`      | `variant="success"` 文字色     |
-| `--alert-dialog-header-gap`              | 头部元素间距                   |
-| `--alert-dialog-footer-gap`              | 底部元素间距                   |
-| `--alert-dialog-title-font-size`         | 标题字号                       |
-| `--alert-dialog-title-font-weight`       | 标题字重                       |
-| `--alert-dialog-title-line-height`       | 标题行高                       |
-| `--alert-dialog-description-font-size`   | 描述字号                       |
-| `--alert-dialog-description-color`       | 描述文字颜色                   |
-| `--alert-dialog-description-line-height` | 描述行高                       |
+本组件直接消费以下 CSS 变量（完整清单见 [主题定制](../../theming.md)）：
 
-## 组合用法 / 注意事项
-
-- **`AlertDialogContent` 已内置 Portal 与 Overlay**：不要在其内部再次包裹 `AlertDialogPortal`，否则会出现两层遮罩。
-- **与 `Dialog` 的区别**：`Dialog` 是通用模态对话框，可通过点击外部关闭；`AlertDialog` 是警告对话框，Radix 显式移除了 `onPointerDownOutside` / `onInteractOutside`，**无法通过点击外部关闭**，只能通过取消 / 确认 / `Escape` 关闭。
-- **`AlertDialogModal` 的 `content` 字符串有 XSS 风险**：内部使用 `dangerouslySetInnerHTML` 渲染，请勿直接传入用户可控内容。
-- **`AlertDialogAction` 的 `variant` 与 `AlertDialogContent` 的 `variant` 相互独立**：前者控制按钮配色（复用 `buttonVariants`），后者控制对话框配色。
-- **`AlertDialogModal` 的 `onOk` / `onCancel` 回调后会自动调用 `onOpenChange?.(false)`**：若未传 `onOpenChange`，对话框不会自动关闭。
+- `--eas-z-index-dialog-overlay`
 
 ## 导出
 
-| 导出名                    | 类型                                      | 说明                                                                        |
-| ------------------------- | ----------------------------------------- | --------------------------------------------------------------------------- |
-| `AlertDialog`             | `React.FC<AlertDialogProps>`              | 警告对话框根组件（Radix `AlertDialog.Root`）                                |
-| `AlertDialogPortal`       | `React.FC`                                | 传送门                                                                      |
-| `AlertDialogOverlay`      | `React.ForwardRefExoticComponent`         | 遮罩层，ref 指向 `HTMLDivElement`                                           |
-| `AlertDialogTrigger`      | `React.ForwardRefExoticComponent`         | 触发器，ref 指向 `HTMLButtonElement`                                        |
-| `AlertDialogContent`      | `React.ForwardRefExoticComponent`         | 内容容器，ref 指向 `HTMLDivElement`                                         |
-| `AlertDialogHeader`       | `React.FC`                                | 头部容器                                                                    |
-| `AlertDialogFooter`       | `React.FC`                                | 底部容器                                                                    |
-| `AlertDialogTitle`        | `React.ForwardRefExoticComponent`         | 标题，ref 指向 `HTMLHeadingElement`                                         |
-| `AlertDialogDescription`  | `React.ForwardRefExoticComponent`         | 描述，ref 指向 `HTMLParagraphElement`                                       |
-| `AlertDialogAction`       | `React.ForwardRefExoticComponent`         | 确认按钮，ref 指向 `HTMLButtonElement`                                      |
-| `AlertDialogCancel`       | `React.ForwardRefExoticComponent`         | 取消按钮，ref 指向 `HTMLButtonElement`                                      |
-| `AlertDialogVariant`      | `'default' \| 'destructive' \| 'success'` | 配色变体类型                                                                |
-| `AlertDialogSize`         | `'sm' \| 'default' \| 'lg'`               | 尺寸变体类型                                                                |
-| `AlertDialogContentProps` | `interface`                               | 内容容器属性接口（Radix `AlertDialog.Content` 属性 + `variant` / `size`）   |
-| `AlertDialogActionProps`  | `interface`                               | 确认按钮属性接口（Radix `AlertDialog.Action` 属性 + `loading` / `variant`） |
+### 组件
 
-### 未从包根导出的模块内导出
-
-以下导出存在于 `src/ui/alert-dialog/alert-dialog-modal.tsx`，但**未**被 `src/ui/alert-dialog/index.ts` 与 `src/index.ts` 导出，因此无法通过 `import { ... } from '@easbot/ui'` 获得：
-
-| 导出名                  | 类型                                          | 说明                                                |
-| ----------------------- | --------------------------------------------- | --------------------------------------------------- |
-| `AlertDialogModal`      | `React.FC<AlertDialogModalProps>`             | 高阶封装警告框组件（含图标 / 标题 / 描述 / 双按钮） |
-| `AlertDialogModalProps` | `interface`                                   | `AlertDialogModal` 的属性接口                       |
-| `IconType`              | `'success' \| 'info' \| 'error' \| 'warning'` | `AlertDialogModal` 的图标类型                       |
+| 导出名                       | 说明 |
+| ---------------------------- | ---- |
+| `AlertDialog`                |      |
+| `AlertDialogAction`          |      |
+| `AlertDialogCancel`          |      |
+| `AlertDialogContent`         |      |
+| `AlertDialogContentProps`    |      |
+| `AlertDialogDescription`     |      |
+| `AlertDialogFooter`          |      |
+| `AlertDialogHeader`          |      |
+| `AlertDialogModal`           |      |
+| `AlertDialogModalProps`      |      |
+| `AlertDialogOverlay`         |      |
+| `AlertDialogPortal`          |      |
+| `AlertDialogTitle`           |      |
+| `AlertDialogTrigger`         |      |
+| `AlertDialogVariants`        |      |
+| `EunAlertDialogContentProps` |      |

@@ -16,7 +16,7 @@ related:
 
 # EASBot UI 组件开发规范 (Component Standard)
 
-> **真值源**：本规范以 `src/ui/` 下 **54 个组件目录**的实际实现为唯一执行真值
+> **真值源**：本规范以 `src/ui/` 下 **56 个组件目录**的实际实现为唯一执行真值
 > （如 [`src/ui/button/button.tsx`](../src/ui/button/button.tsx)、
 > [`src/ui/dialog/dialog.tsx`](../src/ui/dialog/dialog.tsx)）；
 > 规范与实现冲突时**规范改**（先改规范再改实现，不留双轨）。
@@ -110,15 +110,15 @@ src/ui/<component>/
 ```
 src/
 ├── index.ts              # 公开 API 出口（tsup 唯一构建入口）
-├── ui/                   # 公开组件层（54 个组件目录）
-├── design-system/        # 基础实现层（48 个组件 + Provider + hooks + lib）
+├── ui/                   # 公开组件层（56 个组件目录）
+├── design-system/        # 基础实现层（46 个组件 + Provider + hooks + lib）
 ├── models/               # 数据契约层（Zod Schema）
 ├── utils/                # 通用工具层（classnames / object / locale / error / validation-rule …）
 ├── hooks/                # 通用 React Hook（useDevice / useLocale）
 ├── providers/            # 上下文 Provider（LocaleProvider）
 ├── theme/                # 主题资源层（唯一 CSS 入口 / 字体 / 主题 CSS / tokens）
 │   ├── styles.css            # ⭐ Tailwind v4 唯一编译入口
-│   └── themes/               #   light.css（702 个）/ dark.css（702 个）
+│   └── themes/               #   light.css（706 个）/ dark.css（706 个）
 ├── types/                # 类型声明（typings.d.ts）
 ```
 
@@ -507,7 +507,7 @@ import { Button } from '../../button';
 
 ---
 
-## M. 11 项扫描维度（评审必跑）
+## M. 12 项扫描维度（评审必跑）
 
 > **目的**：新增 / 修改组件前**必须**跑的检查。本节是**验证契约**（不是任务清单，是自动扫描器的手册）。
 >
@@ -844,6 +844,52 @@ import { FaBell } from 'react-icons/fa';
 import { Loader2 } from 'lucide-react';
 ```
 
+### 维度 ⑫ 组件目录必须有**唯一** barrel 入口
+
+> 📌 对应条文：§1「目录约定」。
+
+**扫描命令**：
+
+```bash
+# 找出同时存在 index.ts 与 index.tsx 的组件目录（双入口 = 隐患）
+Get-ChildItem src/ui -Directory | ForEach-Object {
+  $ts = Join-Path $_.FullName "index.ts"
+  $tsx = Join-Path $_.FullName "index.tsx"
+  if ((Test-Path $ts) -and (Test-Path $tsx)) { "DOUBLE ENTRY: $($_.Name)" }
+}
+
+# 检查组件目录是否缺少 barrel 入口
+Get-ChildItem src/ui -Directory | ForEach-Object {
+  if (-not (Test-Path (Join-Path $_.FullName "index.ts")) -and
+      -not (Test-Path (Join-Path $_.FullName "index.tsx"))) {
+    "MISSING BARREL: $($_.Name)"
+  }
+}
+```
+
+**判定规则**：
+
+- ❌ 违规 1：同一组件目录下**同时**存在 `index.ts` 与 `index.tsx`
+  —— TypeScript 在 `moduleResolution: Bundler` 下优先解析 `.tsx`，`index.ts` 成为**永不生效的死文件**。
+  维护者极可能误改那个「看起来才是标准入口」的文件，导致改动无效且无人察觉。
+- ❌ 违规 2：组件目录**缺少** barrel 入口（`index.ts` / `index.tsx` 二者至少有一个）
+- ✅ 合规：两条均 0 命中
+
+**修正模式**：
+
+```bash
+# ❌ 违规 —— 双入口，index.ts 是死文件
+src/ui/typography/index.ts    # ← 删除这个
+src/ui/typography/index.tsx   # ← 保留这个（唯一入口）
+```
+
+> 📌 **本库的历史教训**：`src/ui/typography/` 曾同时存在 `index.ts`（`export * from './typography'`，
+> 平铺导出）与 `index.tsx`（只导出聚合对象 `Typography` / `Static`）。
+> 实际生效的是 `index.tsx` —— 因为裸组件名 `Table` / `Separator` / `ListItem`
+> 与 `src/ui/table` / `src/ui/separator` / `src/ui/edit` **同名**，
+> 若平铺导出会触发 TS2308「重复导出」冲突并导致整个 barrel 无法编译。
+> 详见 [ADR 0001](../../docs/decisions/0001-src-ui-defect-remediation.md)。
+
 ---
 
 ## M+1. 历史基准（2026-11-01 实测）
@@ -858,7 +904,7 @@ import { Loader2 } from 'lucide-react';
 | 测试文件数（`src/**/__tests__/`）                    | 89（39 公开层 + 50 设计系统层）                |
 | Storybook stories 文件数                             | 82                                             |
 | 实现文件 `export default` 命中                       | 1（`src/design-system/index.tsx`，见 §M+2 H4） |
-| 主题 CSS 变量数（light / dark）                      | 702 / 702（集合完全一致）                      |
+| 主题 CSS 变量数（light / dark）                      | 706 / 706（集合完全一致）                      |
 
 ### 重测命令
 
@@ -888,7 +934,7 @@ rg -c "^\s*(it|test)\(" -g "src/**/*.test.tsx" | Measure-Object
 
 | #   | 冲突点           | 旧规范声明                                                    | 实际情况                                                                    | 裁决                                            |
 | --- | ---------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------- |
-| C1  | 组件目录结构     | `spec-index.md` 未定义                                        | `src/ui/` 下 54 个组件目录含实现 + `index.ts`，测试与 Story 在 `__tests__/` | **目录结构为硬性契约**（本规范 §1.1）           |
+| C1  | 组件目录结构     | `spec-index.md` 未定义                                        | `src/ui/` 下 56 个组件目录含实现 + `index.ts`，测试与 Story 在 `__tests__/` | **目录结构为硬性契约**（本规范 §1.1）           |
 | C2  | 导出方式         | `coding-standards.md` 写「具名导出优先，不用 default export」 | 实现文件 0 处 `export default`（`design-system/index.tsx` 除外）            | **named export 为硬性要求**（本规范 §3.1）      |
 | C3  | `data-slot` 属性 | 未提及                                                        | 全库 **0 处** 使用                                                          | **不引入** `data-slot`（保持与 Radix 惯例一致） |
 | C4  | 变体联合类型来源 | 未提及                                                        | `src/ui/input/input.tsx:13` 手写联合类型                                    | **必须从 cva 派生**（本规范 §3.4）              |

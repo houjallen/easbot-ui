@@ -28,9 +28,16 @@ html, body, #__next, #root {
  * 📌 **禁用态用 `not-allowed`** —— 明确告知「当前不可操作」，
  *    比默认箭头更明确。
  *
- * ⚠️ **不覆盖 `disabled` 元素的基础指针** ——
- *    `button:disabled` 的 `cursor` 需显式指定为 `not-allowed`，
- *    否则浏览器默认仍是 `default`。
+ * ⚠️ **禁用态**不得**用 `pointer-events: none`** ——
+ *    `pointer-events: none` 会让元素对鼠标**完全透明**，
+ *    浏览器解析光标时命中的是**下层元素**（`<body>`），
+ *    于是 `cursor: not-allowed` **永远不会生效** ——
+ *    用户看到的仍是默认箭头，而不是「禁止」标识。
+ *    实测（Playwright hover）：`pointer-events: none` 的元素
+ *    hover 时报「`<body>` intercepts pointer events」。
+ *
+ *    正确做法：禁用态**保留** `pointer-events`（让 hover 命中自己），
+ *    只用 `cursor: not-allowed` 表达「不可点」。
  */
 button:not(:disabled),
 [role='button']:not([aria-disabled='true']) {
@@ -40,6 +47,15 @@ button:not(:disabled),
 button:disabled,
 [role='button'][aria-disabled='true'] {
   cursor: not-allowed;
+}
+
+/* ⚠️ **禁用态的元素不得禁用指针事件** ——
+ * 见上方说明：`pointer-events: none` 会让 `cursor: not-allowed` 失效。
+ * 组件层应使用 `disabled:cursor-not-allowed` 而非 `disabled:pointer-events-none`。
+ */
+button:disabled,
+[role='button'][aria-disabled='true'] {
+  pointer-events: auto;
 }
 
 /* Badge dot 统一样式 */

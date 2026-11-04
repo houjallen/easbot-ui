@@ -118,7 +118,11 @@ export function useTablePlugin(
       plugin.config = deepMerge(plugin.config || {}, config?.[pluginId]);
 
       // 配置开启插件功能判定
-      if (plugin.config?.enable === false) {
+      // 📌 **字段名必须是 `enabled`** —— `TablePlugin['config']` 的类型声明是
+      //    `{ enabled?: boolean; [key: string]: any }`，且**全部内置插件**的 config
+      //    类型都用 `enabled`。此前此处误写成 `enable`（少一个 d），
+      //    导致消费方按类型声明传 `enabled: false` 时永远关不掉插件。
+      if (plugin.config?.enabled === false) {
         return;
       }
 
@@ -409,13 +413,15 @@ export function useTablePlugin(
     unregisterPlugin,
     getPlugin,
     isPluginRegistered: (pluginId: string) => pluginInstancesRef.current.has(pluginId),
-    togglePlugin: (pluginId: string, enable: boolean) => {
+    togglePlugin: (pluginId: string, enabled: boolean) => {
       const plugin = getPlugin(pluginId);
       if (plugin) {
         if (plugin?.updateConfig) {
           plugin.updateConfig(config, context);
         } else if (plugin) {
-          plugin.config = deepMerge(plugin.config ?? {}, { enable: enable });
+          // 📌 **字段名必须是 `enabled`** —— 与 `registerPlugin` 的判定保持同源，
+          //    否则 `togglePlugin(id, false)` 写入的开关对注册判定无效。
+          plugin.config = deepMerge(plugin.config ?? {}, { enabled });
         }
       }
     },

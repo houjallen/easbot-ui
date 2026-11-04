@@ -201,12 +201,49 @@ describe('useTablePlugin Hook', () => {
       expect(init).toHaveBeenCalledTimes(1);
     });
 
-    it('应该在插件配置 enable 为 false 时放弃注册', () => {
+    it('应该在插件配置 enabled 为 false 时放弃注册', () => {
       const init = vi.fn();
-      const { latest } = renderPlugin({ plugins: [createTestPlugin({ init, config: { enable: false } })] });
+      const { latest } = renderPlugin({ plugins: [createTestPlugin({ init, config: { enabled: false } })] });
 
       expect(init).not.toHaveBeenCalled();
       expect(latest.value?.isPluginRegistered('test-plugin')).toBe(false);
+    });
+
+    it('应该在插件配置 enabled 为 false 时放弃注册（外部 config 传入）', () => {
+      // 📌 回归测试（ADR 0001 / 批次二-1）——
+      //    `TablePlugin['config']` 声明的字段是 `enabled`（少一个 d 的 `enable` 是拼写错误），
+      //    且**全部内置插件**（Add / BatchDelete / Export / Fullscreen / Import / Print /
+      //    Refresh / ColumnManager / CellCopy / CellEdit / Sort / Filter / 各 Row 插件）
+      //    的 config 类型都用 `enabled`。
+      //    修复前运行时判定写的是 `config?.enable === false` → 消费方按类型声明传
+      //    `enabled: false` 时永远关不掉插件。
+      const init = vi.fn();
+      const { latest } = renderPlugin({
+        plugins: [createTestPlugin({ init })],
+        pluginConfig: { 'test-plugin': { enabled: false } },
+      });
+
+      expect(init).not.toHaveBeenCalled();
+      expect(latest.value?.isPluginRegistered('test-plugin')).toBe(false);
+    });
+
+    it('应该在插件配置 enabled 为 true 时正常注册', () => {
+      const init = vi.fn();
+      const { latest } = renderPlugin({
+        plugins: [createTestPlugin({ init })],
+        pluginConfig: { 'test-plugin': { enabled: true } },
+      });
+
+      expect(init).toHaveBeenCalledTimes(1);
+      expect(latest.value?.isPluginRegistered('test-plugin')).toBe(true);
+    });
+
+    it('应该在插件未显式配置 enabled 时默认注册', () => {
+      const init = vi.fn();
+      const { latest } = renderPlugin({ plugins: [createTestPlugin({ init })] });
+
+      expect(init).toHaveBeenCalledTimes(1);
+      expect(latest.value?.isPluginRegistered('test-plugin')).toBe(true);
     });
 
     it('应该在缺少依赖插件时放弃注册', () => {
@@ -376,7 +413,7 @@ describe('useTablePlugin Hook', () => {
         latest.value?.togglePlugin('test-plugin', false);
       });
 
-      expect(latest.value?.getPluginConfig('test-plugin')).toEqual(expect.objectContaining({ enable: false }));
+      expect(latest.value?.getPluginConfig('test-plugin')).toEqual(expect.objectContaining({ enabled: false }));
     });
 
     it('应该在更新插件配置后合并到已有配置', () => {

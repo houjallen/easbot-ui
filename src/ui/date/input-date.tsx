@@ -332,14 +332,7 @@ export const InputDate = React.forwardRef<HTMLInputElement, InputDateProps>(
             {/* 日期选择器 */}
             <div className="flex-1">
               {/* 视图选择器头部 */}
-              <ViewSelectorHeader
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-                viewDate={viewDate}
-                onViewDateChange={setViewDate}
-                selectedDate={tempSelected ? dayjs(tempSelected) : undefined}
-                isValidDate={disabledDate ? (date) => !disabledDate(date.toDate()) : undefined}
-              />
+              <ViewSelectorHeader viewMode={viewMode} onViewModeChange={setViewMode} viewDate={viewDate} onViewDateChange={setViewDate} />
 
               {/* 根据视图模式渲染不同组件 */}
               {viewMode === 'days' && (

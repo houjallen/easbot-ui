@@ -11,7 +11,7 @@
  *
  * @remarks
  * 1. 主题状态写入 `<html data-theme="light|dark">` 属性，并同步 `document.documentElement.style.colorScheme`。
- * 2. 主题标识写入 `localStorage` 的 `easbot-ui-theme` 键。
+ * 2. 主题标识写入 `localStorage` 的 `eas-ui-theme` 键。
  * 3. jsdom 未实现 `window.matchMedia` —— 这里用最小 stub 顶替，
  *    并通过 `matches` 开关模拟系统的暗色偏好。
  * 4. 主题属性与 `localStorage` 会在用例之间残留，因此每个用例结束后都要清理。
@@ -20,7 +20,8 @@
 import { act, render, screen } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
 
-import { THEME_STORAGE_KEY, ThemeProvider, useTheme } from '../theme-provider';
+import { THEME_STORAGE_KEY, ThemeProvider } from '../theme-provider';
+import { useTheme } from '../../hooks/use-theme';
 
 /**
  * matchMedia 桩

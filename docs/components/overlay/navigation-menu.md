@@ -1,11 +1,20 @@
-# NavigationMenu 导航菜单
+# NavigationMenu 站点导航
 
-> 站点级响应式导航菜单，支持悬停展开的大型内容视口与普通链接项混排。
+> 站点级导航菜单，顶级项展开后展示富内容面板（含链接列表、卡片网格等）。
+
+---
 
 **导入**
 
 ```tsx
-import { NavigationMenu } from '@easbot/ui';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from '@easbot/ui';
 ```
 
 ## 基础用法
@@ -22,20 +31,21 @@ import {
 
 export default function App() {
   return (
-    <NavigationMenu>
+    <NavigationMenu viewport={false}>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <NavigationMenuLink href="/">首页</NavigationMenuLink>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NavigationMenuTrigger>产品</NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <ul>
+          <NavigationMenuTrigger value="products">产品</NavigationMenuTrigger>
+          <NavigationMenuContent className="h-auto w-auto overflow-auto">
+            <ul className="grid max-h-[240px] w-[320px] gap-3 p-4">
               <li>
-                <NavigationMenuLink href="/product/a">产品 A</NavigationMenuLink>
-              </li>
-              <li>
-                <NavigationMenuLink href="/product/b">产品 B</NavigationMenuLink>
+                <NavigationMenuLink asChild>
+                  <a href="/overview">
+                    <div className="font-medium">产品概览</div>
+                    <div className="text-muted-foreground text-xs">
+                      了解我们产品的主要功能和优势。
+                    </div>
+                  </a>
+                </NavigationMenuLink>
               </li>
             </ul>
           </NavigationMenuContent>
@@ -46,145 +56,57 @@ export default function App() {
 }
 ```
 
-## 组成部分
-
-| 子组件                   | 说明                                                                                                        |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| `NavigationMenu`         | 根容器，管理激活项、方向与展开模式；**已内置** `NavigationMenuViewport`（对应 Radix `NavigationMenu.Root`） |
-| `NavigationMenuList`     | 菜单项列表容器，渲染为 `<ul>`（对应 Radix `NavigationMenu.List`）                                           |
-| `NavigationMenuItem`     | 单个菜单项，渲染为 `<li>`（对应 Radix `NavigationMenu.Item`）                                               |
-| `NavigationMenuTrigger`  | 触发器按钮，右侧带 `ChevronDown` 箭头（对应 Radix `NavigationMenu.Trigger`）                                |
-| `NavigationMenuLink`     | 链接项，渲染为 `<a>`（对应 Radix `NavigationMenu.Link`）                                                    |
-| `NavigationMenuContent`  | 展开内容区（对应 Radix `NavigationMenu.Content`）                                                           |
-| `NavigationMenuViewport` | 视口容器，包裹实际显示的内容面板（对应 Radix `NavigationMenu.Viewport`）                                    |
-
-> 组件只导出以上 7 个成员。Radix 的 `NavigationMenu.Sub` / `NavigationMenu.Indicator` **未被封装导出**。另外 `NavigationMenu` 根组件**自动渲染**了一个 `NavigationMenuViewport`，若手动再放一个会出现两个视口。
-
-## 变体
-
-`navigationMenuTriggerVariants` 是导出的 `cva` 变体常量（**无 variants 维度**，仅一组基础类名），供二次封装触发器样式时复用。
-
-| 导出常量                        | 说明                                                                                                                                                    |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `navigationMenuTriggerVariants` | `NavigationMenuTrigger` 的基础类名集合：高度、圆角、背景、内边距、字号、`hover` / `focus` / `disabled` / `data-[active]` / `data-[state=open]` 状态样式 |
-
-## 属性
-
-### NavigationMenu（根容器）
-
-| 属性                | 类型                         | 默认值         | 说明                                                                                                                                   |
-| ------------------- | ---------------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `value`             | `string`                     | —              | 当前激活项的值，来自 Radix primitives（`NavigationMenu.Root`）                                                                         |
-| `defaultValue`      | `string`                     | —              | 非受控模式下的初始激活项，来自 Radix primitives（`NavigationMenu.Root`）                                                               |
-| `onValueChange`     | `(value: string) => void`    | —              | 激活项变化回调，来自 Radix primitives（`NavigationMenu.Root`）                                                                         |
-| `dir`               | `'ltr' \| 'rtl'`             | `'ltr'`        | 文本方向，来自 Radix primitives（`NavigationMenu.Root`）                                                                               |
-| `orientation`       | `'horizontal' \| 'vertical'` | `'horizontal'` | 菜单方向，来自 Radix primitives（`NavigationMenu.Root`）                                                                               |
-| `delayDuration`     | `number`                     | `200`          | 指针进入触发器到内容展开的延迟（毫秒）；`activationMode="manual"` 时忽略，来自 Radix primitives（`NavigationMenu.Root`）               |
-| `skipDelayDuration` | `number`                     | `300`          | 用户可直接进入另一个触发器而不再次延迟的时间（毫秒）；`activationMode="manual"` 时忽略，来自 Radix primitives（`NavigationMenu.Root`） |
-| `activationMode`    | `'automatic' \| 'manual'`    | `'automatic'`  | 展开模式：`automatic` 悬停 / 聚焦即展开，`manual` 需点击触发器，来自 Radix primitives（`NavigationMenu.Root`）                         |
-| `className`         | `string`                     | —              | 自定义类名，合并到末位                                                                                                                 |
-
-### NavigationMenuList
-
-| 属性        | 类型     | 默认值 | 说明                   |
-| ----------- | -------- | ------ | ---------------------- |
-| `className` | `string` | —      | 自定义类名，合并到末位 |
-
-### NavigationMenuItem
-
-| 属性        | 类型     | 默认值 | 说明                                                           |
-| ----------- | -------- | ------ | -------------------------------------------------------------- |
-| `value`     | `string` | —      | 该项的唯一标识，来自 Radix primitives（`NavigationMenu.Item`） |
-| `className` | `string` | —      | 自定义类名，合并到末位                                         |
-
-### NavigationMenuTrigger
-
-| 属性        | 类型                                         | 默认值 | 说明                                                                                    |
-| ----------- | -------------------------------------------- | ------ | --------------------------------------------------------------------------------------- |
-| `asChild`   | `boolean`                                    | —      | 是否用 Slot 替换触发元素，来自 Radix primitives（`NavigationMenu.Trigger`）             |
-| `onClick`   | `React.MouseEventHandler<HTMLButtonElement>` | —      | 点击事件（原生 `<button>` 属性），来自 Radix primitives（`NavigationMenu.Trigger`）     |
-| `disabled`  | `boolean`                                    | —      | 禁用触发按钮（原生 `<button>` 属性），来自 Radix primitives（`NavigationMenu.Trigger`） |
-| `className` | `string`                                     | —      | 自定义类名，合并到末位                                                                  |
-
-### NavigationMenuLink
-
-| 属性        | 类型                     | 默认值 | 说明                                                                                               |
-| ----------- | ------------------------ | ------ | -------------------------------------------------------------------------------------------------- |
-| `active`    | `boolean`                | —      | 是否处于激活状态（Radix 会据此注入 `data-active`），来自 Radix primitives（`NavigationMenu.Link`） |
-| `onSelect`  | `(event: Event) => void` | —      | 选中时的回调，来自 Radix primitives（`NavigationMenu.Link`）                                       |
-| `href`      | `string`                 | —      | 链接地址（原生 `<a>` 属性），来自 Radix primitives（`NavigationMenu.Link`）                        |
-| `target`    | `string`                 | —      | 链接打开目标（原生 `<a>` 属性），来自 Radix primitives（`NavigationMenu.Link`）                    |
-| `className` | `string`                 | —      | 自定义类名，合并到末位                                                                             |
-
-### NavigationMenuContent
-
-| 属性                   | 类型                                                            | 默认值 | 说明                                                                                    |
-| ---------------------- | --------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------- |
-| `forceMount`           | `true`                                                          | —      | 强制挂载，用于接管退出动画，来自 Radix primitives（`NavigationMenu.Content`）           |
-| `onEscapeKeyDown`      | `(event: KeyboardEvent) => void`                                | —      | 按下 `Escape` 时的回调，来自 Radix primitives（`NavigationMenu.Content`）               |
-| `onPointerDownOutside` | `(event: PointerDownOutsideEvent) => void`                      | —      | 在浮层外按下指针时的回调，来自 Radix primitives（`NavigationMenu.Content`）             |
-| `onFocusOutside`       | `(event: FocusOutsideEvent) => void`                            | —      | 焦点移出浮层时的回调，来自 Radix primitives（`NavigationMenu.Content`）                 |
-| `onInteractOutside`    | `(event: PointerDownOutsideEvent \| FocusOutsideEvent) => void` | —      | 浮层外发生指针按下或焦点移出时的回调，来自 Radix primitives（`NavigationMenu.Content`） |
-| `className`            | `string`                                                        | —      | 自定义类名，合并到末位                                                                  |
-
-### NavigationMenuViewport
-
-| 属性         | 类型     | 默认值 | 说明                                                                           |
-| ------------ | -------- | ------ | ------------------------------------------------------------------------------ |
-| `forceMount` | `true`   | —      | 强制挂载，用于接管退出动画，来自 Radix primitives（`NavigationMenu.Viewport`） |
-| `className`  | `string` | —      | 自定义类名，合并到末位                                                         |
-
-本表只列组件自有属性；此外还透传 `<nav>` / `<ul>` / `<li>` / `<button>` / `<a>` / `<div>` 的全部原生属性，如 `id` / `aria-*` / `data-*` / `on*` 事件。
-
 ## 无障碍
 
-- `NavigationMenu` 渲染为 `<nav>`，内部列表渲染为 `<ul>`、菜单项渲染为 `<li>`，具备完整的列表语义。
-- `NavigationMenuTrigger` 带 `aria-expanded` / `aria-controls`，展开状态由 Radix 注入；`NavigationMenuLink` 通过 `aria-current="page"` 标记当前页（由 `active` 状态驱动）。
-- 键盘行为：`Enter` / `Space` 打开展开项；`Tab` 在菜单项之间移动；`Escape` 关闭展开的内容区。
-- `activationMode="manual"` 时仅响应点击，忽略悬停与聚焦，适合触屏或需要精确操作的场景。
-- 焦点管理使用 Radix 的 `VisuallyHidden` focus proxy：内容区关闭后焦点会平滑回到触发器。
-- `NavigationMenuContent` 的动画由 `data-[motion=from-*]` / `data-[motion=to-*]` 状态属性驱动（Radix 在展开 / 收起时写入）。
+- 底层 Radix NavigationMenu 渲染为 `<nav>` 语义容器（`NavigationMenu` 根节点带 `aria-label` 由消费方传入），菜单列表为 `<ul>`，项为 `<li>`。
+- 触发器渲染为原生 `<button type="button">`，并注入 `aria-expanded` / `aria-controls` / `data-state`（`open` / `closed`）。
+- 展开状态下的内容区带 `data-motion`（`from-start` / `from-end` / `to-start` / `to-end`），用于驱动进出场动画。
+- 链接项渲染为原生 `<a>`，并注入 `data-active`（当前路由命中时为 `true`）用于高亮。
+- 键盘操作：`Enter` / `Space` 展开顶级项，方向键在导航项之间移动，`Esc` 收起展开的内容；焦点进入链接后可通过 `Tab` 在链接列表中移动。
+- 触发器自带下箭头（`ChevronDownIcon`，`aria-hidden="true"`），展开时旋转 180°，是纯装饰。
+- 焦点样式使用 `focus-visible:outline-1` + `focus-visible:ring-[3px]`，仅键盘可见焦点才显示。
+
+## 注意事项
+
+- **`src/ui` 层是纯 re-export**：`NavigationMenu` 及全部子组件直接等于设计系统层的实现（`src/design-system/components/ui/navigation-menu.tsx`），组件未新增自有属性，props 与 Radix `NavigationMenu` 对应部件一致（`value` / `defaultValue` / `onValueChange` / `delayDuration` / `skipDelayDuration` / `orientation` / `dir` / `className` / `aria-*` / `data-*` 等）。
+- **子组件清单**：`NavigationMenu` / `NavigationMenuList` / `NavigationMenuItem` / `NavigationMenuContent` / `NavigationMenuTrigger` / `NavigationMenuLink` / `NavigationMenuViewport` / `navigationMenuTriggerStyle`。
+- **`viewport` 默认 `true`**：根组件默认自动渲染一个 `NavigationMenuViewport`（共享的大浮层容器）。若每个菜单项要独立展开自己的面板，传 `viewport={false}`（Storybook 示例即采用此写法）。
+- **`NavigationMenuIndicator` 未从 `src/ui` 导出**：设计系统层实现了该组件，但 `src/ui/navigation-menu/index.ts` 未导出它，消费方无法从包根 import。
+- **`navigationMenuTriggerStyle` 是可复用的 `cva` 样式函数**：从包根导出，供自定义触发器时复用同一套视觉规范；它只有基础类，没有 `variants` 分组。
+- **内容区尺寸由 CSS 变量决定**：`NavigationMenuViewport` 的高度取 `var(--radix-navigation-menu-viewport-height)`、宽度取 `var(--radix-navigation-menu-viewport-width)`，由 Radix 在展开时写入实际值。
+- **`NavigationMenuLink` 支持 `asChild`**：可把链接内容替换成自定义元素（如 `<a>`），但**禁用态需自行处理** —— Storybook 示例中使用了 `@ts-expect-error` 绕过类型检查，属于演示代码而非真实 API。
+- **根节点自带 `position: relative` 与 `max-w-max`**：源码注释说明这是为了保证浮层内容正常显示；如需自定义容器样式请通过 `className` 覆盖。
 
 ## 主题变量
 
-| 变量                                      | 说明                                                  |
-| ----------------------------------------- | ----------------------------------------------------- |
-| `--nav-menu-z-index`                      | 导航菜单层级                                          |
-| `--nav-menu-item-spacing`                 | 菜单项之间的间距                                      |
-| `--nav-menu-trigger-height`               | 触发器高度                                            |
-| `--nav-menu-trigger-radius`               | 触发器圆角                                            |
-| `--nav-menu-trigger-padding-x`            | 触发器左右内边距                                      |
-| `--nav-menu-trigger-padding-y`            | 触发器上下内边距                                      |
-| `--nav-menu-trigger-font-size`            | 触发器字号                                            |
-| `--nav-menu-viewport-margin`              | 视口与触发器的垂直间距                                |
-| `--nav-menu-viewport-radius`              | 视口圆角                                              |
-| `--nav-menu-viewport-shadow`              | 视口阴影                                              |
-| `--radix-navigation-menu-viewport-height` | 视口高度（由 `@radix-ui/react-navigation-menu` 注入） |
-| `--radix-navigation-menu-viewport-width`  | 视口宽度（由 `@radix-ui/react-navigation-menu` 注入） |
+本组件直接消费以下 CSS 变量（完整清单见 [主题定制](../../theming.md)）：
 
-## 组合用法 / 注意事项
-
-- **`NavigationMenu` 已内置 `NavigationMenuViewport`**：根组件在 `children` 之后会自动渲染一个视口。**不要**再手动放置 `NavigationMenuViewport`，否则会出现两个视口导致内容重复显示。
-- **`NavigationMenuViewport` 自己包了一层 `<div>`**：内层是 Radix 的 Viewport，外层是绝对定位的 `left-0 top-full flex justify-center` 容器；自定义 `className` 作用在**内层** Viewport 上。
-- **`activationMode` 决定交互模式**：`automatic`（默认）悬停即展开，`manual` 需点击触发器；后者会同时忽略 `delayDuration` / `skipDelayDuration`。
-- **响应式布局由内容区类名承担**：`NavigationMenuContent` 使用 `md:absolute md:w-auto`，移动端为相对定位、桌面端才绝对定位。
-- **视口尺寸由 Radix 注入**：容器高度 / 宽度分别来自 `--radix-navigation-menu-viewport-height` 与 `--radix-navigation-menu-viewport-width`，这两个变量由 Radix 在运行时写入元素本身（而非主题文件），因此**不可**在主题中静态覆盖。
-- **未封装 `NavigationMenu.Sub` 与 `NavigationMenu.Indicator`**：需要多级嵌套导航或下划线指示器时，请自行从 `@radix-ui/react-navigation-menu` 引入。
+- `--radix-navigation-menu-viewport-height`
+- `--radix-navigation-menu-viewport-width`
 
 ## 导出
 
-| 导出名                          | 类型                              | 说明                                                                  |
-| ------------------------------- | --------------------------------- | --------------------------------------------------------------------- |
-| `navigationMenuTriggerVariants` | `ReturnType<typeof cva>`          | 触发器 `cva` 变体定义（无 variants 维度，仅基础类名），可用于二次封装 |
-| `NavigationMenu`                | `React.ForwardRefExoticComponent` | 导航菜单根容器，ref 指向 `HTMLElement`                                |
-| `NavigationMenuList`            | `React.ForwardRefExoticComponent` | 菜单列表容器，ref 指向 `HTMLUListElement`                             |
-| `NavigationMenuItem`            | `React.ForwardRefExoticComponent` | 菜单项，ref 指向 `HTMLLIElement`                                      |
-| `NavigationMenuContent`         | `React.ForwardRefExoticComponent` | 内容区，ref 指向 `HTMLDivElement`                                     |
-| `NavigationMenuTrigger`         | `React.ForwardRefExoticComponent` | 触发器，ref 指向 `HTMLButtonElement`                                  |
-| `NavigationMenuLink`            | `React.ForwardRefExoticComponent` | 链接项，ref 指向 `HTMLAnchorElement`                                  |
-| `NavigationMenuViewport`        | `React.ForwardRefExoticComponent` | 视口容器，ref 指向 `HTMLDivElement`                                   |
-| `NavigationMenuProps`           | `interface`                       | 根容器属性类型（来自 `@radix-ui/react-navigation-menu`）              |
-| `NavigationMenuTriggerProps`    | `interface`                       | 触发器属性类型（来自 `@radix-ui/react-navigation-menu`）              |
-| `NavigationMenuContentProps`    | `interface`                       | 内容区属性类型（来自 `@radix-ui/react-navigation-menu`）              |
-| `NavigationMenuLinkProps`       | `interface`                       | 链接项属性类型（来自 `@radix-ui/react-navigation-menu`）              |
-| `NavigationMenuViewportProps`   | `interface`                       | 视口属性类型（来自 `@radix-ui/react-navigation-menu`）                |
+### 组件
+
+| 导出名                        | 说明 |
+| ----------------------------- | ---- |
+| `NavigationMenu`              |      |
+| `NavigationMenuContent`       |      |
+| `NavigationMenuContentProps`  |      |
+| `NavigationMenuItem`          |      |
+| `NavigationMenuItemProps`     |      |
+| `NavigationMenuLink`          |      |
+| `NavigationMenuLinkProps`     |      |
+| `NavigationMenuList`          |      |
+| `NavigationMenuListProps`     |      |
+| `NavigationMenuProps`         |      |
+| `NavigationMenuTrigger`       |      |
+| `NavigationMenuTriggerProps`  |      |
+| `NavigationMenuViewport`      |      |
+| `NavigationMenuViewportProps` |      |
+
+### 类型与工具函数
+
+| 导出名                       | 说明 |
+| ---------------------------- | ---- |
+| `navigationMenuTriggerStyle` |      |

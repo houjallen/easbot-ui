@@ -39,6 +39,7 @@ export type ComponentMessageDomain =
   | 'edit'
   | 'file'
   | 'icon'
+  | 'locale'
   | 'pagination'
   | 'select'
   | 'sheet'
@@ -288,6 +289,7 @@ export const fileMessages = {
     minSizeNotReached: '文件大小不能小于 {minSize}',
     uploadFailed: '上传失败',
     uploadFailedWithReason: '上传失败：{error}',
+    httpClientMissing: '未注入 HTTP 客户端，无法上传文件',
     downloadFailed: '下载失败',
     downloadFailedWithReason: '下载失败：{error}',
     noFileSelected: '未选择文件',
@@ -324,6 +326,7 @@ export const fileMessages = {
     minSizeNotReached: 'File size cannot be less than {minSize}',
     uploadFailed: 'Upload failed',
     uploadFailedWithReason: 'Upload failed: {error}',
+    httpClientMissing: 'HTTP client is not provided, cannot upload the file',
     downloadFailed: 'Download failed',
     downloadFailedWithReason: 'Download failed: {error}',
     noFileSelected: 'No file selected',
@@ -1434,7 +1437,9 @@ export const sheetMessages = {
   },
 } satisfies UiMessages;
 
-/** 主题切换文案（mode-toggle） */
+/**
+ * 主题切换文案（mode-toggle）
+ */
 export const themeMessages = {
   'zh-CN': {
     toggleLabel: '切换主题',
@@ -1447,6 +1452,27 @@ export const themeMessages = {
     lightMode: 'Light Mode',
     darkMode: 'Dark Mode',
     systemMode: 'System Mode',
+  },
+} satisfies UiMessages;
+
+/**
+ * 语言切换文案（locale-toggle）
+ *
+ * @description
+ * `toggleLabel` 是按钮的无障碍名称；`zhCN` / `enUS` 是语言项的显示名 ——
+ * **始终以各自语言的本名显示**（简体中文显示「简体中文」，而非「Chinese」），
+ * 这是语言选择器的通行做法，用户能一眼认出母语。
+ */
+export const localeMessages = {
+  'zh-CN': {
+    toggleLabel: '切换语言',
+    zhCN: '简体中文',
+    enUS: 'English',
+  },
+  'en-US': {
+    toggleLabel: 'Switch language',
+    zhCN: '简体中文',
+    enUS: 'English',
   },
 } satisfies UiMessages;
 
@@ -1465,6 +1491,7 @@ export const componentMessages = {
   edit: editMessages,
   file: fileMessages,
   icon: iconMessages,
+  locale: localeMessages,
   pagination: paginationMessages,
   select: selectMessages,
   sheet: sheetMessages,

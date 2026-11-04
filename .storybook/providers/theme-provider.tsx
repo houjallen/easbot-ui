@@ -12,7 +12,7 @@
  * ```
  *
  * 改为复用库内**框架无关**的 `ThemeProvider`
- * （`src/design-system/providers/theme-provider.tsx`）——
+ * （`src/providers/theme-provider.tsx`）——
  * 该实现明确声明"不依赖 `next-themes`"，本组件库同时支持 Next.js 与纯 React 应用，
  * 主题能力必须自实现，不能绑定任何框架运行时。
  *
@@ -24,4 +24,4 @@
  * 两者同时命中，主题变量才生效。
  */
 
-export { ThemeProvider as default } from '../../src/design-system/providers/theme-provider';
+export { ThemeProvider as default } from '../../src/providers/theme-provider';

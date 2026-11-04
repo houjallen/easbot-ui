@@ -12,16 +12,12 @@ import type {
   ColumnAlign,
   EmptyConfig,
   ExpansionConfig,
-  FilterConfig,
   FilterState,
   FixedPosition,
   GetRowKey,
-  PaginationConfig,
   PaginationState,
-  PluginConfig,
   ResizeConfig,
   ScrollConfig,
-  SearchConfig,
   SelectionConfig,
   SelectionType,
   SortState,
@@ -409,62 +405,13 @@ export interface EnhancedTableProps {
   children?: ReactNode;
 }
 
-/**
- * 高级表格属性
- */
-export interface AdvancedTableProps extends EnhancedTableProps {
-  /** 插件配置 */
-  plugins?: PluginConfig;
-
-  /** 搜索面板配置 */
-  searchPanel?: SearchConfig;
-
-  /** 工具栏配置 */
-  toolbar?: TableToolbarProps;
-
-  /** 服务端配置 */
-  serverSide?: {
-    enabled: boolean;
-    pagination?: PaginationConfig;
-    loading?: boolean;
-    onDataLoad?: (params: { current?: number; pageSize?: number; sortField?: string; sortOrder?: 'asc' | 'desc'; filters?: FilterConfig }) => Promise<{
-      data: Record<string, any>[];
-      total: number;
-    }>;
-  };
-
-  /** 缓存配置 */
-  caching?: {
-    enabled: boolean;
-    ttl?: number;
-    key?: string;
-  };
-
-  /** 导出配置 */
-  export?: {
-    enabled: boolean;
-    formats?: ('csv' | 'excel' | 'pdf' | 'json')[];
-    filename?: string;
-    includeHeaders?: boolean;
-    customExporter?: {
-      [format: string]: (data: Record<string, any>[], columns: TableColumn[]) => Promise<void>;
-    };
-  };
-
-  /** 状态持久化配置 */
-  persistence?: {
-    enabled: boolean;
-    key: string;
-    include?: ('sort' | 'filter' | 'columnWidths' | 'columnOrder' | 'selection')[];
-  };
-
-  /** 高级事件回调 */
-  onExport?: (format: string, data: Record<string, any>[]) => void;
-  onPrint?: (data: Record<string, any>[]) => void;
-  onRefresh?: () => void;
-  onFullscreenChange?: (fullscreen: boolean) => void;
-  onColumnManager?: () => void;
-}
+// 📌 **原 `AdvancedTableProps` 定义已移除（ADR 0001 / A-3）** ——
+//    该定义与 `organisms/AdvancedTable.tsx` 中**组件实际使用**的那份字段结构完全不同
+//    （此处是 `plugins`/`searchPanel`，组件用的是 `plugin`/`search`），
+//    且从未被任何组件消费 —— 属死代码。
+//    更严重的是：修复前包根 barrel 导出的正是这份死代码，
+//    消费方按导出类型写 props 会得到类型层面就错误的反馈。
+//    唯一定义源：`src/ui/table/organisms/AdvancedTable.tsx`，由 `organisms/index.ts` 导出。
 
 /**
  * 表格卡片视图组件属性
@@ -480,35 +427,11 @@ export interface TableCardViewProps extends React.HTMLAttributes<HTMLDivElement>
 
 // ============ 分页组件属性 ============
 
-/**
- * 分页组件属性
- */
-export interface TablePaginationProps {
-  /** 当前页码 */
-  current: number;
-  /** 每页条数 */
-  pageSize: number;
-  /** 总条数 */
-  total: number;
-  /** 是否显示每页条数选择器 */
-  showSizeChanger?: boolean;
-  /** 是否显示快速跳转 */
-  showQuickJumper?: boolean;
-  /** 是否显示总数 */
-  showTotal?: boolean;
-  /** 每页条数选项 */
-  pageSizeOptions?: number[];
-  /** 页码变化回调 */
-  onChange?: (page: number, pageSize: number) => void;
-  /** 每页条数变化回调 */
-  onShowSizeChange?: (current: number, size: number) => void;
-  /** 是否禁用 */
-  disabled?: boolean;
-  /** 简洁模式 */
-  simple?: boolean;
-  /** 尺寸 */
-  size?: 'small' | 'default' | 'large';
-}
+// 📌 **原 `TablePaginationProps` 定义已移除（ADR 0001 / A-3）** ——
+//    该定义与 `atoms/TablePagination.tsx` 中**组件实际使用**的那份字段结构完全不同
+//    （此处是扁平的 `current`/`pageSize`/`total`，组件用的是 `pagination`/`config` 对象），
+//    且从未被任何组件消费 —— 属死代码。
+//    唯一定义源：`src/ui/table/atoms/TablePagination.tsx`，由 `atoms/index.ts` 导出。
 
 // ============ 空状态组件属性 ============
 

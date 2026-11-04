@@ -2,7 +2,7 @@
 
 # @easbot/ui — React 通用组件库
 
-> 基于 **Radix UI** + **Tailwind CSS v4** 的 React 组件库，54 个开箱即用的无障碍组件。
+> 基于 **Radix UI** + **Tailwind CSS v4** 的 React 组件库，56 个开箱即用的无障碍组件。
 
 ## 版本
 
@@ -14,7 +14,7 @@ v0.3.31
 
 **特性**：
 
-- **54 个组件** —— 覆盖表单、浮层、导航、数据展示全场景
+- **56 个组件** —— 覆盖表单、浮层、导航、数据展示全场景
 - **无障碍优先** —— 全部基于 Radix UI primitives，内置 ARIA 语义与键盘导航
 - **零配置样式** —— Tailwind 在构建期全量编译，消费方一行 `import` 即得完整样式
 - **双格式产物** —— ESM + CJS + TypeScript 类型声明
@@ -71,7 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-## 组件清单（54 个）
+## 组件清单（56 个）
 
 组件实现位于 `src/ui/<component>/`，每个目录含实现文件 + `index.ts` barrel。
 
@@ -80,11 +80,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 | **表单**      | `Button` `Checkbox` `Combobox` `Edit` `Form` `Input` `InputOtp` `Label` `RadioGroup` `Select` `Slider` `Switch` `Textarea` `Toggle` `ToggleGroup`                                                                                                         |
 | **浮层**      | `AlertDialog` `Command` `ContextMenu` `Dialog` `Drawer` `DropdownMenu` `HoverCard` `Menubar` `NavigationMenu` `Popover` `Sheet` `Toast` `Tooltip`                                                                                                         |
 | **数据展示**  | `Accordion` `Alert` `AspectRatio` `Avatar` `Badge` `Breadcrumb` `Calendar` `Card` `Carousel` `Chart` `Collapsible` `Date` `Icon` `Pagination` `Progress` `ScrollArea` `Separator` `Sidebar` `Skeleton` `Spinner` `Table` `Tabs` `Tag` `Tree` `Typography` |
-| **Hooks**     | `useToast`                                                                                                                                                                                                                                                |
-| **Providers** | `LocaleProvider` `NotifyProvider`                                                                                                                                                                                                                         |
+| **数据录入**  | `File`                                                                                                                                                                                                                                                    |
+| **导航布局**  | `Resizable`                                                                                                                                                                                                                                               |
+| **应用组件**  | `ThemeToggle` `LocaleToggle`                                                                                                                                                                                                                              |
+| **Hooks**     | `useToast` `useTheme`                                                                                                                                                                                                                                     |
+| **Providers** | `LocaleProvider` `NotifyProvider` `ThemeProvider`                                                                                                                                                                                                         |
 
-> 上表按**消费方可见的组件族**归类；`src/ui/` 下共 **54** 个组件目录，
+> 上表按**消费方可见的组件族**归类；`src/ui/` 下共 **56** 个组件目录，
 > 其中部分目录导出多个子组件（如 `Dialog` 系列、`Table` 系列、`Date` 系列）。
+> `ThemeToggle` / `LocaleToggle` 是面向应用层的现成组件（非 `src/ui/` 目录），
+> 分别用于切换主题与语言。
 
 每个组件目录（`src/ui/<component>/`）包含：
 
@@ -101,7 +106,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ## 主题
 
-主题通过 CSS 变量实现，共 **692** 个 `--xxx` 自定义属性（light / dark 两份文件集合完全一致）。
+主题通过 CSS 变量实现，共 **706** 个 `--xxx` 自定义属性（light / dark 两份文件集合完全一致）。
 
 ```html
 <!-- 亮色（默认） -->
@@ -116,7 +121,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ## 国际化（i18n）
 
-组件库**内置**双语文案（`zh-CN` / `en-US`），共 **20** 个组件文案域 —— 按钮、表格、分页、
+组件库**内置**双语文案（`zh-CN` / `en-US`），共 **21** 个组件文案域 —— 按钮、表格、分页、
 日期、文件、弹窗等用户可见文案**开箱即用**，消费方**无需**安装任何 i18n 库。
 
 - **文案表**：`src/utils/component-messages.ts`（按组件域分组，每域含 `zh-CN` + `en-US`）
@@ -547,19 +552,20 @@ pnpm vitest run src/ui/button
 .
 ├── src/
 │   ├── index.ts              # 公开 API 出口（tsup 唯一构建入口）
-│   ├── ui/                   # 公开组件层（54 个组件目录）
+│   ├── ui/                   # 公开组件层（56 个组件目录）
 │   │   └── <component>/      # 实现文件 + __tests__/ + index.ts
+│   ├── components/           # 应用层组件（ThemeToggle / LocaleToggle）
 │   ├── design-system/        # 设计系统层（48 个基础组件 + Provider + hooks）
 │   ├── models/               # 数据契约层（Zod Schema）
 │   ├── utils/                # 通用工具层（cn / object / locale / validation-rule …）
 │   │   ├── ui-message.ts         # i18n 处理引擎（processUiMessage）
-│   │   ├── component-messages.ts # 内置文案表（22 个文案域，双语）
+│   │   ├── component-messages.ts # 内置文案表（21 个文案域，双语）
 │   │   └── use-component-message.ts # React 侧文案 Hook
-│   ├── hooks/                # 通用 React Hook（useDevice / useLocale）
-│   ├── providers/            # 上下文 Provider（LocaleProvider / NotifyProvider）
+│   ├── hooks/                # 通用 React Hook（useDevice / useLocale / useTheme）
+│   ├── providers/            # 上下文 Provider（LocaleProvider / ThemeProvider / NotifyProvider）
 │   ├── theme/                # 主题资源层（唯一 CSS 入口 / 字体 / 多套主题 / tokens）
 │   │   ├── styles.css            # ⭐ Tailwind v4 唯一编译入口（构建期扫描 src/）
-│   │   └── themes/               #   light.css（702 个）/ dark.css（702 个）+ 5 套扩展主题
+│   │   └── themes/               #   light.css（706 个）/ dark.css（706 个）+ 5 套扩展主题
 │   └── types/                # 类型声明（typings.d.ts）
 ├── tests/
 │   ├── setup.ts              # Vitest 全局设置（jest-dom matcher 注册 + RTL cleanup）

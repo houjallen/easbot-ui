@@ -1,6 +1,8 @@
 # ScrollArea 滚动区域
 
-> 用于在固定尺寸容器内提供自定义样式的滚动区域，基于 Radix `ScrollArea` primitive，自带纵横两条滚动条。
+> 自定义样式的滚动容器，提供细窄滚动条，垂直方向默认启用、水平方向按需开启。
+
+---
 
 **导入**
 
@@ -11,105 +13,69 @@ import { ScrollArea, ScrollBar } from '@easbot/ui';
 ## 基础用法
 
 ```tsx
-<ScrollArea className="h-72 w-48 rounded-md border">
-  <div className="p-4">很长很长很长的内容……</div>
+import { ScrollArea } from '@easbot/ui';
+
+export default function App() {
+  return (
+    <ScrollArea className="h-72 w-48 rounded-md border p-4">
+      <div className="space-y-4">
+        {Array.from({ length: 50 }).map((_, i) => (
+          <div key={i} className="text-sm">
+            标签 {i + 1}
+          </div>
+        ))}
+      </div>
+    </ScrollArea>
+  );
+}
+```
+
+开启水平滚动条：
+
+```tsx
+<ScrollArea className="w-96 whitespace-nowrap rounded-md border" withHorizontalScrollbar>
+  <div className="flex w-max space-x-4 p-4">{items}</div>
 </ScrollArea>
 ```
 
-渲染结构：根节点为 Radix `ScrollArea.Root`（`<div>`，固定 `relative overflow-hidden`），
-内部依次为 `ScrollArea.Viewport`（`<div>`，承载 `children`）、垂直 `ScrollBar`、水平 `ScrollBar`
-以及 `ScrollArea.Corner`（两个滚动条交汇处的占位块）。
+让滚动条常驻显示：
 
-## 组成部分
+```tsx
+<ScrollArea type="always" className="h-72 w-48 rounded-md border">
+  <div style={{ height: '2000px' }}>长内容</div>
+</ScrollArea>
+```
 
-| 子组件      | 渲染元素 | 说明                                                             |
-| ----------- | -------- | ---------------------------------------------------------------- |
-| `ScrollBar` | `<div>`  | 自定义滚动条，内部包含一个 `ScrollArea.Thumb` 滑块，默认垂直方向 |
+`ScrollAreaProps` 是 Radix `ScrollAreaPrimitive.Root` 的属性类型，**无自有成员**，全部继承其原生属性（`type` / `dir` / `scrollHideDelay` / `nonce` / `className` / `aria-*` / `data-*` / `on*` 事件等）。
 
-`ScrollArea` 组件内部已经自动渲染了**两条**滚动条（垂直 + 水平）与一个 `Corner`，
-通常无需手动使用 `ScrollBar`。
-
-## 变体
-
-### ScrollBar 的 orientation
-
-| 取值           | 说明                                                   |
-| -------------- | ------------------------------------------------------ |
-| `'vertical'`   | 垂直滚动条（默认值），宽度由 `--scroll-bar-width` 决定 |
-| `'horizontal'` | 水平滚动条，高度由 `--scroll-bar-width` 决定           |
-
-## 属性
-
-### ScrollArea
-
-`ScrollArea` 的 props 类型为 `React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root>`，即 Radix `ScrollArea.Root` 的全部属性：
-
-| 属性              | 类型                                        | 默认值    | 说明                                          |
-| ----------------- | ------------------------------------------- | --------- | --------------------------------------------- |
-| `type`            | `'auto' \| 'always' \| 'scroll' \| 'hover'` | `'hover'` | 滚动条显示策略：自动 / 常驻 / 滚动时 / 悬停时 |
-| `dir`             | `'ltr' \| 'rtl'`                            | `'ltr'`   | 滚动方向                                      |
-| `scrollHideDelay` | `number`                                    | `600`     | 滚动条隐藏延时（毫秒）                        |
-| `className`       | `string`                                    | —         | 根节点自定义类名                              |
-
-本表只列组件自有属性；此外还透传 `<div>` 的全部原生属性，如 `id` / `aria-*` / `data-*` / `on*` 事件。
-
-### ScrollBar
-
-`ScrollBar` 的 props 类型为 `React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>`，即 Radix `ScrollAreaScrollbar` 的全部属性：
-
-| 属性          | 类型                         | 默认值       | 说明                               |
-| ------------- | ---------------------------- | ------------ | ---------------------------------- |
-| `orientation` | `'vertical' \| 'horizontal'` | `'vertical'` | 滚动条方向                         |
-| `forceMount`  | `true`                       | —            | 强制挂载滚动条（自定义动画时使用） |
-| `className`   | `string`                     | —            | 滚动条自定义类名                   |
-
-本表只列组件自有属性；此外还透传 `<div>` 的全部原生属性。
-
-## 导出
-
-| 导出名            | 类型 | 说明                                              |
-| ----------------- | ---- | ------------------------------------------------- |
-| `ScrollArea`      | 组件 | 滚动区域根组件，`React.forwardRef` 到根 `<div>`   |
-| `ScrollBar`       | 组件 | 自定义滚动条组件                                  |
-| `ScrollAreaProps` | 类型 | 直接复用 Radix `ScrollAreaProps` 类型（重新导出） |
-
-> 注意：本目录**没有**导出 `ScrollBarProps` 类型。
+> 注意：`withHorizontalScrollbar` 是 `src/ui` 层自有的属性，**未包含在 `ScrollAreaProps` 类型别名中**（该类型直接 re-export 自 `@radix-ui/react-scroll-area`），但运行时可用。
 
 ## 无障碍
 
-- Radix `ScrollArea` **不会**自动添加 `role="region"` / `aria-label` 等语义属性，
-  根节点只是带 `dir` 与 `relative overflow-hidden` 的 `<div>`。
-  如需让屏幕阅读器识别出这是一个可滚动区域，请自行传入 `role="region"` 与 `aria-label`。
-- 视口（`data-radix-scroll-area-viewport`）带 `overflow-x: scroll` / `overflow-y: scroll`，
-  并通过内联 `<style>` 隐藏原生滚动条（`scrollbar-width: none` + `::-webkit-scrollbar { display: none }`），
-  滚动能力完全由 Radix 的自定义滚动条提供。
-- 根节点未设置 `tabIndex`，视口也未设置 `tabIndex`，键盘用户无法通过 Tab 直接聚焦滚动区域；
-  需要时可通过 `className` 或原生属性补齐 `tabIndex={0}`。
-- 滚动条通过 `ScrollAreaThumb` 渲染为可拖拽滑块，支持鼠标拖动与触控滚动；
-  滑块本身不是 `role="scrollbar"` 语义元素。
-- `type="hover"`（默认）时滚动条在鼠标离开后自动隐藏，不影响内容的键盘可访问性。
+- 底层 Radix `ScrollAreaPrimitive.Root` 渲染为 `<div>`，视口渲染为 `<div data-radix-scroll-area-viewport>`；**不输出** `role="scrollbar"`，也没有 `aria-*` 注入。
+- 视口可聚焦（Radix 为其注入 `tabIndex`），并带 `focus-visible:outline-1` + `focus-visible:ring-[3px]` 焦点样式 —— 键盘用户可通过方向键滚动内容。
+- 滚动条本体是纯装饰（`touch-none select-none`），不承载可读文本。
+- 若滚动区域内内容对读屏有意义，请确保内容本身可被读屏访问；滚动区域不会自动播报滚动位置。
 
-## 主题变量
+## 注意事项
 
-| 变量                             | 说明                               |
-| -------------------------------- | ---------------------------------- |
-| `--scroll-bar-width`             | 滚动条厚度（垂直为宽、水平为高）   |
-| `--scroll-bar-padding`           | 滚动条内边距                       |
-| `--scroll-bar-thumb-radius`      | 滑块圆角                           |
-| `--scroll-bar-thumb-color`       | 滑块默认颜色                       |
-| `--scroll-bar-thumb-hover-color` | 滑块悬停颜色                       |
-| `--scroll-bar-thumb-max-size`    | 滑块最大尺寸（垂直为高、水平为宽） |
-| `--scroll-bar-hover-bg`          | 滚动条悬停背景色                   |
+- **`src/ui` 层自行封装了 Radix ScrollArea**：与设计系统层不同，它额外支持 `withHorizontalScrollbar` 属性，并使用 `src/utils/classnames` 的 `cn()`。
+- **垂直滚动条默认渲染**：源码中始终渲染一个 `<ScrollBar />`（`orientation="vertical"`）。
+- **水平滚动条默认不渲染**：需显式传 `withHorizontalScrollbar={true}`；否则内容虽可横向滚动，但没有带样式的水平滚动条。
+- **`ScrollBar` 也可单独使用**：支持 `orientation`（`vertical` / `horizontal`，默认 `vertical`），源码中直接 re-export 自 Radix，可放在任意 `ScrollAreaPrimitive` 容器内。
+- **滚动条尺寸**：垂直 `w-2.5`（10px），水平 `h-2.5`（10px）；滑块为 `rounded-full bg-border`。
+- **Radix 默认 `type="hover"`**：滚动条需在鼠标进入滚动区后才挂载，移出后按 `scrollHideDelay`（默认 600ms）隐藏。需要常驻显示请传 `type="always"`。
+- **原生滚动条被隐藏**：Radix 会为视口注入 `scrollbar-width: none` 等样式，因此必须依靠组件自带的 `ScrollBar` 提供视觉反馈。
+- **组件不带高度 / 宽度**：根容器只有 `relative`，需自行通过 `className` 设定尺寸（如 `h-72 w-48`），否则内容不会产生溢出。
+- **视口尺寸为 `size-full`**：视口铺满根容器，根容器因此必须有确定高度。
+- **圆角继承**：视口使用 `rounded-[inherit]`，会跟随根容器的圆角设置。
 
-## 组合用法 / 注意事项
+## 导出
 
-1. **必须显式设置高度**：`ScrollArea` 的视口为 `h-full w-full`，容器没有高度时内容不会被裁剪、也不会出现滚动条。
-   请通过 `className` 传 `h-72`、`max-h-[400px]` 等高度约束。
-2. **两条滚动条已内置**：垂直与水平滚动条都由 `ScrollArea` 内部自动渲染，
-   额外的 `ScrollBar` 仅用于自定义样式或替换默认滚动条。
-3. **水平滚动条高度写法**：源码中水平方向的类是 `h-[var(--scroll-bar-width)] w-full`
-   （即高度取滚动条宽度变量），请留意这一实现细节。
-4. **滑块不会占满轨道**：垂直滑块有 `max-h-[var(--scroll-bar-thumb-max-size)]`、
-   水平滑块有 `max-w-[var(--scroll-bar-thumb-max-size)]`，避免短内容时滑块铺满整条轨道。
-5. **与 `Textarea` 组合**：`Textarea` 自带 `useScrollArea` 开关，
-   若已在外层套了 `ScrollArea`，请把 `Textarea` 的 `useScrollArea` 设为 `false`，避免嵌套两层滚动区域。
+### 组件
+
+| 导出名            | 说明 |
+| ----------------- | ---- |
+| `ScrollArea`      |      |
+| `ScrollAreaProps` |      |
+| `ScrollBar`       |      |

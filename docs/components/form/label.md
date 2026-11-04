@@ -1,6 +1,8 @@
 # Label 表单标签
 
-> 表单字段的文本标签，基于 Radix Label 实现，支持必填标记、禁用态与 `htmlFor` 关联。
+> 表单元素的文本标签，支持必填星号标记与禁用态。
+
+---
 
 **导入**
 
@@ -15,9 +17,9 @@ import { Input, Label } from '@easbot/ui';
 
 export default function App() {
   return (
-    <div className="grid gap-2">
-      <Label htmlFor="username">用户名</Label>
-      <Input id="username" placeholder="请输入用户名" />
+    <div className="grid w-full max-w-sm items-center gap-1.5">
+      <Label htmlFor="email">邮箱</Label>
+      <Input type="email" id="email" placeholder="请输入邮箱" />
     </div>
   );
 }
@@ -26,65 +28,37 @@ export default function App() {
 必填标记与禁用态：
 
 ```tsx
-import { Label } from '@easbot/ui';
+<Label htmlFor="username" required>
+  用户名
+</Label>
 
-export default function App() {
-  return (
-    <>
-      <Label required>邮箱</Label>
-      <Label disabled>已停用的字段</Label>
-    </>
-  );
-}
+<Label htmlFor="disabled-input" disabled>
+  禁用标签
+</Label>
 ```
 
-## 变体
-
-`Label` 没有 `cva` 变体维度，样式由固定类名 + 状态类名决定：
-
-| 状态            | 说明                                                                                              |
-| --------------- | ------------------------------------------------------------------------------------------------- |
-| 默认            | `text-sm font-medium leading-none text-[var(--label-text)]`                                       |
-| `peer-disabled` | 通过相邻兄弟选择器 `peer-disabled:` 降低透明度并禁用光标                                          |
-| `disabled`      | 组件自身 `disabled` 为 `true` 时追加 `opacity-50 cursor-not-allowed text-[var(--label-disabled)]` |
-| `required`      | 在 children 后追加 `*` 标记（`aria-hidden="true"`）                                               |
-
-## 属性
-
-| 属性        | 类型              | 默认值  | 说明                                    |
-| ----------- | ----------------- | ------- | --------------------------------------- |
-| `required`  | `boolean`         | `false` | 是否必填标记（渲染 `*`，`aria-hidden`） |
-| `disabled`  | `boolean`         | `false` | 禁用状态，同时输出 `data-disabled` 属性 |
-| `className` | `string`          | —       | 自定义类名                              |
-| `children`  | `React.ReactNode` | —       | 标签文本内容                            |
-| `htmlFor`   | `string`          | —       | 关联的表单控件 `id`                     |
-
-本表只列组件自有属性；此外还透传 Radix `Label.Root` 的全部原生属性，如 `id` / `form` / `aria-*` / `data-*` / `on*` 事件。
+`LabelProps` 为 `EunLabelProps` 的别名。本表只列组件自有属性（`required` / `disabled`）；此外还透传 `<label>` 的全部原生属性（`htmlFor` / `id` / `children` / `aria-*` / `data-*` / `on*` 事件等）。
 
 ## 无障碍
 
-- 基于 Radix `Label.Root` 渲染为原生 `<label>`，点击标签文本会聚焦 / 激活关联的表单控件（需通过 `htmlFor` 或包裹控件建立关联）。
-- 必填标记 `*` 标记了 `aria-hidden="true"`，不会被屏幕阅读器朗读；如需朗读「必填」，请自行在可见文本中补充说明。
-- 禁用态输出 `data-disabled` 属性，便于外部通过 CSS 属性选择器定制样式。
-- `peer-disabled:` 变体用于「控件禁用、标签独立」的布局：把 `peer` 类加到关联控件上，标签会自动降低透明度并禁用光标。
+- 基于 Radix `LabelPrimitive.Root`，渲染为语义化 `<label>` 元素；点击标签会把焦点移交给 `htmlFor` 指向的表单控件。
+- 必填星号渲染为 `<span aria-hidden="true">*</span>`，是**纯装饰** —— 状态由关联控件的 `required` / `aria-required` 表达，屏幕阅读器不会重复播报。
+- `disabled` 时只输出 `data-disabled`，并附加 `cursor-not-allowed opacity-50`。
+- 关联控件被禁用时（`peer-disabled:`）标签自动变为禁用观感；父级 `fieldset` 禁用时（`group-data-[disabled=true]:`）同样生效。
 
-## 主题变量
+## 注意事项
 
-| 变量               | 说明           |
-| ------------------ | -------------- |
-| `--label-text`     | 标签默认文字色 |
-| `--label-disabled` | 禁用态文字色   |
-
-## 组合用法 / 注意事项
-
-- **`disabled` 只是视觉状态**：组件不会阻止点击标签去聚焦控件，若要真正禁用请同时设置关联控件的 `disabled`。
-- **`required` 与原生 `required` 不同**：`required` 属性仅渲染视觉标记，不设置 HTML `required` 属性，也不参与表单校验。
-- **`className` 合并到末位**：自定义类名优先级最高，可覆盖默认文字色与字号。
-- **与 `Form` 组合**：`FormLabel` 内部复用 `Label`，会自动注入 `htmlFor={formItemId}`，在 `FormItem` 内使用 `FormLabel` 可省去手动关联。
+- **`disabled` 不透传给 DOM**：该属性被组件消费并转换为 `data-disabled`（原生 `<label>` 本就没有 `disabled` 语义），不会生成非法属性。
+- **`disabled` 与关联控件状态相互独立**：源码注释明确 —— 标签自身的 `disabled` 与「关联控件被禁用」「父级 Fieldset 禁用」是三条独立通路，不会互相覆盖。
+- **必填星号是视觉提示**：组件只画星号，**不会**给关联控件补 `required`，需要时请自行给控件传 `required`。
+- **`className` 合并到末位**，自定义类名优先级最高。
 
 ## 导出
 
-| 导出名       | 类型                              | 说明                                                  |
-| ------------ | --------------------------------- | ----------------------------------------------------- |
-| `Label`      | `React.ForwardRefExoticComponent` | 表单标签组件，ref 指向 `<label>` 元素                 |
-| `LabelProps` | `type`                            | 直接复用 `@radix-ui/react-label` 的 `LabelProps` 类型 |
+### 组件
+
+| 导出名       | 说明 |
+| ------------ | ---- |
+| `Label`      |      |
+| `LabelProps` |      |
+| `LabelRef`   |      |

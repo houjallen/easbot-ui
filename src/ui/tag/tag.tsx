@@ -48,19 +48,25 @@ export const Tag = React.forwardRef<HTMLSpanElement, TagProps>(
     const Comp = asChild ? Slot : 'span';
     const { t } = useComponentMessage('toast', { locale, messages });
     const mergedStyle = color ? { ...style, backgroundColor: color, borderColor: color, color: '#fff' } : style;
-    return (
-      <Comp
-        ref={ref}
-        className={cn('inline-flex select-none items-center rounded-full font-medium transition-colors', tagVariantClass[variant], tagSizeClass[size], className)}
-        style={mergedStyle}
-        {...props}
-      >
+
+    // 📌 **children 必须包装成单个元素** ——
+    //    Radix `Slot` 要求**唯一**的 React 元素子节点（`React.Children.count(children) === 1`），
+    //    否则运行时抛 `Slot failed to slot onto its children`。
+    //    本组件的内容由「图标 / 文本 / 关闭按钮」三部分组成，若直接作为 Slot 的 children
+    //    就会违反该约束 —— 因此统一包进一个 `<span>`。
+    //    对齐 `ui/button/button.tsx` 的同类处理（Button 也把 children 包进单个 `<div>`）。
+    const content = (
+      <>
         {icon && <span className="mr-1 flex-shrink-0">{icon}</span>}
         <span>{children}</span>
         {closable && (
           <button
             type="button"
-            className="ml-1 rounded-full p-0.5 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+            // 📌 焦点指示用 `outline`（绘制在元素**之外**）而非 `ring`（紧贴边缘）——
+            //    `ring` 在小圆点上与 `border-radius` 完全重合，视觉上就是一圈「描边」，
+            //    会被误读为「选中态」。详见 `ui/icon/icon-button.tsx` 的「焦点态约定」。
+            // 📌 `hover:bg-accent` 走主题令牌，替代硬编码的 `hover:bg-gray-200`（不随暗色主题变化）。
+            className="ml-1 rounded-full p-0.5 hover:bg-accent focus:outline-none focus-visible:outline-2 focus-visible:outline-ring/70 focus-visible:outline-offset-2"
             aria-label={t('closeAriaLabel')}
             tabIndex={0}
             onClick={onClose}
@@ -68,6 +74,17 @@ export const Tag = React.forwardRef<HTMLSpanElement, TagProps>(
             <X className="h-3 w-3" />
           </button>
         )}
+      </>
+    );
+
+    return (
+      <Comp
+        ref={ref}
+        className={cn('inline-flex select-none items-center rounded-full font-medium transition-colors', tagVariantClass[variant], tagSizeClass[size], className)}
+        style={mergedStyle}
+        {...props}
+      >
+        {asChild ? <span className="inline-flex items-center">{content}</span> : content}
       </Comp>
     );
   },

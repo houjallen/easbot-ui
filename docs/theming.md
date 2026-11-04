@@ -8,10 +8,10 @@
 ## 主题机制
 
 ```html
-<html data-theme="light">
-  <!-- 亮色 -->
-  <html data-theme="dark">
-    <!-- 暗色 --></html
+<html data-theme="light"
+  ><!-- 亮色 -->
+  <html data-theme="dark"
+    ><!-- 暗色 --></html
   ></html
 >
 ```
@@ -21,7 +21,7 @@
 | `src/theme/themes/light.css` | `:root[data-theme='light']` | 亮色主题变量（默认） |
 | `src/theme/themes/dark.css`  | `:root[data-theme='dark']`  | 暗色主题变量         |
 
-两套主题文件**变量名完全一致**（各 702 个声明），
+两套主题文件**变量名完全一致**（各 **706** 个声明），
 构建后随包发布为 `dist/theme-light.css` / `dist/theme-dark.css`，可按需单独引入覆盖。
 
 ### 切换方式
@@ -65,10 +65,6 @@ Tailwind 默认的 `dark:` 走 `@media (prefers-color-scheme: dark)`（跟随系
   --radius: 0.75rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
-
-  /* 按钮 */
-  --button-default: hsl(262 83% 58%);
-  --button-default-hover: hsl(262 83% 52%);
 }
 ```
 
@@ -107,7 +103,7 @@ Tailwind v4 不认识它们。若不注册成 token，`bg-primary` / `text-muted
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
-  /* ... 共 32 个语义 token */
+  /* ... */
 }
 ```
 
@@ -128,138 +124,39 @@ Tailwind v4 不认识它们。若不注册成 token，`bg-primary` / `text-muted
 
 直接 `var(--gray-500)` 会生成非法颜色值。
 
----
+### 禁用态的光标约定（不可用 `pointer-events-none`）
 
-## 字体（opt-in）
+全局样式（`src/theme/styles/prefix.css`）统一约定：
 
-样式与字体 CSS **一起导出**，**是否启用自定义字体由应用层决定**。
+| 状态                                           | `cursor`      | `pointer-events`       |
+| ---------------------------------------------- | ------------- | ---------------------- |
+| 可交互的 `button` / `[role='button']`          | `pointer`     | `auto`（默认）         |
+| 禁用态（`:disabled` / `aria-disabled="true"`） | `not-allowed` | **`auto`（必须保留）** |
 
-| 产物              | 内容                                                             |
-| ----------------- | ---------------------------------------------------------------- |
-| `dist/styles.css` | 主题变量 + 原子类；`--font-sans` 带**完整回退栈**                |
-| `dist/fonts.css`  | 7 个 `@font-face`（思源黑体 7 个字重）+ `--font-source-han-sans` |
-
-```ts
-// 不引入 fonts.css —— 保持系统字体（默认）
-import '@easbot/ui/styles.css';
-
-// 引入 fonts.css —— 启用思源黑体
-import '@easbot/ui/styles.css';
-import '@easbot/ui/fonts.css';
-```
-
-> ⚠️ 每个字重约 **8 MB**，需**显式**引入，不要「顺带」打进样式入口。
-
-### ⚠️ 字体文件需自行放置到 `public/font/`
-
-**字体二进制不随 npm 包发布**（否则每个消费方都要多装 60 MB），
-需**由应用层复制到自己的静态资源目录**，路径约定与 CSS 里的引用一致：
-
-```
-public/
-└── font/
-    ├── SourceHanSansCN-ExtraLight.otf   # weight 200
-    ├── SourceHanSansCN-Light.otf        # weight 300
-    ├── SourceHanSansCN-Normal.otf       # weight 400
-    ├── SourceHanSansCN-Regular.otf      # weight 450
-    ├── SourceHanSansCN-Medium.otf       # weight 500
-    ├── SourceHanSansCN-Bold.otf         # weight 700
-    ├── SourceHanSansCN-Heavy.otf        # weight 900
-    └── LICENSE.txt                       # SIL OFL 1.1 授权声明（必须保留）
-```
-
-`dist/fonts.css` 里的 `@font-face` 按 `/font/xxx` 引用它们 ——
-Vite / Next.js 等约定 `public/` 映射到站点根路径，故**无需改任何配置**。
-
-> 📌 **字重范围由应用层决定** —— 字体不在 npm 包内，可按需只放 1~2 个常用字重。
+> ⚠️ **禁用态不得使用 `disabled:pointer-events-none`** ——
+> `pointer-events: none` 会让元素对鼠标**完全透明**，浏览器解析光标时命中的是**下层元素**（`<body>`），
+> 于是 `cursor: not-allowed` **永远不会生效** —— 用户看到的仍是默认箭头，而不是「禁止」标识。
 >
-> 📌 **字重必须一一对应** —— CSS 的 `font-weight` 取自字体自身的
-> `OS/2.usWeightClass`（读 OTF 头表实测），**不套用 CSS 关键字近似值**，
-> 否则浏览器会做「合成加粗」（faux bold），字形发虚。
+> 正确做法：禁用态**保留** `pointer-events`，只用 `cursor: not-allowed` 表达「不可点」。
 
-### 自定义字体栈
-
-覆盖 `--font-sans` 或 `--font-source-han-sans` 即可，无需改组件库源码：
-
-```css
-:root {
-  --font-sans: 'MyBrandFont', 'Microsoft YaHei', system-ui, sans-serif;
-}
-```
-
-> 📌 `--font-sans` 必须写成 **`var(--font-source-han-sans, <完整回退栈>)`** 的**兜底值形式**
-> —— 直接写 `var(--font-source-han-sans), system-ui, …` 在变量缺失时会让**整条声明失效**
-> （连 `system-ui` 都拿不到）。详见
-> [`spec/css-standard.md` §1.7](../spec/css-standard.md)。
-
----
-
-## 图标字体（opt-in）
-
-`Icon` 组件的 `type="class"` 模式需要图标字体提供字形，同样**由应用层决定是否启用**。
-
-| 产物                | 内容                                              |
-| ------------------- | ------------------------------------------------- |
-| `dist/iconfont.css` | 796 个图标类的 `content` 映射 + `@font-face` 声明 |
-
-### ⚠️ 图标字体文件需自行放置到 `public/icon/`
-
-**字体二进制不随 npm 包发布**，需复制到静态资源目录：
-
-```
-public/
-└── icon/
-    ├── iconfont.woff      # 主格式（覆盖 IE11+ 全部现代浏览器）
-    ├── iconfont.ttf       # 兜底格式（老 Safari）
-    ├── symbol.ttf         # officefont 的 Symbol 家族
-    └── wingding.ttf       # officefont 的 Wingdings 家族
-```
-
-`dist/iconfont.css` 按 `/icon/xxx` 引用它们。
-
-```ts
-import '@easbot/ui/styles.css';
-import '@easbot/ui/iconfont.css'; // ← 启用图标字体
-```
+因此**自定义组件**的禁用态请这样写：
 
 ```tsx
-import { Icon, iconfontClassNames } from '@easbot/ui';
+// ✅ 正确
+<button disabled className="disabled:cursor-not-allowed disabled:opacity-50" />
 
-<Icon type="class" clazzName="iconfont icon-search" size={24} />;
-
-// 796 个可用类名
-iconfontClassNames.map((name) => <Icon key={name} type="class" clazzName={`iconfont ${name}`} />);
+// ❌ 错误 —— cursor: not-allowed 将失效
+<button disabled className="disabled:pointer-events-none disabled:opacity-50" />
 ```
 
-> ⚠️ **不引入 `iconfont.css` 时 `class` 模式渲染为空白** ——
-> `name` / `url` 模式不受影响。
->
-> 📌 图标字体是**独立产物**，不在 `dist/styles.css` 内 ——
-> 需**显式**引入，不要「顺带」打进样式入口。
-
----
-
-## 主题变量单独引入（可选）
-
-`dist/styles.css` **已包含** light / dark 两套主题变量。
-若只想**覆盖主题变量**、保留自己已有的原子类，可单独引入：
-
-```ts
-import '@easbot/ui/theme-light.css'; // 或 theme-dark.css
-```
-
-| 产物                   | 内容                                 |
-| ---------------------- | ------------------------------------ |
-| `dist/theme-light.css` | `:root[data-theme='light']` 主题变量 |
-| `dist/theme-dark.css`  | `:root[data-theme='dark']` 主题变量  |
-
-> 这两个文件是**特别提供**的可选产物 —— 常规用法只需 `import '@easbot/ui/styles.css';`。
+> 📌 本库所有内置组件（`Button` / `IconButton` / `Tag` / `Toast` / `Dialog` / `Tree` …）
+> 均遵循该约定。详见 [`spec/css-standard.md`](../../spec/css-standard.md) §4.9。
 
 ---
 
 ## 完整变量清单
 
-> 共 **692** 个变量声明，light / dark 一一对应。
+> 共 **706** 个变量声明，light / dark 一一对应。
 > 下表按主题文件的小节分组，值列可直接复制到覆盖样式里。
 
 ### 基础色调
@@ -366,10 +263,16 @@ import '@easbot/ui/theme-light.css'; // 或 theme-dark.css
 
 ### 边框和输入框
 
+| 变量       | 亮色值                      | 暗色值                      |
+| ---------- | --------------------------- | --------------------------- |
+| `--border` | `hsl(var(--gray-200))`      | `hsl(var(--gray-200))`      |
+| `--input`  | `var(--input-border-color)` | `var(--input-border-color)` |
+
+### 输入类控件的淡背景（对应原 `--input` 的半透明值）
+
 | 变量                          | 亮色值                                                      | 暗色值                                                      |
 | ----------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------- |
-| `--border`                    | `hsl(var(--gray-200))`                                      | `hsl(var(--gray-200))`                                      |
-| `--input`                     | `color-mix(in srgb, hsl(var(--gray-100)) 40%, transparent)` | `color-mix(in srgb, hsl(var(--gray-100)) 20%, transparent)` |
+| `--input-background`          | `color-mix(in srgb, hsl(var(--gray-100)) 40%, transparent)` | `color-mix(in srgb, hsl(var(--gray-100)) 20%, transparent)` |
 | `--input-hover`               | `color-mix(in srgb, hsl(var(--gray-100)) 60%, transparent)` | `color-mix(in srgb, hsl(var(--gray-100)) 30%, transparent)` |
 | `--input-focus`               | `var(--primary)`                                            | `var(--primary)`                                            |
 | `--input-border-width`        | `1px`                                                       | `1px`                                                       |
@@ -632,22 +535,24 @@ import '@easbot/ui/theme-light.css'; // 或 theme-dark.css
 | `--skeleton-highlight`          | `color-mix(in srgb, var(--muted) 80%, white)` | `color-mix(in srgb, var(--muted) 80%, hsl(var(--gray-800)))` |
 | `--skeleton-border-radius`      | `var(--radius-md)`                            | `var(--radius-md)`                                           |
 | `--skeleton-animation-duration` | `1.5s`                                        | `1.5s`                                                       |
+| `--switch-checked-background`   | `var(--primary)`                              | `var(--primary)`                                             |
+| `--switch-unchecked-background` | `var(--input-background)`                     | `var(--input-background)`                                    |
 
-### Switch 样式
+### checked 态 thumb：与 track（primary）互为反色
 
-| 变量                                | 亮色值                                                 | 暗色值                                                 |
-| ----------------------------------- | ------------------------------------------------------ | ------------------------------------------------------ |
-| `--switch-checked-background`       | `var(--primary)`                                       | `var(--primary)`                                       |
-| `--switch-unchecked-background`     | `var(--input)`                                         | `var(--input)`                                         |
-| `--switch-thumb-background`         | `var(--background)`                                    | `var(--background)`                                    |
-| `--switch-focus-ring`               | `var(--ring)`                                          | `var(--ring)`                                          |
-| `--switch-disabled-opacity`         | `0.5`                                                  | `0.5`                                                  |
-| `--switch-thumb-shadow`             | `0 1px 2px color-mix(in srgb, black 10%, transparent)` | `0 1px 2px color-mix(in srgb, black 10%, transparent)` |
-| `--switch-focus-ring-offset`        | `var(--ring-offset)`                                   | `var(--ring-offset)`                                   |
-| `--switch-hover-background`         | `color-mix(in srgb, var(--accent) 20%, transparent)`   | `color-mix(in srgb, var(--accent) 20%, transparent)`   |
-| `--switch-hover-border`             | `hsl(var(--gray-600))`                                 | `hsl(var(--gray-400))`                                 |
-| `--switch-active-background`        | `color-mix(in srgb, var(--accent) 30%, transparent)`   | `color-mix(in srgb, var(--accent) 30%, transparent)`   |
-| `--switch-checked-hover-background` | `color-mix(in srgb, var(--primary) 90%, transparent)`  | `color-mix(in srgb, var(--primary) 90%, transparent)`  |
+| 变量                                  | 亮色值                                                 | 暗色值                                                 |
+| ------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------ |
+| `--switch-thumb-checked-background`   | `var(--primary-foreground)`                            | `var(--primary-foreground)`                            |
+| `--switch-thumb-unchecked-background` | `hsl(var(--gray-400))`                                 | `hsl(var(--gray-400))`                                 |
+| `--switch-thumb-background`           | `var(--switch-thumb-unchecked-background)`             | `var(--switch-thumb-unchecked-background)`             |
+| `--switch-focus-ring`                 | `var(--ring)`                                          | `var(--ring)`                                          |
+| `--switch-disabled-opacity`           | `0.5`                                                  | `0.5`                                                  |
+| `--switch-thumb-shadow`               | `0 1px 2px color-mix(in srgb, black 10%, transparent)` | `0 1px 2px color-mix(in srgb, black 10%, transparent)` |
+| `--switch-focus-ring-offset`          | `var(--ring-offset)`                                   | `var(--ring-offset)`                                   |
+| `--switch-hover-background`           | `color-mix(in srgb, var(--accent) 20%, transparent)`   | `color-mix(in srgb, var(--accent) 20%, transparent)`   |
+| `--switch-hover-border`               | `hsl(var(--gray-600))`                                 | `hsl(var(--gray-400))`                                 |
+| `--switch-active-background`          | `color-mix(in srgb, var(--accent) 30%, transparent)`   | `color-mix(in srgb, var(--accent) 30%, transparent)`   |
+| `--switch-checked-hover-background`   | `color-mix(in srgb, var(--primary) 90%, transparent)`  | `color-mix(in srgb, var(--primary) 90%, transparent)`  |
 
 ### Switch 尺寸变量
 
@@ -755,8 +660,9 @@ import '@easbot/ui/theme-light.css'; // 或 theme-dark.css
 | `--toast-padding`                | `0.75rem`                                                 | `0.75rem`                                                 |
 | `--toast-gap`                    | `0.5rem`                                                  | `0.5rem`                                                  |
 | `--toast-shadow`                 | `0 4px 12px color-mix(in srgb, black 10%, transparent)`   | `0 4px 12px color-mix(in srgb, black 10%, transparent)`   |
-| `--toast-max-width`              | `420px`                                                   | `420px`                                                   |
 | `--toast-z-index`                | `50`                                                      | `50`                                                      |
+| `--toast-min-width`              | `240px`                                                   | `240px`                                                   |
+| `--toast-max-width`              | `350px`                                                   | `350px`                                                   |
 
 ### 下拉菜单样式
 
@@ -1130,7 +1036,7 @@ import '@easbot/ui/theme-light.css'; // 或 theme-dark.css
 | `--form-label-font-weight`     | `500`                     | `500`                     |
 | `--form-label-line-height`     | `1`                       | `1`                       |
 | `--form-description-font-size` | `0.875rem`                | `0.875rem`                |
-| `--form-description-color`     | `var(--muted-foreground)` | `var(--muted-foreground)` |
+| `--form-description-color`     | `var(--muted-foreground)` | `—`                       |
 | `--form-message-font-size`     | `0.875rem`                | `0.875rem`                |
 | `--form-message-font-weight`   | `400`                     | `400`                     |
 | `--form-message-error-color`   | `hsl(0 84% 40%)`          | `hsl(var(--gray-600))`    |
@@ -1389,13 +1295,18 @@ import '@easbot/ui/theme-light.css'; // 或 theme-dark.css
 
 ### Badge 点状标记
 
-| 变量                        | 亮色值                  | 暗色值                  |
-| --------------------------- | ----------------------- | ----------------------- |
-| `--badge-dot-size`          | `0.5rem`                | `0.5rem`                |
-| `--badge-dot-border-width`  | `2px`                   | `2px`                   |
-| `--badge-dot-border-color`  | `var(--background)`     | `var(--background)`     |
-| `--badge-dot-default-color` | `var(--primary)`        | `var(--primary)`        |
-| `--badge-transition`        | `all 150ms ease-in-out` | `all 150ms ease-in-out` |
+| 变量                        | 亮色值              | 暗色值              |
+| --------------------------- | ------------------- | ------------------- |
+| `--badge-dot-size`          | `0.5rem`            | `0.5rem`            |
+| `--badge-dot-border-width`  | `2px`               | `2px`               |
+| `--badge-dot-border-color`  | `var(--background)` | `var(--background)` |
+| `--badge-dot-default-color` | `var(--primary)`    | `var(--primary)`    |
+
+### Badge 基础样式
+
+| 变量                 | 亮色值                  | 暗色值                  |
+| -------------------- | ----------------------- | ----------------------- |
+| `--badge-transition` | `all 150ms ease-in-out` | `all 150ms ease-in-out` |
 
 ### Badge Animation
 
@@ -1403,6 +1314,26 @@ import '@easbot/ui/theme-light.css'; // 或 theme-dark.css
 | ----------------------------- | ------------- | ------------- |
 | `--badge-transition-duration` | `150ms`       | `150ms`       |
 | `--badge-transition-timing`   | `ease-in-out` | `ease-in-out` |
+
+### 侧边栏配色 —— 亮色主题下与主色调保持一致的中性灰调
+
+| 变量                           | 亮色值            | 暗色值            |
+| ------------------------------ | ----------------- | ----------------- |
+| `--sidebar`                    | `hsl(0 0% 100%)`  | `hsl(240 10% 4%)` |
+| `--sidebar-foreground`         | `hsl(240 10% 4%)` | `hsl(0 0% 100%)`  |
+| `--sidebar-primary`            | `hsl(240 6% 5%)`  | `hsl(0 0% 100%)`  |
+| `--sidebar-primary-foreground` | `hsl(0 0% 100%)`  | `hsl(240 10% 4%)` |
+| `--sidebar-accent`             | `hsl(240 5% 96%)` | `hsl(240 5% 16%)` |
+| `--sidebar-accent-foreground`  | `hsl(240 6% 5%)`  | `hsl(0 0% 100%)`  |
+| `--sidebar-border`             | `hsl(240 4% 90%)` | `hsl(240 4% 16%)` |
+| `--sidebar-ring`               | `hsl(240 4% 70%)` | `hsl(240 4% 30%)` |
+
+### Sidebar 尺寸 —— 折叠态宽度由 --sidebar-width-icon 控制
+
+| 变量                   | 亮色值  | 暗色值  |
+| ---------------------- | ------- | ------- |
+| `--sidebar-width`      | `16rem` | `16rem` |
+| `--sidebar-width-icon` | `3rem`  | `3rem`  |
 
 ---
 
@@ -1418,6 +1349,132 @@ import '@easbot/ui/theme-light.css'; // 或 theme-dark.css
 | 组件前缀    | `--button-*` `--card-*` `--dialog-*` `--toast-*` `--select-*` `--alert-*` …          | 各组件专属变量             |
 
 > 各组件文档页末尾列出了该组件**实际使用**的变量，便于精确定制。
+
+---
+
+## 字体（opt-in）
+
+样式与字体 CSS **一起导出**，**是否启用自定义字体由应用层决定**。
+
+| 产物              | 内容                                                             |
+| ----------------- | ---------------------------------------------------------------- |
+| `dist/styles.css` | 主题变量 + 原子类；`--font-sans` 带**完整回退栈**                |
+| `dist/fonts.css`  | 7 个 `@font-face`（思源黑体 7 个字重）+ `--font-source-han-sans` |
+
+```ts
+// 不引入 fonts.css —— 保持系统字体（默认）
+import '@easbot/ui/styles.css';
+
+// 引入 fonts.css —— 启用思源黑体
+import '@easbot/ui/styles.css';
+import '@easbot/ui/fonts.css';
+```
+
+> ⚠️ 每个字重约 **8 MB**，需**显式**引入，不要「顺带」打进样式入口。
+
+### ⚠️ 字体文件需自行放置到 `public/font/`
+
+**字体二进制不随 npm 包发布**（否则每个消费方都要多装 60 MB），
+需**由应用层复制到自己的静态资源目录**，路径约定与 CSS 里的引用一致：
+
+```
+public/
+└── font/
+    ├── SourceHanSansCN-ExtraLight.otf   # weight 200
+    ├── SourceHanSansCN-Light.otf        # weight 300
+    ├── SourceHanSansCN-Normal.otf       # weight 400
+    ├── SourceHanSansCN-Regular.otf      # weight 450
+    ├── SourceHanSansCN-Medium.otf       # weight 500
+    ├── SourceHanSansCN-Bold.otf         # weight 700
+    ├── SourceHanSansCN-Heavy.otf        # weight 900
+    └── LICENSE.txt                       # SIL OFL 1.1 授权声明（必须保留）
+```
+
+`dist/fonts.css` 里的 `@font-face` 按 `/font/xxx` 引用它们 ——
+Vite / Next.js 等约定 `public/` 映射到站点根路径，故**无需改任何配置**。
+
+> 📌 **字重范围由应用层决定** —— 字体不在 npm 包内，可按需只放 1~2 个常用字重。
+>
+> 📌 **字重必须一一对应** —— CSS 的 `font-weight` 取自字体自身的
+> `OS/2.usWeightClass`（读 OTF 头表实测），**不套用 CSS 关键字近似值**，
+> 否则浏览器会做「合成加粗」（faux bold），字形发虚。
+
+### 自定义字体栈
+
+覆盖 `--font-sans` 或 `--font-source-han-sans` 即可，无需改组件库源码：
+
+```css
+:root {
+  --font-sans: 'MyBrandFont', 'Microsoft YaHei', system-ui, sans-serif;
+}
+```
+
+> 📌 `--font-sans` 必须写成 **`var(--font-source-han-sans, <完整回退栈>)`** 的**兜底值形式**
+> —— 直接写 `var(--font-source-han-sans), system-ui, …` 在变量缺失时会让**整条声明失效**
+> （连 `system-ui` 都拿不到）。详见 [`spec/css-standard.md` §1.7](../spec/css-standard.md)。
+
+---
+
+## 图标字体（opt-in）
+
+[`Icon`](./components/data-entry/icon.md) 组件的 `type="class"` 模式需要图标字体提供字形，同样**由应用层决定是否启用**。
+
+| 产物                | 内容                                              |
+| ------------------- | ------------------------------------------------- |
+| `dist/iconfont.css` | 796 个图标类的 `content` 映射 + `@font-face` 声明 |
+
+### ⚠️ 图标字体文件需自行放置到 `public/icon/`
+
+**字体二进制不随 npm 包发布**，需复制到静态资源目录：
+
+```
+public/
+└── icon/
+    ├── iconfont.woff      # 主格式（覆盖 IE11+ 全部现代浏览器）
+    ├── iconfont.ttf       # 兜底格式（老 Safari）
+    ├── symbol.ttf         # officefont 的 Symbol 家族
+    └── wingding.ttf       # officefont 的 Wingdings 家族
+```
+
+`dist/iconfont.css` 按 `/icon/xxx` 引用它们。
+
+```ts
+import '@easbot/ui/styles.css';
+import '@easbot/ui/iconfont.css'; // ← 启用图标字体
+```
+
+```tsx
+import { Icon, iconfontClassNames } from '@easbot/ui';
+
+<Icon type="class" clazzName="iconfont icon-search" size={24} />;
+
+// 796 个可用类名
+iconfontClassNames.map((name) => <Icon key={name} type="class" clazzName={`iconfont ${name}`} />);
+```
+
+> ⚠️ **不引入 `iconfont.css` 时 `class` 模式渲染为空白** ——
+> `name` / `url` 模式不受影响。
+>
+> 📌 图标字体是**独立产物**，不在 `dist/styles.css` 内 ——
+> 需**显式**引入，不要「顺带」打进样式入口。
+
+---
+
+## 主题变量单独引入（可选）
+
+`dist/styles.css` **已包含** light / dark 两套主题变量。
+若只想**覆盖主题变量**、保留自己已有的原子类，可单独引入：
+
+```ts
+import '@easbot/ui/theme-light.css'; // 或 theme-dark.css
+```
+
+| 产物                   | 内容                                 |
+| ---------------------- | ------------------------------------ |
+| `dist/theme-light.css` | `:root[data-theme='light']` 主题变量 |
+| `dist/theme-dark.css`  | `:root[data-theme='dark']` 主题变量  |
+
+> 这两个文件是**特别提供**的可选产物 —— 常规用法只需 `import '@easbot/ui/styles.css';`。
 
 ---
 

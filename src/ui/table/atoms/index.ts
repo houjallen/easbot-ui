@@ -11,6 +11,10 @@ export { TableBody } from './TableBody';
 export { TableRow } from './TableRow';
 export { TableCell } from './TableCell';
 export { TablePagination } from './TablePagination';
+// 📌 **导出 props 类型**（ADR 0001 / A-3）——
+//    修复前本目录只导出组件值不导出类型，导致 `TablePaginationProps`
+//    在包根完全不可见，消费方无法为分页组件标注 props 类型。
+export type { TablePaginationProps } from './TablePagination';
 export { TableEmpty } from './TableEmpty';
 export { TableError } from './TableError';
 export { TableLoading } from './TableLoading';

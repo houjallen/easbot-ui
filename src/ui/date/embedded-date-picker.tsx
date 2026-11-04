@@ -218,13 +218,16 @@ export function EmbeddedDatePicker({
       return null;
     }
 
-    const availableViews = [...allowedViews];
-    if (showTimeView) availableViews.push('time');
-    if (showQuarterView) availableViews.push('quarters');
+    // 📌 用 `Set` 去重 —— `allowedViews` 可能已含 `time` / `quarters`，
+    //    再 `push` 会产生**重复 key**（React 报 "Encountered two children with the same key"），
+    //    且导致同一个视图按钮渲染两次。
+    const availableViews = new Set<ViewMode>(allowedViews);
+    if (showTimeView) availableViews.add('time');
+    if (showQuarterView) availableViews.add('quarters');
 
     return (
       <div className={cn('flex gap-1 border-b p-2', isMobile && 'flex-wrap justify-center')}>
-        {availableViews.map((mode) => (
+        {Array.from(availableViews).map((mode) => (
           <Button
             key={mode}
             variant={viewMode === mode ? 'default' : 'ghost'}
@@ -278,7 +281,7 @@ export function EmbeddedDatePicker({
     }
 
     // 桌面端使用 ShortcutView 组件
-    return <ShortcutView shortcuts={finalShortcuts} onSelect={handleShortcutSelect} show={true} title={pickerLocale.shortcuts.title} minWidth="w-32" className="flex-shrink-0" />;
+    return <ShortcutView shortcuts={finalShortcuts} onSelect={handleShortcutSelect} show={true} title={pickerLocale.shortcuts.title} minWidth="min-w-32" className="flex-shrink-0" />;
   };
 
   // 渲染确认按钮

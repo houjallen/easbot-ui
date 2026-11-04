@@ -157,7 +157,14 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node }) => {
           {/* 使用语义化 button 元素 —— 保证键盘可达性与屏幕阅读器可识别 */}
           <button
             type="button"
-            className={cn('rounded-md p-1 hover:bg-muted-foreground/20', !hasChildren && 'invisible')}
+            // 📌 焦点指示用 `outline`（绘制在元素**之外**）而非 `ring`（紧贴边缘）——
+            //    详见 `ui/icon/icon-button.tsx` 的「焦点态约定」。
+            // 📌 此前**完全没有**焦点样式，键盘用户 Tab 到该按钮时无任何视觉焦点提示
+            //    （违反 WCAG 2.4.7 Focus Visible），此处补齐。
+            className={cn(
+              'rounded-md p-1 hover:bg-muted-foreground/20 focus:outline-none focus-visible:outline-2 focus-visible:outline-ring/70 focus-visible:outline-offset-2',
+              !hasChildren && 'invisible',
+            )}
             onClick={onToggleClick}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') onToggleClick(e as any);

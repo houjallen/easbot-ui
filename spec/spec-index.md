@@ -92,7 +92,7 @@ src/
 
 | 文档                                               | 用途                                                                                                                                           | 唯一真值源 / 核验                            |
 | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| [`component-standard.md`](./component-standard.md) | **组件开发规范**：目录 / 命名 / 导出 / `forwardRef` / props / `cva` / `cn()` / 图标库 / barrel（**11 项维度**）                                | `src/ui/<component>/` 56 个目录的真实结构    |
+| [`component-standard.md`](./component-standard.md) | **组件开发规范**：目录 / 命名 / 导出 / `forwardRef` / props / `cva` / `cn()` / 图标库 / barrel（**12 项维度**）                                | `src/ui/<component>/` 56 个目录的真实结构    |
 | [`css-standard.md`](./css-standard.md)             | **样式与主题规范**：构建链路 / `src/theme/` 目录布局 / CSS 变量命名 / 主题双文件 / `@theme inline` / `dark` 变体 / 层叠层顺序（**12 项维度**） | `src/theme/styles.css` + `src/theme/themes/` |
 
 ### 2. 架构与契约
@@ -107,7 +107,7 @@ src/
 | 文档                                               | 用途                                                                                      | 唯一真值源 / 核验                               |
 | -------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------- |
 | [`testing-guidelines.md`](./testing-guidelines.md) | **测试规范**：Vitest+jsdom 配置 / 用例结构 / 断言选型 / mock 与 polyfill（**10 项维度**） | `vitest.config.ts` + `tests/setup.ts`           |
-| [`storybook-standard.md`](./storybook-standard.md) | **Storybook 规范**：CSF3 / meta / story / argTypes / 装饰器 / 主题切换（**9 项维度**）    | `.storybook/main.ts` + `.storybook/preview.tsx` |
+| [`storybook-standard.md`](./storybook-standard.md) | **Storybook 规范**：CSF3 / meta / story / argTypes / 装饰器 / 主题切换（**11 项维度**）   | `.storybook/main.ts` + `.storybook/preview.tsx` |
 
 ### 4. 工程化
 
@@ -134,7 +134,7 @@ src/
 
 ### 修改已有组件
 
-1. [`component-standard.md`](./component-standard.md) §M（10 项维度）
+1. [`component-standard.md`](./component-standard.md) §M（12 项维度）
 2. [`css-standard.md`](./css-standard.md) §M（10 项维度）—— 改了类名尤其必跑
 3. [`testing-guidelines.md`](./testing-guidelines.md) §4.5 —— **改实现必须同步改断言**
 4. [`code-annotation-standard.md`](./code-annotation-standard.md) §1.4 —— 改动即补注解
@@ -303,11 +303,11 @@ rg -n 'JSON\.parse\(JSON\.stringify\(' src -g '!**/docs/**' -g '!**/*.md' |
 | Story 文件（`src/**/*.stories.tsx`）               | **77**                                 | `storybook-standard.md` §M+1    |
 | Zod Schema 数                                      | **15**（`models/` 13 + `utils/` 2）    | `model-standard.md` §M+1        |
 | 实现文件 `export default`                          | **48**（`src/ui/table/` 28 + 其他 20） | `architecture-standard.md` §M+1 |
-| 主题变量 light/dark                                | 702 / 702，**集合完全一致**            | `css-standard.md` §M+1          |
+| 主题变量 light/dark                                | 706 / 706，**集合完全一致**            | `css-standard.md` §M+1          |
 | `jest.*` 命中                                      | **14**（存量待迁移，见 §M+2）          | `testing-guidelines.md` §M+1    |
 | TS1484（类型导入未显式标记）命中                   | **0**（已全量修复）                    | `code-quality.md` §M+1          |
-| 组件文案域数（`ComponentMessageDomain`）           | **20**                                 | `i18n-standard.md` §5.1         |
-| 内置文案表数（`src/utils/component-messages.ts`）  | **20**（每表 zh-CN + en-US 双语）      | `i18n-standard.md` §5.1         |
+| 组件文案域数（`ComponentMessageDomain`）           | **21**                                 | `i18n-standard.md` §5.1         |
+| 内置文案表数（`src/utils/component-messages.ts`）  | **21**（每表 zh-CN + en-US 双语）      | `i18n-standard.md` §5.1         |
 | i18n 扫描违规数（`pnpm check:i18n`）               | **0**（维度①③④⑤⑥ 全通过）              | `i18n-standard.md` §7           |
 | 规范维度总数                                       | **92 项**（11+11+12+10+10+9+11+9+8+1） | 各文档 §M                       |
 | `tsup` external 包数                               | **49**（含 28 个 Radix）               | `architecture-standard.md` §M+1 |
@@ -365,7 +365,7 @@ rg -n 'JSON\.parse\(JSON\.stringify\(' src -g '!**/docs/**' -g '!**/*.md' |
 > 契约层的具体写法由 [`model-standard.md`](./model-standard.md) 管辖。
 >
 > ⚠️ **已从本列表移除**：「国际化（i18n）运行时机制」—— 本库**已内置**双语文案
-> （`src/utils/component-messages.ts` 共 **20** 个文案域，每域含 `zh-CN` + `en-US`），
+> （`src/utils/component-messages.ts` 共 **21** 个文案域，每域含 `zh-CN` + `en-US`），
 > 配套 [`i18n-standard.md`](./i18n-standard.md)（8 项扫描维度）。
 > **仍不引入**的只有外部 i18n 库（`react-i18next` / `i18next`）与全局 store 持有语言状态 ——
 > 语言由消费方通过 `LocaleProvider` / `locale` prop 注入。

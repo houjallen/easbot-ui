@@ -1,6 +1,6 @@
 'use client';
 
-import { useTheme } from '../../providers/theme-provider';
+import { useTheme } from '../../../hooks/use-theme';
 import React from 'react';
 import type { ToasterProps } from 'sonner';
 import { Toaster as Sonner } from 'sonner';

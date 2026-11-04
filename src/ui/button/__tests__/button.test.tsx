@@ -89,7 +89,10 @@ describe('Button 组件', () => {
       fireEvent.click(button);
       expect(handleClick).not.toHaveBeenCalled();
       expect(button).toBeDisabled();
-      expect(button).toHaveClass('disabled:pointer-events-none');
+      // 📌 禁用态用 `cursor-not-allowed` 而非 `pointer-events-none` ——
+      //    后者会让元素对鼠标完全透明，`cursor: not-allowed` 永远不会生效。
+      expect(button).toHaveClass('disabled:cursor-not-allowed');
+      expect(button).not.toHaveClass('disabled:pointer-events-none');
     });
 
     /**
@@ -102,6 +105,43 @@ describe('Button 组件', () => {
       expect(button).toBeDisabled();
       expect(screen.getByText('加载中')).toBeInTheDocument();
       expect(screen.getByTestId('loading-icon')).toBeInTheDocument();
+    });
+  });
+
+  // 回归测试（ADR 0001 / 批次二-3）
+  describe('shape 形状回归测试', () => {
+    it('shape="circle" 应该渲染圆形（rounded-full）', () => {
+      render(<Button shape="circle">圆形</Button>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('rounded-full');
+      expect(button).not.toHaveClass('rounded-[var(--radius-md)]');
+    });
+
+    it('shape="square" 应该渲染方形（rounded-[var(--radius-md)]）', () => {
+      // 📌 回归防护：此前 `shape` 声明了但**未实现** ——
+      //    既不解构（落入 `...restButtonProps`），也无对应类名分支，
+      //    导致 `shape="square"` 完全无效，且泄漏为非法 DOM 属性 `<button shape="square">`。
+      render(<Button shape="square">方形</Button>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('rounded-[var(--radius-md)]');
+      expect(button).not.toHaveClass('rounded-full');
+    });
+
+    it('shape 不应泄漏为 DOM 属性', () => {
+      render(<Button shape="square">方形</Button>);
+      expect(screen.getByRole('button')).not.toHaveAttribute('shape');
+    });
+
+    it('未传 shape 时应保持默认的圆角矩形（rounded-md）', () => {
+      render(<Button>默认</Button>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('rounded-md');
+      expect(button).not.toHaveClass('rounded-full');
+    });
+
+    it('shape="circle" 时文本仍应可见（不被裁剪）', () => {
+      render(<Button shape="circle">圆</Button>);
+      expect(screen.getByText('圆')).toBeInTheDocument();
     });
   });
 

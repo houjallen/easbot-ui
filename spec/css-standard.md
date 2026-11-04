@@ -1,6 +1,6 @@
 ---
 name: css-standard
-description: 该规范定义 easbot-ui 组件库的样式与主题契约，含 Tailwind CSS v4 构建期编译链路（src/theme/styles.css 单一入口 / @source '../**/*.{ts,tsx}' 扫描 src/ 且排除 .md / dist/styles.css 交付）、src/theme/ 目录布局与文件归属（styles.css 入口 / themes/ 主题变量 / fonts/ 字体 / images/ 图标 / styles/ 辅助样式）、构建与开发两条编译路径都必须启用 Tailwind 编译器（Storybook 侧漏注册 @tailwindcss/vite 会导致零个原子类生成、样式全丢）、CSS 变量命名规则（全局语义变量 / 组件私有前缀变量 / 状态后缀）、主题双文件机制（src/theme/themes/light.css 与 dark.css 必须同步且变量集合完全一致）、@theme inline 语义 token 注册规则（不注册则 bg-primary 等语义类静默失效）、灰阶变量必须用 hsl() 包裹（主题文件存的是裸 HSL 分量）、@custom-variant dark 对齐 data-theme 机制、层叠层顺序与优先级规则、CSS 变量 vs Tailwind 任意值的选型规则、样式 12 项扫描维度（每项含命令 + 判定 + 修正模式）、豁免清单与新增样式变量检查清单。当编写组件样式、新增主题变量、排查样式不生效或主题切换异常时参考。
+description: 该规范定义 easbot-ui 组件库的样式与主题契约，含 Tailwind CSS v4 构建期编译链路（src/theme/styles.css 单一入口 / @source '../**/*.{ts,tsx}' 扫描 src/ 且排除 .md / dist/styles.css 交付）、src/theme/ 目录布局与文件归属（styles.css 入口 / themes/ 主题变量 / fonts/ 字体 / images/ 图标 / styles/ 辅助样式）、构建与开发两条编译路径都必须启用 Tailwind 编译器（Storybook 侧漏注册 @tailwindcss/vite 会导致零个原子类生成、样式全丢）、CSS 变量命名规则（全局语义变量 / 组件私有前缀变量 / 状态后缀）、主题双文件机制（src/theme/themes/light.css 与 dark.css 必须同步且变量集合完全一致）、@theme inline 语义 token 注册规则（不注册则 bg-primary 等语义类静默失效）、灰阶变量必须用 hsl() 包裹（主题文件存的是裸 HSL 分量）、@custom-variant dark 对齐 data-theme 机制、层叠层顺序与优先级规则、CSS 变量 vs Tailwind 任意值的选型规则、样式 13 项扫描维度（每项含命令 + 判定 + 修正模式）、焦点态约定（focus-visible + outline，禁止用 focus: 与 ring 表达焦点，避免被误读为选中态）、图标按钮默认 ghost 风格、豁免清单与新增样式变量检查清单。当编写组件样式、新增主题变量、排查样式不生效或主题切换异常时参考。
 category: specification
 version: 2.1.1
 baseline-date: 2026-11-02
@@ -96,8 +96,8 @@ src/theme/
 ├── styles.css             # ⭐ 唯一编译入口（@source / @theme inline / @custom-variant / @utility）
 ├── index.ts               # 主题类型导出（Theme / themes）
 ├── themes/                # 主题变量层
-│   ├── light.css          #   ⭐ 亮色变量（:root[data-theme='light']，702 个）
-│   ├── dark.css           #   ⭐ 暗色变量（:root[data-theme='dark']，702 个）
+│   ├── light.css          #   ⭐ 亮色变量（:root[data-theme='light']，706 个）
+│   ├── dark.css           #   ⭐ 暗色变量（:root[data-theme='dark']，706 个）
 │   ├── variables.css      #   @theme 块（--font-sans / --radius-* / --eas-* 尺寸与层级）
 │   ├── index.ts           #   7 套主题的导入与类型
 │   └── variants/          #   额外 5 套主题（独立选择器，不被入口 import）
@@ -582,7 +582,7 @@ import '../src/theme/styles/iconfont/officefont.css';
 
 **硬性要求**：`themes/light.css` 与 `themes/dark.css` 的变量名集合**必须一一对应**。
 
-- 两文件当前各 **702** 个变量，集合差异 **0**
+- 两文件当前各 **706** 个变量，集合差异 **0**
 - ⚠️ **漏定义的后果**：某变量只在 light 里有 → dark 模式下该属性**失效**（浏览器解析为无效值），且**无任何报错**
 
 ### 2.3 变量命名规则
@@ -853,9 +853,99 @@ Radix 组件的状态通过 `data-*` 属性暴露，样式**必须**用 Tailwind
 default: 'border-gray-400 hover:border-gray-600 hover:bg-accent/20 active:bg-accent/30 dark:border-gray-500 dark:hover:border-gray-300',
 ```
 
+### 4.7 焦点态约定（⛔ 不得表现为「描边」）
+
+> 📌 **真值源**：[`src/ui/icon/icon-button.tsx`](../src/ui/icon/icon-button.tsx) 的 JSDoc「焦点态约定」。
+
+焦点指示**必须**满足三条硬约束：
+
+| 约束         | 规则                                                                                   | 原因                                                                  |
+| ------------ | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **触发器**   | 只用 `focus-visible:`，**禁止** `focus:`                                               | `focus:` 被鼠标点击触发，焦点圈常驻 → 误读为「选中态」                |
+| **绘制位置** | 用 `outline`（绘制在元素**之外**），**禁止** 用 `ring` 表达焦点                        | `ring` 紧贴元素边缘，圆形按钮上与 `border-radius` 重合 → 视觉等同描边 |
+| **可访问性** | **必须**保留可见焦点指示（WCAG 2.4.7），**不得**整体裸奔（既无 `outline` 也无 `ring`） | 键盘用户 Tab 后无任何视觉提示                                         |
+
+**标准写法**：
+
+```tsx
+// ✅ 正例（src/ui/icon/icon-button.tsx）
+'outline-none focus-visible:outline-2 focus-visible:outline-ring/70 focus-visible:outline-offset-2';
+```
+
+**反例**：
+
+```tsx
+// ❌ 用 focus: —— 鼠标点击后焦点圈常驻
+'focus:ring-2 focus:ring-ring';
+
+// ❌ 用 ring 表达焦点 —— 紧贴边缘，视觉等同描边
+'focus-visible:ring-[3px] focus-visible:ring-ring/50';
+
+// ❌ 焦点指示裸奔 —— 违反 WCAG 2.4.7
+'rounded-md p-1 hover:bg-muted-foreground/20';
+```
+
+**图标按钮的默认外观**：
+
+纯图标按钮（`IconButton` / `CloseButton` / `Button variant="ghost"`）**默认必须是 ghost 风格** ——
+**无静态背景、无边框、无阴影**，仅 `hover` 时给出背景反馈。
+需要实体按钮 / 激活态 / 边框样式时，由**应用层**通过 `className` 自行指定。
+
+```tsx
+// ✅ 默认 ghost（无 bg / 无 border / 无 shadow）
+'hover:bg-accent hover:text-accent-foreground'
+
+// ✅ 应用层自行指定特殊外观
+<IconButton icon="filter" className="bg-primary/10" />
+```
+
+> ⚠️ **例外**：菜单**项**（DropdownMenu / ContextMenu / Select 的选项）用 `focus:bg-accent` 表达高亮，
+> 属 Radix 的**键盘导航高亮**语义（业界标准做法），**不算缺陷**；
+> 但**独立触发器**（如 `NavigationMenu` 的 trigger）**不得**用 `focus:` 表达背景高亮。
+
+### 4.8 交互控件的硬编码颜色
+
+交互控件（按钮 / 复选框 / 折叠箭头等）的颜色**必须**走主题令牌，
+**禁止**硬编码 `gray-300` / `gray-200` 等灰阶字面量（不随暗色主题变化）。
+
+```tsx
+// ❌ 硬编码灰色 —— 暗色主题下仍是浅灰
+'border-gray-300 hover:bg-gray-200';
+
+// ✅ 走主题令牌
+'border-input hover:bg-accent';
+```
+
+### 4.9 禁用态的鼠标指针（⛔ 不得用 `pointer-events: none`）
+
+禁用态**必须**用 `cursor-not-allowed` 表达「不可操作」，
+⛔ **禁止**用 `pointer-events: none`。
+
+**为什么**：`pointer-events: none` 让元素对鼠标**完全透明**，
+浏览器解析光标时命中的是**下层元素**（通常是 `<body>`），
+于是 `cursor: not-allowed` **永远不会生效** —— 用户看到的仍是默认箭头。
+实测（Playwright hover）：`pointer-events: none` 的元素 hover 时报
+「`<body>` intercepts pointer events」。
+
+```tsx
+// ❌ 禁用态 —— cursor 永不生效，用户看不到「禁止」标识
+'disabled:pointer-events-none disabled:opacity-50';
+
+// ✅ 禁用态 —— 保留 pointer-events，只改光标
+'disabled:cursor-not-allowed disabled:opacity-50';
+```
+
+⚠️ **同理不得写内联 `style={{ cursor: 'pointer' }}`** ——
+内联样式优先级最高，会**覆盖**禁用态的 `cursor-not-allowed`。
+指针样式由 `src/theme/styles/prefix.css` 的全局规则统一处理。
+
+⚠️ **例外**：`pointer-events-none` 仍可用于**纯装饰性**场景
+（图标本身 `[_svg]:pointer-events-none`、遮罩层、渐变遮罩、动画层），
+此时元素**不承担交互语义**，不涉及 cursor 表达。
+
 ---
 
-## M. 12 项扫描维度（评审必跑）
+## M. 14 项扫描维度（评审必跑）
 
 > **执行纪律**：⛔ **禁止按组件分批跑**，模式必须**一次跑全库**。
 
@@ -1336,6 +1426,97 @@ src/theme-dark.css
 # ✅ 修正 —— 删除旧文件，只保留 src/theme/ 下的新结构
 ```
 
+### 维度 ⑬ 焦点态规范（⛔ 不得表现为「描边」）
+
+> 📌 对应条文：§4.7「焦点态约定」。
+
+**扫描命令**：
+
+```bash
+# ① 禁止用 focus: 表达焦点（会被鼠标点击触发，焦点圈常驻 → 误读为「选中态」）
+#    ⚠️ 菜单**项**的 focus:bg-accent 属 Radix 键盘高亮语义，豁免（见 §4.7 例外）
+rg -n "focus:(ring|border|outline|bg-)" -g "src/**/*.tsx" -g "!*stories.tsx" --no-heading
+
+# ② 禁止用 ring 表达焦点（紧贴边缘 → 视觉等同描边）
+rg -n "focus-visible:ring" -g "src/**/*.tsx" -g "!*stories.tsx" --no-heading
+
+# ③ 图标按钮不得默认带静态背景 / 阴影（应保持 ghost）
+rg -n "bg-card.*shadow|shadow-sm.*bg-card" -g "src/ui/icon/*.tsx" --no-heading
+
+# ④ 交互控件不得硬编码灰阶颜色
+rg -n "(border|bg)-gray-\d+" -g "src/**/*.tsx" -g "!*stories.tsx" --no-heading
+```
+
+**判定规则**：
+
+- ❌ 违规 1：出现 `focus:ring-*` / `focus:border-*` / `focus:outline-*` / `focus:bg-*`
+  （菜单项的 `focus:bg-accent` 豁免）
+- ❌ 违规 2：出现 `focus-visible:ring-*` —— 焦点指示必须用 `outline`
+- ❌ 违规 3：`src/ui/icon/` 下出现「静态背景 + 阴影」组合 —— 图标按钮默认必须是 ghost
+- ❌ 违规 4：交互控件出现硬编码 `gray-<档位>` 颜色 —— 必须走主题令牌
+- ✅ 合规：四条均通过
+
+**修正模式**：
+
+```tsx
+// ❌ 违规 —— focus: 被鼠标点击触发 / ring 紧贴边缘像描边
+'focus:outline-none focus:ring-2 focus:ring-ring';
+
+// ✅ 修正 —— focus-visible + outline（绘制在元素之外）
+'outline-none focus-visible:outline-2 focus-visible:outline-ring/70 focus-visible:outline-offset-2';
+
+// ❌ 违规 —— 图标按钮默认带底色 + 阴影
+'bg-card text-card-foreground shadow-sm';
+
+// ✅ 修正 —— ghost 风格，无静态背景 / 边框 / 阴影
+'hover:bg-accent hover:text-accent-foreground';
+
+// ❌ 违规 —— 硬编码灰色（不随暗色主题变化）
+'border-gray-300 hover:bg-gray-200';
+
+// ✅ 修正 —— 走主题令牌
+'border-input hover:bg-accent';
+```
+
+### 维度 ⑭ 禁用态鼠标指针（⛔ 不得用 `pointer-events: none`）
+
+> 📌 对应条文：§4.9「禁用态的鼠标指针」。
+
+**扫描命令**：
+
+```bash
+# ① 禁止用 pointer-events: none 表达禁用态
+#    （会让 cursor: not-allowed 永不生效 —— 元素对鼠标完全透明）
+rg -n "disabled:pointer-events-none|aria-disabled:pointer-events-none" \
+  -g "src/**/*.tsx" -g "!*stories.tsx" --no-heading
+
+# ② 禁止用内联 style 写 cursor（优先级最高，会覆盖禁用态的 cursor）
+rg -n "cursor:\s*'pointer'" -g "src/**/*.tsx" -g "!*stories.tsx" --no-heading
+```
+
+**判定规则**：
+
+- ❌ 违规 1：出现 `disabled:pointer-events-none` / `aria-disabled:pointer-events-none`
+  —— 禁用态必须用 `cursor-not-allowed`
+- ❌ 违规 2：出现内联 `style={{ cursor: 'pointer' }}` —— 会覆盖禁用态光标
+- ✅ 合规：两条均通过（`[_svg]:pointer-events-none` 等装饰性用法**豁免**）
+
+**修正模式**：
+
+```tsx
+// ❌ 违规 —— cursor 永不生效
+'disabled:pointer-events-none disabled:opacity-50'
+
+// ✅ 修正 —— 保留 pointer-events，只改光标
+'disabled:cursor-not-allowed disabled:opacity-50'
+
+// ❌ 违规 —— 内联 cursor 覆盖禁用态样式
+<button style={{ cursor: 'pointer' }} />
+
+// ✅ 修正 —— 交给 CSS 类表达
+<button className="disabled:cursor-not-allowed" />
+```
+
 ---
 
 ## M+1. 历史基准（2026-11-02 实测）
@@ -1347,7 +1528,7 @@ src/theme-dark.css
 | 编译入口                                   | **1 个**（`src/theme/styles.css`）                                                      |
 | `src/` 根的 CSS 文件                       | **0 个**（旧 `styles.css` / `theme-*.css` 已迁走）                                      |
 | `src/theme/` 子目录                        | **4 个**（`themes/` / `fonts/` / `images/` / `styles/`）+ 根文件                        |
-| light / dark 变量数                        | **702 / 702**，集合差异 **0**                                                           |
+| light / dark 变量数                        | **706 / 706**，集合差异 **0**                                                           |
 | 语义 token 注册数（`@theme inline`）       | **36**（26 语义色 + 8 sidebar + 灰阶 50~900）                                           |
 | 产物中 `prefers-color-scheme` 出现次数     | **0**                                                                                   |
 | 产物中 `data-theme` 出现次数               | **329**                                                                                 |

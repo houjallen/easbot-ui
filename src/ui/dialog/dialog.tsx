@@ -51,8 +51,15 @@ export const EunDialogContent = React.forwardRef<HTMLDivElement, EunDialogConten
         <button
           type="button"
           aria-label={toggleLabel}
-          className="absolute top-4 right-10 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
-          style={{ cursor: 'pointer' }}
+          // 📌 焦点指示用 `outline`（绘制在元素**之外**）而非 `ring`（紧贴边缘）——
+          //    圆形/方形按钮上 `ring` 与 `border-radius` 重合，视觉上就是一圈「描边」，
+          //    会被误读为「选中态」。详见 `ui/icon/icon-button.tsx` 的「焦点态约定」。
+          // 📌 该按钮是 Dialog 内首个可聚焦元素，Radix 打开时会自动聚焦 ——
+          //    用 `focus-visible:` 而非 `focus:`，避免「打开即选中态」。
+          className="absolute top-4 right-10 inline-flex size-6 items-center justify-center rounded-xs opacity-70 transition-opacity hover:bg-accent hover:opacity-100 focus:outline-hidden focus-visible:outline-2 focus-visible:outline-ring/70 focus-visible:outline-offset-2 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+          // 📌 **不得**写内联 `style={{ cursor: 'pointer' }}` ——
+          //    内联样式优先级最高，会**覆盖**禁用态的 `disabled:cursor-not-allowed`，
+          //    禁用时仍显示可点击的箭头。指针样式由 `prefix.css` 的全局规则统一处理。
           onClick={() => setMaximized((m) => !m)}
         >
           {maximized ? <Minimize /> : <Maximize />}

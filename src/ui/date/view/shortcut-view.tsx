@@ -50,7 +50,7 @@ export function useDefaultDateRangeShortcuts() {
  * />
  * }</pre>
  */
-export function ShortcutView({ shortcuts, onSelect, show = true, className, title, minWidth = 'w-28' }: ShortcutViewProps): React.ReactNode | null {
+export function ShortcutView({ shortcuts, onSelect, show = true, className, title, minWidth = 'min-w-28' }: ShortcutViewProps): React.ReactNode | null {
   const locale = useDatePickerLocale();
   const finalTitle = title || locale.shortcuts.title;
 
@@ -59,11 +59,15 @@ export function ShortcutView({ shortcuts, onSelect, show = true, className, titl
   }
 
   return (
-    <div className={cn(minWidth, 'border-r p-3', className)}>
+    // 📌 `w-fit` + `flex flex-col` —— 容器宽度 = **子项最大宽度**，
+    //    因此英文长文案（如 "This Quarter Start"）能撑开容器，不会溢出；
+    //    `min-w-*` 保证中文短文案时也有最小宽度。
+    //    `shrink-0` 防止在 `flex` 容器中被压缩。
+    <div className={cn(minWidth, 'w-fit shrink-0 border-r p-3', className)}>
       <div className="mb-2 font-medium text-sm">{finalTitle}</div>
-      <div className="space-y-1">
+      <div className="flex flex-col items-start gap-1">
         {shortcuts.map((shortcut, index) => (
-          <Button key={index} variant="ghost" size="sm" className="h-8 w-full justify-start text-xs" onClick={() => onSelect(shortcut)}>
+          <Button key={index} variant="ghost" size="sm" className="h-8 w-max justify-start text-xs" onClick={() => onSelect(shortcut)}>
             {shortcut.label}
           </Button>
         ))}
@@ -94,7 +98,7 @@ export function ShortcutView({ shortcuts, onSelect, show = true, className, titl
  * />
  * }</pre>
  */
-export function ShortcutRangeView({ shortcuts, onSelect, show = true, className, title, minWidth = 'w-28' }: ShortcutRangeViewProps) {
+export function ShortcutRangeView({ shortcuts, onSelect, show = true, className, title, minWidth = 'min-w-28' }: ShortcutRangeViewProps) {
   const locale = useDatePickerLocale();
   const finalTitle = title || locale.shortcuts.title;
 
@@ -103,11 +107,12 @@ export function ShortcutRangeView({ shortcuts, onSelect, show = true, className,
   }
 
   return (
-    <div className={cn(minWidth, 'border-r p-3', className)}>
+    // 📌 同 `ShortcutView` —— `w-fit` + `flex flex-col`，宽度随内容自适应
+    <div className={cn(minWidth, 'w-fit shrink-0 border-r p-3', className)}>
       <div className="mb-2 font-medium text-sm">{finalTitle}</div>
-      <div className="space-y-1">
+      <div className="flex flex-col items-start gap-1">
         {shortcuts.map((shortcut, index) => (
-          <Button key={index} variant="ghost" size="sm" className="h-8 w-full justify-start text-xs" onClick={() => onSelect(shortcut)}>
+          <Button key={index} variant="ghost" size="sm" className="h-8 w-max max-w-full justify-start text-xs" onClick={() => onSelect(shortcut)}>
             {shortcut.label}
           </Button>
         ))}
@@ -148,7 +153,7 @@ export function CombinedShortcutView({
   dateTitle,
   rangeTitle,
   mode = 'both',
-  minWidth = 'w-32',
+  minWidth = 'min-w-32',
 }: CombinedShortcutViewProps) {
   const locale = useDatePickerLocale();
   const finalTitle = title || locale.shortcuts.title;
@@ -167,7 +172,8 @@ export function CombinedShortcutView({
   }
 
   return (
-    <div className={cn(minWidth, 'border-r p-3', className)}>
+    // 📌 同上 —— `w-fit` + `flex flex-col`，宽度随内容自适应
+    <div className={cn(minWidth, 'w-fit shrink-0 border-r p-3', className)}>
       {/* 主标题 */}
       {title && <div className="mb-3 border-b pb-2 font-medium text-sm">{finalTitle}</div>}
 
@@ -175,9 +181,9 @@ export function CombinedShortcutView({
       {shouldShowDate && (
         <div className="mb-3">
           <div className="mb-2 font-medium text-muted-foreground text-xs">{finalDateTitle}</div>
-          <div className="space-y-1">
+          <div className="flex flex-col items-start gap-1">
             {dateShortcuts.map((shortcut, index) => (
-              <Button key={`date-${index}`} variant="ghost" size="sm" className="h-7 w-full justify-start text-xs" onClick={() => onDateSelect?.(shortcut)}>
+              <Button key={`date-${index}`} variant="ghost" size="sm" className="h-7 w-max justify-start text-xs" onClick={() => onDateSelect?.(shortcut)}>
                 {shortcut.label}
               </Button>
             ))}
@@ -189,9 +195,9 @@ export function CombinedShortcutView({
       {shouldShowRange && (
         <div>
           <div className="mb-2 font-medium text-muted-foreground text-xs">{finalRangeTitle}</div>
-          <div className="space-y-1">
+          <div className="flex flex-col items-start gap-1">
             {rangeShortcuts.map((shortcut, index) => (
-              <Button key={`range-${index}`} variant="ghost" size="sm" className="h-7 w-full justify-start text-xs" onClick={() => onRangeSelect?.(shortcut)}>
+              <Button key={`range-${index}`} variant="ghost" size="sm" className="h-7 w-max justify-start text-xs" onClick={() => onRangeSelect?.(shortcut)}>
                 {shortcut.label}
               </Button>
             ))}

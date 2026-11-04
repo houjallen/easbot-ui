@@ -359,6 +359,10 @@ export const HapticFeedback: Story = {
  * 展示所有可用的 CloseButton 样式变体
  */
 export const CloseButtonVariants: Story = {
+  args: {
+    variant: 'default',
+  },
+
   render: () => (
     <div className="flex flex-wrap gap-4">
       <CloseButton variant="default" />
@@ -372,6 +376,7 @@ export const CloseButtonVariants: Story = {
       <CloseButton variant="info" />
     </div>
   ),
+
   parameters: {
     docs: {
       description: {

@@ -530,11 +530,42 @@ export const AllRadixIcons: Story = {
 
 export const CustomNodeIcon: Story = {
   render: () => (
-    <IconButton variant="destructive" size="icon">
+    // 📌 `size` 只接受 `number | string`（像素 / CSS 长度），**不是** Button 的 size token。
+    //    传 `size="icon"` 会把非法值 `icon` 写进内联 style，导致尺寸塌陷 —— 此处传 `32`。
+    <IconButton variant="destructive" size={32} aria-label="关闭">
       <XCircle />
     </IconButton>
   ),
   name: '自定义 SVG 节点（IconButton）',
+};
+
+/**
+ * IconButton 默认 ghost 样式 + 应用方自定义外观
+ *
+ * 📌 默认样式为 **ghost**（无背景 / 无边框 / 无阴影），仅 hover 时给出背景反馈。
+ *    应用如需实体按钮或激活态，通过 `className` 自行指定。
+ */
+export const IconButtonAppearance: Story = {
+  render: () => (
+    <div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
+      {/* 默认 —— ghost，无底色 */}
+      <IconButton icon="settings" aria-label="默认 ghost" size={36} />
+      {/* 应用方指定实体背景 */}
+      <IconButton icon="settings" aria-label="自定义背景" size={36} className="bg-muted shadow-sm" />
+      {/* 应用方指定激活态（表格排序/筛选按钮的典型用法） */}
+      <IconButton icon="filter" aria-label="激活态" size={36} className="bg-primary/10" />
+      {/* 应用方指定方形 + 边框 */}
+      <IconButton icon="settings" aria-label="方形带边框" size={36} shape="square" className="border border-input" />
+    </div>
+  ),
+  name: 'IconButton 外观（默认 ghost / 自定义）',
+  parameters: {
+    docs: {
+      description: {
+        story: 'IconButton 默认为 ghost 风格（无背景 / 无边框 / 无阴影），仅 hover 时给出背景反馈；' + '应用如需实体按钮、激活态或边框样式，通过 `className` 自行指定。',
+      },
+    },
+  },
 };
 
 // 所有已全局注册的 eas 自定义图标 name 列表

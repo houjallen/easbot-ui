@@ -32,9 +32,19 @@ export interface InputFileProps extends BaseUploadProps {
   name?: string;
 }
 
+/**
+ * 空文件列表常量
+ *
+ * @description
+ * 作为 `value` 的默认值时必须复用**同一个数组引用**——
+ * 若在默认参数位置直接写 `[]`，每次渲染都会产生新数组，
+ * 会让「同步外部 value」的 effect 依赖每渲染都变，触发无限渲染循环。
+ */
+const EMPTY_FILES: FileInfo[] = [];
+
 export const InputFile: React.FC<InputFileProps> = ({
   httpClient = {},
-  value = [],
+  value = EMPTY_FILES,
   onChange,
   multiple = false,
   disabled = false,
@@ -58,6 +68,9 @@ export const InputFile: React.FC<InputFileProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<FileInfo[]>(value);
+  // 标记「最近一次 files 变化是否由内部操作触发」——
+  // 内部触发才需要回调 onChange；外部 value 变化只做同步，不回抛。
+  const internalChangeRef = useRef(false);
   // 创建消息处理器
   const getMessage = createMessageProcessor({
     locale: locale,
@@ -72,32 +85,34 @@ export const InputFile: React.FC<InputFileProps> = ({
   const isDragMode = dropzone.enabled;
   const isAppendMode = fileList?.showUploadButton && !isDragMode;
   const isButtonMode = !isDragMode && !isAppendMode;
+
   // 同步外部value
   useEffect(() => {
+    internalChangeRef.current = false;
     setFiles(value);
   }, [value]);
 
+  // 内部状态变化时回调 onChange
+  useEffect(() => {
+    if (!internalChangeRef.current) return;
+    internalChangeRef.current = false;
+    onChange?.(files);
+  }, [files, onChange]);
+
   // 更新文件列表
-  const updateFiles = useCallback(
-    (newFiles: FileInfo[]) => {
-      setFiles(newFiles);
-      onChange?.(newFiles);
-    },
-    [onChange],
-  );
+  const updateFiles = useCallback((newFiles: FileInfo[]) => {
+    internalChangeRef.current = true;
+    setFiles(newFiles);
+  }, []);
 
   // 更新单个文件
-  const updateFile = useCallback(
-    (fileId: string, updates: Partial<FileInfo>) => {
-      setFiles((prevFiles) => {
-        const newFiles = prevFiles.map((file) => (file.id === fileId ? { ...file, ...updates } : file));
-        onChange?.(newFiles);
-        return newFiles;
-      });
-    },
-    [onChange],
-  );
-
+  const updateFile = useCallback((fileId: string, updates: Partial<FileInfo>) => {
+    // ⚠️ `onChange` 通过 effect 统一回抛 ——
+    //    状态更新函数内不得有副作用（React 严格模式下会被重复调用，
+    //    且若 `onChange` 反向驱动 `value` 会形成死循环）。
+    internalChangeRef.current = true;
+    setFiles((prevFiles) => prevFiles.map((file) => (file.id === fileId ? { ...file, ...updates } : file)));
+  }, []);
   // 验证文件数量
   const validateFileCount = useCallback(
     (newFileCount: number) => {

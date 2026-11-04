@@ -39,12 +39,23 @@ export interface ViewSelectorHeaderProps {
   onViewModeChange: (mode: ViewMode) => void;
   viewDate: Dayjs;
   onViewDateChange: (date: Dayjs) => void;
-  selectedDate?: Dayjs;
   minDate?: Dayjs;
   maxDate?: Dayjs;
+  /**
+   * 是否启用时间视图
+   *
+   * @description
+   * 开启后，标题点击可从「年」进入「时间」视图（`years` 是最末级视图，
+   * 没有时间视图时标题不可点击）。
+   */
   showTimeView?: boolean;
+  /**
+   * 是否启用季度视图
+   *
+   * @description
+   * 开启后，标题点击从「月」进入「季度」而非「年」（不跳过季度视图）。
+   */
   showQuarterView?: boolean;
-  isValidDate?: (date: Dayjs) => boolean;
   className?: string;
 }
 
@@ -78,7 +89,13 @@ export interface BaseShortcutViewProps {
   className?: string;
   /** 标题 */
   title?: string;
-  /** 最小宽度 */
+  /**
+   * 最小宽度
+   *
+   * @description
+   * Tailwind 的**最小宽度**类（如 `min-w-28`）——
+   * 容器至少是该宽度，内容更长时（如英文长文案）由内容撑开。
+   */
   minWidth?: string;
 }
 

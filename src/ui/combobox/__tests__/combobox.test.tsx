@@ -126,6 +126,39 @@ describe('Combobox 组件', () => {
       await user.click(disabledOption);
       expect(handleChange).not.toHaveBeenCalled();
     });
+
+    it('触发器内不应出现嵌套的 button（避免非法 HTML 与 hydration 错误）', async () => {
+      const user = userEvent.setup();
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      render(<Combobox options={options} multiple />);
+
+      await user.click(screen.getByRole('combobox'));
+      await user.click(await screen.findByText('选项1'));
+
+      // 📌 回归防护：触发器是 <button>，多选态的「移除 X」此前也是 <button>，
+      //    构成非法嵌套（React 告警 + SSR hydration 错误）。
+      const trigger = screen.getByRole('combobox');
+      expect(trigger.querySelector('button')).toBeNull();
+
+      // React 19 对非法嵌套会通过 console.error 告警
+      expect(consoleError).not.toHaveBeenCalledWith(expect.stringContaining('cannot be a descendant of'), expect.anything());
+      consoleError.mockRestore();
+    });
+
+    it('移除控件应该是可聚焦的 role=button，且能通过键盘触发', async () => {
+      const user = userEvent.setup();
+      const handleChange = vi.fn();
+      render(<Combobox options={options} multiple value={['1']} onChange={handleChange} />);
+
+      const removeControl = screen.getByRole('button', { name: '移除选项' });
+      expect(removeControl).toHaveAttribute('tabindex', '0');
+      expect(removeControl.tagName).toBe('SPAN');
+
+      removeControl.focus();
+      await user.keyboard('{Enter}');
+
+      expect(handleChange).toHaveBeenLastCalledWith([]);
+    });
   });
 
   // 搜索测试
@@ -260,6 +293,42 @@ describe('Combobox 组件', () => {
     it('triggerClassName 应追加到触发器上（末位生效）', () => {
       render(<Combobox options={options} triggerClassName="custom-trigger" />);
       expect(screen.getByRole('combobox')).toHaveClass('custom-trigger');
+    });
+  });
+
+  // 回归测试（ADR 0001 / 批次二-2）
+  describe('属性透传回归测试', () => {
+    it('className 应该作用于外层容器（而不是被静默吞掉）', () => {
+      // 📌 回归防护：此前 `className` 被解构出来却**从未使用** ——
+      //    消费方传的类名被静默丢弃，只能用 `triggerClassName` 给内层 button 加样式，
+      //    却无法给外层 wrapper（`grid w-full gap-1.5`）加样式。
+      const { container } = render(<Combobox options={options} className="custom-wrapper" />);
+      expect(container.firstChild).toHaveClass('custom-wrapper');
+    });
+
+    it('errorMessage 应该渲染为错误文案', () => {
+      // 📌 回归防护：此前 `errorMessage` 是**死 prop** —— 声明了但从未被读取，
+      //    落入 `...props` 被展开到触发器 `<button>` 上，
+      //    变成非法 DOM 属性 `<button errorMessage="…">`，而非显示为错误文案。
+      render(<Combobox options={options} error errorMessage="请选择有效选项" />);
+      expect(screen.getByText('请选择有效选项')).toBeInTheDocument();
+    });
+
+    it('errorMessage 不应泄漏为 DOM 属性', () => {
+      render(<Combobox options={options} error errorMessage="请选择有效选项" />);
+      expect(screen.getByRole('combobox')).not.toHaveAttribute('errorMessage');
+    });
+
+    it('errorMessage 应该与 aria-invalid 联动', () => {
+      render(<Combobox options={options} error errorMessage="请选择有效选项" />);
+      expect(screen.getByRole('combobox')).toHaveAttribute('aria-invalid', 'true');
+    });
+
+    it('未传 errorMessage 时不应渲染错误文案段落', () => {
+      const { container } = render(<Combobox options={options} error />);
+      // 📌 `error` 是 boolean，React 渲染 boolean 为文本节点时不输出任何内容 ——
+      //    因此未传 `errorMessage` 时不应存在 `text-destructive` 的错误文案段落。
+      expect(container.querySelector('.text-destructive')).toBeNull();
     });
   });
 });

@@ -25,28 +25,85 @@ import * as React from 'react';
 export type Theme = 'light' | 'dark' | 'system';
 
 /** 主题存储键名 */
-export const THEME_STORAGE_KEY = 'easbot-ui-theme';
+export const THEME_STORAGE_KEY = 'eas-ui-theme';
 
-/** 主题 Provider 属性 */
+/**
+ * 主题 Provider 属性
+ *
+ * @description
+ * 支持**受控**（`theme` + `onThemeChange`）与**非受控**（`defaultTheme`）两种模式，
+ * 受控值优先于非受控值。
+ */
 export interface ThemeProviderProps {
+  /** 子节点 */
   children?: React.ReactNode;
   /** 挂载到哪个元素上 */
   container?: HTMLElement | null;
-  /** 主题属性名 */
+  /**
+   * 主题属性名
+   *
+   * @defaultValue 'data-theme'
+   *
+   * @description
+   * 写入 `<html>` 的属性名，需与主题 CSS 的选择器约定一致
+   * （本库为 `:root[data-theme='light|dark']`，见 `spec/css-standard.md`）。
+   */
   attribute?: string;
-  /** 默认主题 */
+  /**
+   * 默认主题（非受控模式的初始值）
+   *
+   * @defaultValue 'system'
+   */
   defaultTheme?: Theme;
-  /** 是否启用 `system` 主题 */
+  /**
+   * 是否启用 `system` 主题
+   *
+   * @defaultValue true
+   *
+   * @description
+   * 关闭后 `theme` 不会取到 `'system'`。
+   */
   enableSystem?: boolean;
   /** 是否禁用切换过渡动画 */
   disableTransitionOnChange?: boolean;
   /** 所有可用主题 */
   themes?: Theme[];
-  /** 受控模式的主题值 */
+  /**
+   * 受控模式的主题值
+   *
+   * @description
+   * 传入即为受控模式 —— 本 Provider **不会**自行修改该值。
+   */
   theme?: Theme;
   /** 主题变化回调 */
   onThemeChange?: (theme: Theme) => void;
 }
+
+/**
+ * 主题上下文值
+ *
+ * @description
+ * `theme` 可能是 `'system'`（用户意图），`resolvedTheme` 是**实际生效**的主题
+ * （`'system'` 已被解析为 `light` / `dark`）—— 组件读样式时**必须**用后者。
+ */
+export interface ThemeContextValue {
+  /** 当前主题（可能是 `system`） */
+  theme: Theme;
+  /** 实际生效的主题（`system` 已解析为 light/dark） */
+  resolvedTheme: 'light' | 'dark';
+  /** 设置主题 */
+  setTheme: (theme: Theme) => void;
+  /** 是否启用 system 主题 */
+  enableSystem: boolean;
+}
+
+/**
+ * 主题上下文
+ *
+ * @description
+ * 默认为 `undefined`，便于 `useTheme` 在无 Provider 时降级读 DOM。
+ */
+export const ThemeContext = React.createContext<ThemeContextValue | undefined>(undefined);
 
 /**
  * 读取系统偏好主题
@@ -172,26 +229,11 @@ export function ThemeProvider({
 }
 
 /**
- * 主题上下文值
- */
-export interface ThemeContextValue {
-  /** 当前主题（可能是 `system`） */
-  theme: Theme;
-  /** 实际生效的主题（`system` 已解析为 light/dark） */
-  resolvedTheme: 'light' | 'dark';
-  /** 设置主题 */
-  setTheme: (theme: Theme) => void;
-  /** 是否启用 system 主题 */
-  enableSystem: boolean;
-}
-
-/**
- * 主题上下文
- */
-export const ThemeContext = React.createContext<ThemeContextValue | undefined>(undefined);
-
-/**
  * 临时禁用过渡动画的包装
+ *
+ * @description
+ * 切换主题的瞬间给 `<html>` 打上标记，让 CSS 过渡失效 ——
+ * 避免「背景色已变、边框色未变」的中间态闪烁。
  *
  * @param props 组件属性
  * @returns 包装组件
@@ -211,29 +253,6 @@ function DisableTransition({ children }: { children?: React.ReactNode }) {
   }, [children]);
 
   return <>{children}</>;
-}
-
-/**
- * 读取当前主题
- *
- * @returns 主题信息；无 Provider 时返回默认值
- */
-export function useTheme(): ThemeContextValue {
-  const context = React.useContext(ThemeContext);
-
-  if (context) return context;
-
-  // 无 Provider 时降级：直接读 DOM
-  const resolved = typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-
-  return {
-    theme: resolved,
-    resolvedTheme: resolved,
-    setTheme: () => {
-      /* 无 Provider 时不做任何事 */
-    },
-    enableSystem: false,
-  };
 }
 
 export default ThemeProvider;

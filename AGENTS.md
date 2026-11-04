@@ -4,8 +4,8 @@
 > 详细信息一律索引到 [`README.md`](./README.md) / [`README.en.md`](./README.en.md) / `src/`，
 > 本文档**不重复**详细说明。
 
-> **项目定位**：`@easbot/ui` 是一个**独立的单包 React 组件库**（54 个公开组件，基于 Radix UI + Tailwind CSS v4），
-> 不是 monorepo，不含 `packages/` / `skills/` / `docs/decisions/` 目录。
+> **项目定位**：`@easbot/ui` 是一个**独立的单包 React 组件库**（56 个公开组件，基于 Radix UI + Tailwind CSS v4），
+> 不是 monorepo，不含 `packages/` / `skills/` 目录。
 >
 > **规范体系**：`spec/` 是本库的**开发宪法**（8 份文档），
 > 入口见 [`spec/spec-index.md`](./spec/spec-index.md) —— 新增组件 / 改样式 / 写测试前**先读对应规范**。
@@ -103,19 +103,20 @@ pnpm publish:npm:win      # 发布到 npm（Windows PowerShell）
 .
 ├── src/
 │   ├── index.ts              # 公开 API 出口（tsup 唯一构建入口）
-│   ├── ui/                   # 公开组件层（54 个组件目录）
+│   ├── ui/                   # 公开组件层（56 个组件目录）
 │   │   └── <component>/      # 实现文件 + __tests__/ + index.ts
-│   ├── design-system/        # 设计系统层（48 个基础组件 + Provider + hooks + lib）
+│   ├── components/           # 应用层组件（ThemeToggle / LocaleToggle）
+│   ├── design-system/        # 设计系统层（46 个基础组件 + Provider + hooks + lib）
 │   ├── models/               # 数据契约层（Zod Schema：table / filter / data-store / axios）
 │   ├── utils/                # 通用工具层（cn / object / locale / error / validation-rule …）
 │   │   ├── ui-message.ts         # i18n 处理引擎（processUiMessage 等纯函数）
-│   │   ├── component-messages.ts # 内置文案表（22 个文案域，zh-CN + en-US）
+│   │   ├── component-messages.ts # 内置文案表（21 个文案域，zh-CN + en-US）
 │   │   └── use-component-message.ts # React 侧文案 Hook（useComponentMessage）
-│   ├── hooks/                # 通用 React Hook（useDevice / useLocale）
-│   ├── providers/            # 上下文 Provider（LocaleProvider）
+│   ├── hooks/                # 通用 React Hook（useDevice / useLocale / useTheme）
+│   ├── providers/            # 上下文 Provider（LocaleProvider / ThemeProvider / NotifyProvider）
 │   ├── theme/                # 主题资源层（唯一 CSS 入口 / 字体 / 多套主题 / tokens）
 │   │   ├── styles.css            # ⭐ Tailwind v4 唯一编译入口（@source 扫描 src/）
-│   │   └── themes/               #   light.css（702 个）/ dark.css（702 个）+ 5 套扩展主题
+│   │   └── themes/               #   light.css（706 个）/ dark.css（706 个）+ 5 套扩展主题
 │   └── types/                # 类型声明（typings.d.ts）
 ├── tests/
 │   ├── setup.ts              # Vitest 全局设置（jest-dom/vitest matcher 注册 + RTL cleanup）
@@ -177,7 +178,7 @@ src/ui/<component>/
 | **变体**     | 用 `cva`（class-variance-authority）定义 `variants` + `defaultVariants`，常量名 `<component>Variants`                                                    |
 | **图标**     | **唯一使用 `lucide-react`**；**必须**具名导入（`import { Loader2 } from 'lucide-react'`），**禁止**命名空间导入 / 引入第二图标库 / 内联 SVG path         |
 | **无障碍**   | 基于 Radix primitives；透传 `aria-*` / `data-*` 属性；交互元素必须有键盘可达性                                                                           |
-| **主题**     | 新增样式变量必须在 `src/theme/themes/light.css` 与 `src/theme/themes/dark.css` **两处**同步定义（当前各 702 个变量）                                     |
+| **主题**     | 新增样式变量必须在 `src/theme/themes/light.css` 与 `src/theme/themes/dark.css` **两处**同步定义（当前各 706 个变量）                                     |
 | **语义类**   | `bg-primary` 等语义类**必须**经 `@theme inline` 注册，否则**静默失效**                                                                                   |
 | **类型导入** | `verbatimModuleSyntax` 开启 —— 类型**必须**用 `import type` 显式导入（否则 TS1484）                                                                      |
 | **路径**     | **禁止** `@/` 路径别名，一律用**相对路径**                                                                                                               |
@@ -239,6 +240,8 @@ src/ui/<component>/
 1. **commit message**：`<type>(<scope>): <description>`，summary ≤ 72 字符
    - type：`feat | fix | docs | test | chore | refactor | perf | ci`
    - scope：组件名（`button` / `dialog` / `toast` …）或 `build` / `test` / `ci` / `deps` / `docs`
+   - description 用中文，说明**做了什么**（不写「更新代码」这类空话）
+   - body 可选：解释**为什么**这么改、影响面、迁移指引
 2. **分支**：从 `main` 拉 `feature/<scope>-<name>` / `fix/<scope>-<name>` / `chore/<scope>-<name>` /
    `docs/<scope>-<name>` / `refactor/<scope>-<name>`，合并回 `main`（无 develop 分支）。
 3. **自动化**：
@@ -247,6 +250,38 @@ src/ui/<component>/
    - **无需手跑** `pnpm lint && pnpm type-check`（CI 会跑）
 4. **版本管理**：`pnpm version:patch|minor|major`（脚本 `scripts/bump-version.ts`），
    自动同步 `package.json` + README 版本段 + CHANGELOG，打 tag `easbot-ui@<version>`。
+
+### 提交前的「影响面 → 文档」对照
+
+**改了 `src/ui/<component>/` 就必须同步 `docs/components/**/<component>.md`。**
+提交前按改动类型对照下表，缺一项就别提交：
+
+| 改动类型                                           | 必须同步的位置                                                                                      |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| props 增删 / 改名 / 类型变化                       | 对应组件文档的「属性」表                                                                            |
+| 行为语义变化（默认值、判定规则、错误处理）         | 对应组件文档的「注意事项」+ 正文说明                                                                |
+| 导出面变化（新增 / 删除 / 重命名导出）             | 对应组件文档的「导出」章节 + `docs/README.md` + 根 `README.md` / `README.en.md`                     |
+| 主题变量增删                                       | `src/theme/themes/light.css` **与** `dark.css` 同步 + `docs/theming.md`                             |
+| 内置文案增删                                       | `src/utils/component-messages.ts`（zh-CN + en-US **同步**）+ `docs/getting-started.md` 的文案域清单 |
+| 组件目录增删                                       | `docs/README.md` 组件清单 + 根 `README.md` / `README.en.md` 的组件数量                              |
+| **破坏性变更**（props 语义 / DOM 结构 / 导出形状） | `docs/decisions/` 新增 ADR + `CHANGELOG.md` + 版本 bump                                             |
+
+> 📌 **组件数量 / 导出数量 / 文案域数量**是三个**必须与代码一致**的数字，
+> 改动后用脚本核对（勿手数）：
+>
+> ```bash
+> (Get-ChildItem src/ui -Directory).Count                                    # 组件目录数
+> pnpm build && grep -c 'export' dist/index.d.ts                             # 导出总数（构建后）
+> grep -cE '^\s{2}[a-zA-Z]+:\s*[a-zA-Z]+Messages,' src/utils/component-messages.ts  # 文案域数
+> ```
+
+### 提交粒度
+
+- ✅ **一个提交 = 一件事** —— 修缺陷 / 加功能 / 改文档分开提交，便于回滚与 bisect。
+- ✅ **代码与测试同提交** —— 修复必须带回归用例（AGENTS.md 第 8 条）。
+- ✅ **代码与其对应文档同提交** —— 不留「代码已改、文档待补」的中间态。
+- ❌ **不提交无关改动** —— 格式化 / import 排序等噪声单独一笔 `chore` 提交。
+- ❌ **不把 `dist/`、`.env`、凭据文件纳入版本库**。
 
 ### Agent 安全红线
 

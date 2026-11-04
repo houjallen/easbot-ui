@@ -8,10 +8,10 @@
  * 二者都属于**业务侧职责**，组件库不内置 —— 需要时请在消费方自行包裹。
  */
 
-import type { ThemeProviderProps } from './providers/theme-provider';
+import type { ThemeProviderProps } from '../providers/theme-provider';
 import { Toaster } from './components/ui/sonner';
 import { TooltipProvider } from './components/ui/tooltip';
-import { ThemeProvider } from './providers/theme-provider';
+import { ThemeProvider } from '../providers/theme-provider';
 
 /** DesignSystemProvider 属性 */
 export type DesignSystemProviderProps = ThemeProviderProps & {
@@ -42,8 +42,5 @@ export const DesignSystemProvider = ({ children, privacyUrl: _privacyUrl, termsU
     <Toaster />
   </ThemeProvider>
 );
-
-export { ThemeProvider, useTheme } from './providers/theme-provider';
-export type { Theme, ThemeProviderProps } from './providers/theme-provider';
 
 export default DesignSystemProvider;

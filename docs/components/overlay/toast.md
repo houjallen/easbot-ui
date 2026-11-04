@@ -1,40 +1,79 @@
-﻿# Toast 轻提示
+# Toast 通知容器
 
 > 短暂浮现在页面角落的通知，用于告知操作结果、错误信息或系统状态。
 
+---
+
 **导入**
-
-```tsx
-import { Toast } from '@easbot/ui';
-```
-
-## 基础用法
-
-> Radix 的 `Toast` **必须**挂在 `ToastViewport` 之下，否则 `Toast` 组件会返回 `null`（不渲染任何内容）。请确保 `ToastProvider` → `ToastViewport` → `Toast` 的层级顺序。
-
-```tsx
-import { Toast, ToastDescription, ToastProvider, ToastTitle, ToastViewport } from '@easbot/ui';
-
-export default function App() {
-  return (
-    <ToastProvider>
-      <ToastViewport />
-      <Toast>
-        <ToastTitle>保存成功</ToastTitle>
-        <ToastDescription>你的更改已同步。</ToastDescription>
-      </Toast>
-    </ToastProvider>
-  );
-}
-```
-
-带操作按钮与关闭按钮：
 
 ```tsx
 import {
   Toast,
   ToastAction,
-  ToastClose,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+  Toaster,
+} from '@easbot/ui';
+```
+
+## 基础用法
+
+> 推荐直接使用 `Toaster` 容器 —— 它把 `useToast()` 维护的内存状态渲染为 DOM，并自动处理位置、时长与默认标题。调用侧的用法见 [`useToast` 文档](./use-toast.md)。
+
+```tsx
+import { Button } from '@easbot/ui';
+import { Toaster, useToast } from '@easbot/ui';
+
+export default function App() {
+  const { toast } = useToast();
+
+  return (
+    <>
+      <Button
+        onClick={() =>
+          toast({
+            title: '操作成功',
+            description: '数据已保存',
+            variant: 'success',
+          })
+        }
+      >
+        显示成功提示
+      </Button>
+      <Toaster />
+    </>
+  );
+}
+```
+
+设置全局默认位置与时长：
+
+```tsx
+<Toaster position="top-center" duration={10000} />
+```
+
+带操作按钮：
+
+```tsx
+toast({
+  title: '待处理',
+  description: '有一个新的待处理任务',
+  action: (
+    <Button variant="outline" size="sm">
+      查看详情
+    </Button>
+  ),
+});
+```
+
+完全手写通知（不走 `Toaster`）：
+
+```tsx
+import {
+  Toast,
+  ToastAction,
   ToastDescription,
   ToastProvider,
   ToastTitle,
@@ -45,162 +84,121 @@ export default function App() {
   return (
     <ToastProvider>
       <ToastViewport />
-      <Toast>
-        <ToastTitle>操作已撤销</ToastTitle>
-        <ToastDescription>文件已恢复到回收站。</ToastDescription>
-        <ToastAction altText="撤销恢复操作">撤销</ToastAction>
-        <ToastClose />
+      <Toast variant="success" position="bottom-right">
+        <ToastTitle>保存成功</ToastTitle>
+        <ToastDescription>你的更改已同步。</ToastDescription>
+        <ToastAction altText="撤销保存操作">撤销</ToastAction>
       </Toast>
     </ToastProvider>
   );
 }
 ```
 
-## 组成部分
-
-| 子组件             | 说明                                                                            |
-| ------------------ | ------------------------------------------------------------------------------- |
-| `ToastProvider`    | 全局提供者，管理默认时长、滑动方向与播报容器（对应 Radix `Toast.Provider`）     |
-| `ToastViewport`    | 视口容器，渲染为 `<ol>`，负责 Toast 的定位与堆叠（对应 Radix `Toast.Viewport`） |
-| `Toast`            | 单条提示，渲染为 `<li>`（对应 Radix `Toast.Root`）                              |
-| `ToastTitle`       | 标题（对应 Radix `Toast.Title`）                                                |
-| `ToastDescription` | 描述（对应 Radix `Toast.Description`）                                          |
-| `ToastAction`      | 操作按钮（对应 Radix `Toast.Action`），**必须**传 `altText`                     |
-| `ToastClose`       | 关闭按钮（对应 Radix `Toast.Close`）                                            |
+> Radix 的 `Toast` **必须**挂在 `ToastViewport` 之内，否则会返回 `null`（不渲染任何内容）。
+> 关闭按钮由 `Toast` 组件自动渲染，无需手动添加 `ToastClose`。
 
 ## 变体
 
-`Toast` 的样式由内部 `cva`（`toastVariants`）定义，共 1 个维度。
+### variant
 
-### variant（配色）
-
-| 取值          | 说明                                                                                                    |
-| ------------- | ------------------------------------------------------------------------------------------------------- |
-| `default`     | 使用 `--toast-border` / `--toast-background` / `--toast-foreground`，**默认值**                         |
-| `destructive` | 使用 `--toast-destructive-border` / `--toast-destructive-background` / `--toast-destructive-foreground` |
-| `success`     | 使用 `--toast-success-border` / `--toast-success-background` / `--toast-success-foreground`             |
-
-> `variant="destructive"` 时还会额外命中 `group-[.destructive]:` 系列样式（作用于 `ToastAction` 与 `ToastClose`），例如 `ToastClose` 的文字色会切换为 `--toast-close-destructive-text`。**注意**：该选择器要求 Toast 根元素自身带有 `.destructive` 类名，而当前实现的 `toastVariants` 只输出 CSS 变量类，**并未**输出 `.destructive` 类名，因此这组 `group-[.destructive]:` 样式在当前实现下**不会生效**。
+| 取值              | 说明                                                                       |
+| ----------------- | -------------------------------------------------------------------------- |
+| `default`（默认） | 使用 card 配色（`bg-card` / `text-card-foreground`），描述与图标跟随前景色 |
+| `destructive`     | 危险配色，红色边框 + 红底 + destructive 文字色                             |
+| `success`         | 成功配色，绿色边框 + 浅绿底 + 深绿文字色                                   |
+| `warning`         | 警告配色，黄色边框 + 浅黄底 + 深黄文字色                                   |
+| `info`            | 信息配色，蓝色边框 + 浅蓝底 + 深蓝文字色                                   |
 
 ## 属性
 
-### ToastProvider
+继承自 `UiMessageProps`。
 
-| 属性                 | 类型                                  | 默认值           | 说明                                                                                        |
-| -------------------- | ------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------- |
-| `label`              | `string`                              | `'Notification'` | 供屏幕阅读器关联通知的本地化标签，来自 Radix primitives（`Toast.Provider`）                 |
-| `duration`           | `number`                              | `5000`           | 每条提示的默认显示时长（毫秒），来自 Radix primitives（`Toast.Provider`）                   |
-| `swipeDirection`     | `'up' \| 'down' \| 'left' \| 'right'` | `'right'`        | 触发关闭的指针滑动方向，来自 Radix primitives（`Toast.Provider`）                           |
-| `swipeThreshold`     | `number`                              | `50`             | 触发关闭所需的滑动距离（像素），来自 Radix primitives（`Toast.Provider`）                   |
-| `announcerContainer` | `Element \| DocumentFragment`         | `document.body`  | 提示播报内容挂载的容器（焦点陷阱场景下需要指定），来自 Radix primitives（`Toast.Provider`） |
-| `children`           | `React.ReactNode`                     | —                | 子节点，来自 Radix primitives（`Toast.Provider`）                                           |
+| 属性         | 类型            | 默认值 | 说明                                                |
+| ------------ | --------------- | ------ | --------------------------------------------------- |
+| `position?`  | `ToastPosition` | —      | 通知默认显示位置                                    |
+| `duration?`  | `number`        | —      | 通知默认停留时长（毫秒）；`Infinity` 表示不自动关闭 |
+| `className?` | `string`        | —      | 每条通知的默认样式类名                              |
 
-### ToastViewport
+## 属性（ToastProps）
 
-| 属性        | 类型       | 默认值                       | 说明                                                                                         |
-| ----------- | ---------- | ---------------------------- | -------------------------------------------------------------------------------------------- |
-| `hotkey`    | `string[]` | `['F8']`                     | 将焦点移动到视口的键盘快捷键，来自 Radix primitives（`Toast.Viewport`）                      |
-| `label`     | `string`   | `'Notifications ({hotkey})'` | 视口的无障碍标签，`{hotkey}` 会被替换为实际快捷键，来自 Radix primitives（`Toast.Viewport`） |
-| `className` | `string`   | —                            | 自定义类名，合并到末位                                                                       |
+继承自 `UiMessageProps`。
 
-### Toast
+| 属性           | 类型              | 默认值 | 说明                          |
+| -------------- | ----------------- | ------ | ----------------------------- |
+| `title?`       | `React.ReactNode` | —      | 标题                          |
+| `description?` | `React.ReactNode` | —      | 描述内容                      |
+| `variant?`     | `ToastVariant`    | —      | 样式变体                      |
+| `duration?`    | `number`          | —      | 显示时长（毫秒）              |
+| `position?`    | `ToastPosition`   | —      | 显示位置                      |
+| `onClose?`     | `() => void`      | —      | 关闭回调                      |
+| `onPause?`     | `() => void`      | —      | 暂停事件处理 (Radix 实际类型) |
+| `onResume?`    | `() => void`      | —      | 恢复事件处理 (Radix 实际类型) |
+| `action?`      | `React.ReactNode` | —      | 操作按钮                      |
+| `className?`   | `string`          | —      | 自定义类名                    |
 
-| 属性              | 类型                                                                                              | 默认值         | 说明                                                                                                     |
-| ----------------- | ------------------------------------------------------------------------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------- |
-| `variant`         | `'default' \| 'destructive' \| 'success'`                                                         | `'default'`    | 提示配色变体，由 `cva` 定义                                                                              |
-| `title`           | `React.ReactNode`                                                                                 | —              | 标题内容（**本组件不渲染**，需自行用 `ToastTitle` 渲染）                                                 |
-| `description`     | `React.ReactNode`                                                                                 | —              | 描述内容（**本组件不渲染**，需自行用 `ToastDescription` 渲染）                                           |
-| `duration`        | `number`                                                                                          | `5000`         | 显示时长（毫秒），覆盖 `ToastProvider` 的设置，来自 Radix primitives（`Toast.Root`）                     |
-| `position`        | `'top-left' \| 'top-center' \| 'top-right' \| 'bottom-left' \| 'bottom-center' \| 'bottom-right'` | —              | 显示位置（详见下方「注意事项」）                                                                         |
-| `onClose`         | `() => void`                                                                                      | —              | 提示关闭回调；组件内部通过 `onOpenChange` 转发触发                                                       |
-| `onPause`         | `() => void`                                                                                      | —              | 提示计时暂停回调（指针悬停在视口内时触发），来自 Radix primitives（`Toast.Root`）                        |
-| `onResume`        | `() => void`                                                                                      | —              | 提示计时恢复回调，来自 Radix primitives（`Toast.Root`）                                                  |
-| `action`          | `React.ReactNode`                                                                                 | —              | 操作按钮（**本组件不渲染**，需自行用 `ToastAction` 渲染）                                                |
-| `className`       | `string`                                                                                          | —              | 自定义类名，合并到末位                                                                                   |
-| `open`            | `boolean`                                                                                         | —              | 受控展开状态，来自 Radix primitives（`Toast.Root`）                                                      |
-| `defaultOpen`     | `boolean`                                                                                         | —              | 非受控模式下的初始展开状态，来自 Radix primitives（`Toast.Root`）                                        |
-| `onOpenChange`    | `(open: boolean) => void`                                                                         | —              | 展开状态变化回调，来自 Radix primitives（`Toast.Root`）                                                  |
-| `forceMount`      | `true`                                                                                            | —              | 强制挂载，用于接管退出动画，来自 Radix primitives（`Toast.Root`）                                        |
-| `type`            | `'foreground' \| 'background'`                                                                    | `'foreground'` | 播报级别（`foreground` 为 `assertive`，`background` 为 `polite`），来自 Radix primitives（`Toast.Root`） |
-| `onEscapeKeyDown` | `(event: KeyboardEvent) => void`                                                                  | —              | 按下 `Escape` 时的回调，来自 Radix primitives（`Toast.Root`）                                            |
-| `onSwipeStart`    | `(event: SwipeEvent) => void`                                                                     | —              | 开始滑动时的回调，来自 Radix primitives（`Toast.Root`）                                                  |
-| `onSwipeMove`     | `(event: SwipeEvent) => void`                                                                     | —              | 滑动过程中的回调，来自 Radix primitives（`Toast.Root`）                                                  |
-| `onSwipeCancel`   | `(event: SwipeEvent) => void`                                                                     | —              | 滑动被取消时的回调，来自 Radix primitives（`Toast.Root`）                                                |
-| `onSwipeEnd`      | `(event: SwipeEvent) => void`                                                                     | —              | 滑动结束时的回调，来自 Radix primitives（`Toast.Root`）                                                  |
+## 属性（ToastCloseProps）
 
-### ToastTitle / ToastDescription / ToastClose
+| 属性         | 类型           | 默认值 | 说明       |
+| ------------ | -------------- | ------ | ---------- |
+| `className?` | `string`       | —      | 自定义类名 |
+| `variant?`   | `ToastVariant` | —      | 变体样式   |
 
-| 属性        | 类型     | 默认值 | 说明                   |
-| ----------- | -------- | ------ | ---------------------- |
-| `className` | `string` | —      | 自定义类名，合并到末位 |
+`ToasterProps` 是通知容器 `Toaster` 的属性接口；`ToastProps` 是单条通知的属性接口（来自 `src/ui/toast/types.ts`）；`ToastCloseProps` 是 `ToastClose` 的属性接口。
 
-### ToastAction
-
-| 属性        | 类型     | 默认值 | 说明                                                                                |
-| ----------- | -------- | ------ | ----------------------------------------------------------------------------------- |
-| `altText`   | `string` | —      | 供屏幕阅读器朗读的替代操作描述（**必填**），来自 Radix primitives（`Toast.Action`） |
-| `className` | `string` | —      | 自定义类名，合并到末位                                                              |
-
-本表只列组件自有属性；此外还透传 `<li>` / `<div>` / `<button>` 的全部原生属性，如 `id` / `aria-*` / `data-*` / `on*` 事件。
+本表只列组件自有属性；此外还透传 Radix Toast 对应部件的全部原生属性（`open` / `defaultOpen` / `onOpenChange` / `type` / `onEscapeKeyDown` / `onSwipeStart` / `onSwipeMove` / `onSwipeCancel` / `onSwipeEnd` / `forceMount` / `className` / `aria-*` / `data-*` 等），并继承 `UiMessageProps`（`locale` / `messages`）用于覆盖内置文案。
 
 ## 无障碍
 
-- `Toast` 渲染为 `<li>`（`tabIndex={0}`），可通过键盘聚焦。
-- Radix 会额外渲染一个隐藏的 `role="status"` 播报区域，其中 `aria-live` 属性按 `type` 决定：`foreground` → `assertive`，`background` → `polite`。
-- `ToastViewport` 渲染为 `<ol>`，带 `role="region"` 与 `aria-label="Notifications (F8)"`（可通过 `label` 修改），按 `F8` 可将焦点快速移动到视口。
-- 键盘行为：`Escape` 关闭提示；提示关闭后焦点若仍在提示内，会自动移动到视口。
-- `ToastAction` 的 `altText` 为**必填**：屏幕阅读器用户难以定位到该按钮，`altText` 用于提供操作目的的替代描述（如 `altText="撤销恢复操作"`）。
-- `ToastClose` 默认 `opacity-0`，通过 `group-hover` 或聚焦时显示，避免常驻视觉噪音，但**始终可聚焦**。
-- 提示在指针悬停于视口内时会**暂停自动关闭计时**，移开后恢复。
+- `ToastViewport` 渲染为 `<ol>`，带 `role="region"` 与 `aria-label`（Radix 默认 `Notifications (F8)`），按 `F8` 可把焦点快速移动到视口。
+- 单条 `Toast` 渲染为 `<li>`（`tabIndex={0}`），可通过键盘聚焦。
+- Radix 会额外渲染一个隐藏的 `role="status"` live region，`aria-live` 按 `type` 决定：`foreground` → `assertive`，`background` → `polite`。
+- 关闭按钮是原生 `<button>`，带 `aria-label`（内置 `toast` 文案域的「关闭通知」/ `Dismiss notification`），图标为纯装饰。
+- 键盘行为：`Escape` 关闭通知；指针悬停在通知上时**暂停自动关闭计时**，移开后恢复。
+- 焦点样式使用 `focus-visible:ring-2`（`CloseButton` 基础类），仅键盘可见焦点才显示。
+
+## 注意事项
+
+- **定位下沉到「每条通知」**：`position` 由每条通知自身的定位类决定（`toastPositionClassMap`），`ToastViewport` 退化为「全屏透明容器」，仅提供 `fixed` 包含块与 Radix 的焦点代理 / 键盘导航 —— 否则单条通知的 `position` 无处生效。
+- **`ToastViewport` 的 `position` 属性已废弃**：源码标注 `@deprecated`，保留仅为向后兼容，请改用 `toast({ position })`。
+- **`Toast` 会自行渲染 `title` / `description`**：内部把它们包进 `ToastTitle` / `ToastDescription`，并把 `children`（`action`）渲染在内容区之后 —— 无需再手动使用 `ToastTitle` / `ToastDescription`。
+- **`Toast` 的 `title` / `description` 来自原生 `<li>` 属性冲突的处理**：Radix Root 继承原生 `li` 属性，其 `title` / `description` 是 HTML 字符串属性，源码显式 `Omit` 后由 `ToastProps` 接管，因此这里支持 `ReactNode`。
+- **`Toast` 会覆盖外部的 `onOpenChange`**：组件内部注入 `onOpenChange={(open) => !open && onClose?.()}`，外部传入的同名属性会被覆盖；`onClose` 在通知关闭时触发。
+- **`onClose` 只在关闭时触发**：源码注释明确 —— `onClose` 是「关闭回调」，`onPause` / `onResume` 是计时暂停 / 恢复回调。
+- **`Toaster` 的默认标题走内置文案表**：未显式传 `title` 时按 `variant` 取语义化标题（`default` → `info` / 「提示」，`destructive` → `error` / 「错误」，`success` → 「成功」，`warning` → 「警告」，`info` → 「提示」）。
+- **单条通知的优先级高于全局默认**：`position` 与 `duration` 都是「单条通知 → `Toaster` 默认」的回退顺序。
+- **手势滑动方向由 Provider 决定**：Radix 的 `swipeDirection` 是 Provider 级属性，源码按当前唯一可见通知（列表首项）的位置推导滑动方向。
+- **通知宽度区间为 240px ~ 350px**：由 `--toast-min-width` / `--toast-max-width` 约束，超出部分换行；内容区用 `min-w-0 flex-1` 允许收缩。
+- **不使用 `w-full`**：通知是 `fixed` 定位，`w-full` 会撑满视口并覆盖 min/max 区间。
+- **关闭按钮位于右侧居中**（`self-center`，参与 flex 布局），而非右上角绝对定位 —— 这与 Dialog 的 `absolute top-4 right-4` 定位策略不同，两者形状 / 尺寸一致（`rounded-xs` + `size-6`）。
+- **不注入内联 `maxWidth` / `gap` / `padding`**：这三项已由 `Toast` 的 class 用 token 表达（内联 style 优先级高于 class，一旦注入会静默覆盖组件样式）；消费方仍可通过 `style` 传入自定义值。
+- **圆角为 `rounded-lg`**：与 Dialog / AlertDialog / Drawer / Card / Alert 一致。
+- **关闭按钮的 `aria-label` 走内置文案表**：`toast` 文案域提供 zh-CN「关闭通知」/ en-US `Dismiss notification`（键名 `closeAriaLabel`），可用 `locale` / `messages` 覆盖。
+- **关闭按钮由 `Toast` 自动渲染**：`Toast` 内部已渲染 `ToastClose`（并把 `variant` 透传给它），无需再手动添加 `ToastClose` 子元素。
 
 ## 主题变量
 
-| 变量                                    | 说明                                     |
-| --------------------------------------- | ---------------------------------------- |
-| `--toast-z-index`                       | 提示层层级                               |
-| `--toast-padding`                       | 提示内边距（同时用于视口内边距）         |
-| `--toast-gap`                           | 提示之间的间距                           |
-| `--toast-shadow`                        | 提示阴影                                 |
-| `--toast-max-width`                     | 提示最大宽度（视口 `md` 断点起生效）     |
-| `--toast-border`                        | `variant="default"` 边框色               |
-| `--toast-background`                    | `variant="default"` 背景色               |
-| `--toast-foreground`                    | `variant="default"` 文字色               |
-| `--toast-destructive-border`            | `variant="destructive"` 边框色           |
-| `--toast-destructive-background`        | `variant="destructive"` 背景色           |
-| `--toast-destructive-foreground`        | `variant="destructive"` 文字色           |
-| `--toast-success-border`                | `variant="success"` 边框色               |
-| `--toast-success-background`            | `variant="success"` 背景色               |
-| `--toast-success-foreground`            | `variant="success"` 文字色               |
-| `--toast-close-text`                    | 关闭按钮文字色（`/50` 透明度）           |
-| `--toast-close-hover-text`              | 关闭按钮 hover 文字色                    |
-| `--toast-close-destructive-text`        | `destructive` 变体关闭按钮文字色         |
-| `--toast-close-destructive-hover-text`  | `destructive` 变体关闭按钮 hover 文字色  |
-| `--toast-close-destructive-ring`        | `destructive` 变体关闭按钮焦点环颜色     |
-| `--toast-close-destructive-ring-offset` | `destructive` 变体关闭按钮焦点环偏移底色 |
+本组件直接消费以下 CSS 变量（完整清单见 [主题定制](../../theming.md)）：
 
-## 组合用法 / 注意事项
-
-- **`Toast` 必须位于 `ToastViewport` 之内**：Radix 的 `Toast.Root` 在找不到 `viewport` 时会直接返回 `null`，一条提示都不会渲染。
-- **`Toast` 不渲染 `title` / `description` / `action`**：这三个属性只是本库 `ToastProps` 的数据字段，`Toast` 组件**不消费**它们（只把 `position` / `onClose` 取出后不渲染）。要显示标题 / 描述 / 操作按钮，必须显式使用 `ToastTitle` / `ToastDescription` / `ToastAction` 作为子元素。
-- **`position` 属性不控制实际位置**：`Toast` 组件本身**不渲染任何位置样式**，`position` 只被 `useToast` 内部读取并透传到 toast 队列数据中。真正的定位由 `ToastViewport` 的响应式类（`sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[var(--toast-max-width)]`）承担——即视口固定在**右下角**（移动端为底部、纵向反序）。若需要 `top-left` 等六种位置，需自行改写 `ToastViewport` 的定位类。
-- **`onClose` 通过 `onOpenChange` 转发**：组件内部把 `onOpenChange={(open) => !open && onClose?.()}` 注入 Radix，因此外部传入的 `onOpenChange` 会被覆盖。
-- **`ToastAction` 的 `altText` 必填**：不传会导致 TypeScript 报错；这是 Radix 的强制要求，用于无障碍。
-- **`ToastClose` 需要 `toast-close=""` 属性**：源码中已显式注入，Radix 用它判断是否为"自定义关闭按钮"以便正确处理焦点。
+- `--eas-gap-lg`
+- `--eas-gap-sm`
+- `--eas-z-index-toast`
+- `--toast-max-width`
+- `--toast-min-width`
 
 ## 导出
 
-| 导出名               | 类型                              | 说明                                                                                                                     |
-| -------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `ToastProvider`      | `React.FC<ToastProviderProps>`    | 全局提供者（Radix `Toast.Provider`）                                                                                     |
-| `ToastViewport`      | `React.ForwardRefExoticComponent` | 视口容器，ref 指向 `HTMLOListElement`                                                                                    |
-| `Toast`              | `React.ForwardRefExoticComponent` | 单条提示，ref 指向 `HTMLLIElement`                                                                                       |
-| `ToastTitle`         | `React.ForwardRefExoticComponent` | 标题，ref 指向 `HTMLDivElement`                                                                                          |
-| `ToastDescription`   | `React.ForwardRefExoticComponent` | 描述，ref 指向 `HTMLDivElement`                                                                                          |
-| `ToastClose`         | `React.ForwardRefExoticComponent` | 关闭按钮，ref 指向 `HTMLButtonElement`                                                                                   |
-| `ToastAction`        | `React.ForwardRefExoticComponent` | 操作按钮，ref 指向 `HTMLButtonElement`                                                                                   |
-| `ToastProps`         | `interface`                       | 提示属性接口（来自 `src/ui/toast/types.ts`）                                                                             |
-| `ToastActionElement` | `interface`                       | 操作按钮描述接口：`{ altText: string; onClick: () => void; children?: React.ReactNode }`（来自 `src/ui/toast/types.ts`） |
+### 组件
 
-> **同名类型冲突说明**：`src/ui/toast/toast.tsx` 中另有一个同名的 `ToastActionElement`（`React.ReactElement<typeof ToastAction>`），但 `src/ui/toast/index.ts` 中的显式具名再导出 `export type { ToastProps, ToastActionElement } from './types'` **优先级高于** `export * from './toast'`，因此包根实际导出的是 `types.ts` 版本（接口形态），而非 `toast.tsx` 版本。
->
-> `src/ui/toast/types.ts` 中另有一组仅限模块内部使用、**未被 `index.ts` 导出**的类型：`ToastPosition`、`ToastVariant`、`ToastType`、`ToastContextValue`。其中 `ToastPosition` 由 `src/ui/use-toast/index.ts` 单独导出（见 [useToast 文档](./use-toast.md)）。
+| 导出名               | 说明 |
+| -------------------- | ---- |
+| `Toast`              |      |
+| `ToastAction`        |      |
+| `ToastActionElement` |      |
+| `ToastClose`         |      |
+| `ToastDescription`   |      |
+| `ToastProps`         |      |
+| `ToastProvider`      |      |
+| `ToastTitle`         |      |
+| `ToastViewport`      |      |
+| `Toaster`            |      |
+| `ToasterProps`       |      |

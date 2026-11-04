@@ -108,8 +108,12 @@ export const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
 
     // 扩展：状态点（dot），默认加透明度（最佳实践 0.85）
     if (dot) {
+      // 📌 **dot 分支必须透传 `className` / 原生属性 / `ref`** ——
+      //    修复前本分支直接 `return`，导致三者全部被静默丢弃（ADR 0001 / C-1）。
+      //    消费方传 `className` 给圆点容器定尺寸、或传 `data-*` / `aria-*` / `onClick`，
+      //    都期望生效 —— 与 count 分支保持一致的行为契约。
       return (
-        <span className="relative inline-block align-middle">
+        <span ref={ref} className={cn('relative inline-block align-middle', className)} {...props}>
           {children}
           <span
             className="absolute z-10 rounded-full"

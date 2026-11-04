@@ -1,131 +1,98 @@
 # Tabs 标签页
 
-> 用于在同一区域内切换展示多组内容，基于 Radix `Tabs` primitive，支持受控 / 非受控模式与键盘导航。
+> 在同一区域切换多组内容，支持受控 / 非受控两种模式与横向、纵向两种排列。
+
+---
 
 **导入**
 
 ```tsx
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@easbot/ui';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@easbot/ui';
 ```
 
 ## 基础用法
 
 ```tsx
-<Tabs defaultValue="account">
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@easbot/ui';
+
+export default function App() {
+  return (
+    <Tabs defaultValue="account">
+      <TabsList>
+        <TabsTrigger value="account">账户</TabsTrigger>
+        <TabsTrigger value="password">密码</TabsTrigger>
+      </TabsList>
+      <TabsContent value="account">账户设置内容</TabsContent>
+      <TabsContent value="password">密码设置内容</TabsContent>
+    </Tabs>
+  );
+}
+```
+
+受控用法：
+
+```tsx
+import { useState } from 'react';
+
+const [value, setValue] = useState('music');
+
+<Tabs value={value} onValueChange={setValue}>
   <TabsList>
-    <TabsTrigger value="account">账户</TabsTrigger>
-    <TabsTrigger value="password">密码</TabsTrigger>
+    <TabsTrigger value="music">音乐</TabsTrigger>
+    <TabsTrigger value="videos">视频</TabsTrigger>
   </TabsList>
-  <TabsContent value="account">账户设置内容</TabsContent>
-  <TabsContent value="password">修改密码内容</TabsContent>
+  <TabsContent value="music">音乐内容</TabsContent>
+  <TabsContent value="videos">视频内容</TabsContent>
+</Tabs>;
+```
+
+纵向排列：
+
+```tsx
+<Tabs defaultValue="a" orientation="vertical">
+  <TabsList className="flex flex-col gap-2">
+    <TabsTrigger value="a">A</TabsTrigger>
+    <TabsTrigger value="b">B</TabsTrigger>
+  </TabsList>
+  <TabsContent value="a">内容 A</TabsContent>
+  <TabsContent value="b">内容 B</TabsContent>
 </Tabs>
 ```
 
-## 组成部分
-
-| 子组件        | 渲染元素   | 说明                                                                  |
-| ------------- | ---------- | --------------------------------------------------------------------- |
-| `Tabs`        | `<div>`    | 根容器，承载受控状态与方向上下文，固定 `w-full`                       |
-| `TabsList`    | `<div>`    | 标签列表容器（Radix RovingFocus 容器），固定 `inline-flex` 且带下边框 |
-| `TabsTrigger` | `<button>` | 标签页按钮，激活时显示底部指示条，支持 `disabled`                     |
-| `TabsContent` | `<div>`    | 标签页内容区，非激活时 `opacity-0`（仍保留在 DOM 中）                 |
-
-## 变体
-
-本组件未使用 `cva`，没有 variant 维度。视觉变体（指示条颜色、间距等）由 CSS 变量控制。
-
-## 属性
-
-### Tabs
-
-`Tabs` 的 props 类型为 `React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root>`，即 Radix `Tabs.Root` 的全部属性：
-
-| 属性             | 类型                         | 默认值         | 说明                                                       |
-| ---------------- | ---------------------------- | -------------- | ---------------------------------------------------------- |
-| `value`          | `string`                     | —              | 当前选中的标签值（受控模式）                               |
-| `defaultValue`   | `string`                     | —              | 默认选中的标签值（非受控模式）                             |
-| `onValueChange`  | `(value: string) => void`    | —              | 选中项变化回调                                             |
-| `orientation`    | `'horizontal' \| 'vertical'` | `'horizontal'` | 标签排列方向，决定方向键导航方式（左/右 vs 上/下）         |
-| `dir`            | `'ltr' \| 'rtl'`             | `'ltr'`        | 导航方向                                                   |
-| `activationMode` | `'automatic' \| 'manual'`    | `'automatic'`  | 标签切换方式：自动（焦点即切换）或手动（需 Enter / Space） |
-| `className`      | `string`                     | —              | 根节点自定义类名                                           |
-
-本表只列组件自有属性；此外还透传 `<div>` 的全部原生属性，如 `id` / `aria-*` / `data-*` / `on*` 事件。
-
-### TabsList
-
-| 属性        | 类型      | 默认值 | 说明                                    |
-| ----------- | --------- | ------ | --------------------------------------- |
-| `loop`      | `boolean` | —      | 方向键导航是否循环（Radix RovingFocus） |
-| `className` | `string`  | —      | 自定义类名                              |
-
-### TabsTrigger
-
-| 属性        | 类型             | 默认值 | 说明                                         |
-| ----------- | ---------------- | ------ | -------------------------------------------- |
-| `value`     | `string`（必填） | —      | 与 `TabsContent` 的 `value` 对应标识         |
-| `disabled`  | `boolean`        | —      | 禁用该标签页（样式含 `disabled:opacity-50`） |
-| `className` | `string`         | —      | 自定义类名                                   |
-
-### TabsContent
-
-| 属性         | 类型             | 默认值 | 说明                                 |
-| ------------ | ---------------- | ------ | ------------------------------------ |
-| `value`      | `string`（必填） | —      | 与 `TabsTrigger` 的 `value` 对应标识 |
-| `forceMount` | `true`           | —      | 强制挂载内容（用于自定义动画过渡）   |
-| `className`  | `string`         | —      | 自定义类名                           |
-
-本表只列组件自有属性；此外各子组件还透传对应原生元素（`<div>` / `<button>`）的全部原生属性。
-
-## 导出
-
-| 导出名             | 类型 | 说明                        |
-| ------------------ | ---- | --------------------------- |
-| `Tabs`             | 组件 | 根容器，`React.forwardRef`  |
-| `TabsList`         | 组件 | 标签列表容器                |
-| `TabsTrigger`      | 组件 | 标签页按钮                  |
-| `TabsContent`      | 组件 | 标签页内容区                |
-| `TabsProps`        | 类型 | `Tabs` 的 props 类型        |
-| `TabsListProps`    | 类型 | `TabsList` 的 props 类型    |
-| `TabsTriggerProps` | 类型 | `TabsTrigger` 的 props 类型 |
-| `TabsContentProps` | 类型 | `TabsContent` 的 props 类型 |
+`TabsProps` / `TabsListProps` / `TabsTriggerProps` / `TabsContentProps` 均为 `React.ComponentProps<typeof 对应组件>` 的类型别名 —— **无自有成员**，全部继承 Radix `TabsPrimitive` 对应部件的原生属性。
 
 ## 无障碍
 
-- Radix `Tabs` 采用 WAI-ARIA Tabs 模式：`TabsList` 渲染为 `role="tablist"`（带 `aria-orientation`），
-  触发器渲染为 `role="tab"`（带 `aria-selected` 与 `aria-controls`），
-  内容区渲染为 `role="tabpanel"`（带 `aria-labelledby` 指向对应触发器）。
-- 触发器为原生 `<button type="button">`；`TabsList` 内部使用 RovingFocus，
-  列表容器自身带 `tabindex="0"`，未激活的触发器为 `tabindex="-1"`，同一时刻只有一个触发器处于焦点位置。
-- 方向键在触发器之间移动焦点：水平方向用 `←` / `→`，垂直方向用 `↑` / `↓`。
-- `activationMode="automatic"`（默认）时，焦点移动即切换内容；`"manual"` 时需按 `Enter` / `Space` 才切换。
-- `TabsTrigger` 设置 `disabled` 后不可聚焦、不可点击，样式为 `disabled:opacity-50`。
-- `TabsContent` 内部带 `focus-visible:ring-2` 焦点环，便于键盘用户定位内容区域。
-- `TabsContent` 未激活时仍保留在 DOM 中（`opacity-0`），若内容中包含可聚焦控件，
-  建议配合 `forceMount` 自行控制，或确保未激活内容内无可聚焦元素。
+- `TabsList` 渲染为 `<div role="tablist">`，并注入 `aria-orientation`（`horizontal` / `vertical`）。
+- `TabsTrigger` 渲染为原生 `<button type="button" role="tab">`，并注入 `aria-selected`、`aria-controls`（指向对应内容面板）、`data-state`（`active` / `inactive`）。
+- `TabsContent` 渲染为 `<div role="tabpanel">`，并注入 `aria-labelledby`（指回触发器）、`data-state`（`active` / `inactive`）；非激活面板带 `hidden`，不会出现在无障碍树中。
+- 键盘操作：方向键（`ArrowLeft` / `ArrowRight` / `ArrowUp` / `ArrowDown`）在触发器之间移动焦点，`Home` / `End` 跳到首 / 末项，`Enter` / `Space` 激活。
+- 触发器列表本身可聚焦（`tabIndex={0}`），焦点样式使用 `focus-visible:border-ring` + `focus-visible:ring-[3px]`，仅键盘可见焦点才显示。
+- 禁用的触发器使用原生 `disabled`，元素不可聚焦，屏幕阅读器播报「不可用」。
 
-## 主题变量
+## 注意事项
 
-| 变量                      | 说明                        |
-| ------------------------- | --------------------------- |
-| `--tabs-border`           | 标签列表下边框颜色          |
-| `--tabs-text`             | 未激活标签的文字颜色        |
-| `--tabs-text-hover`       | 标签悬停时的文字颜色        |
-| `--tabs-text-active`      | 激活标签 / 内容区的文字颜色 |
-| `--tabs-indicator`        | 激活标签底部指示条颜色      |
-| `--tabs-indicator-height` | 底部指示条高度              |
-| `--tabs-gap`              | 标签之间的间距              |
-| `--tabs-ring`             | 内容区聚焦时的焦点环颜色    |
-| `--tabs-ring-offset`      | 内容区焦点环的外扩底色      |
+- **`src/ui` 层是纯 re-export**：`Tabs` / `TabsList` / `TabsTrigger` / `TabsContent` 直接等于设计系统层 `src/design-system/components/ui/tabs.tsx` 的实现，props 与 Radix `Tabs` 对应部件完全一致。
+- **`value` / `defaultValue` 必须成对使用**：非受控用 `defaultValue`，受控用 `value` + `onValueChange`；两者都需与各 `TabsTrigger` / `TabsContent` 的 `value` 匹配。
+- **触发器与内容靠 `value` 关联**：不匹配的 `TabsContent` 永远不会被激活。
+- **默认布局是横向**：`Tabs` 根容器是 `flex flex-col gap-2`，`TabsList` 是 `inline-flex h-9 w-fit`；横向铺满请传 `className="grid w-full grid-cols-2"`。
+- **`TabsList` 高度固定 `h-9`**（36px），触发器高度为 `h-[calc(100%-1px)]`。
+- **激活态样式靠 `data-[state=active]`**：激活项变为 `bg-background` + `shadow-sm`，暗色主题下激活文字色单独覆盖。
+- **面板切换带动画**：非激活面板保留在 DOM 中（`hidden`），首次激活会有过渡动画。
+- **图标尺寸由组件约束**：触发器内的 `<svg>` 被统一设置为 `size-4` 且 `pointer-events-none`。
+- **禁用项需显式传 `disabled`**：组件不提供自动禁用逻辑。
 
-## 组合用法 / 注意事项
+## 导出
 
-1. **`value` 必须成对匹配**：`TabsTrigger` 的 `value` 与 `TabsContent` 的 `value` 相同即视为同一标签页，
-   两者都不匹配会导致内容区空白。
-2. **受控与非受控二选一**：受控用 `value` + `onValueChange`，非受控用 `defaultValue`；
-   同时传 `value` 与 `defaultValue` 时 `value` 生效。
-3. **垂直布局**：传 `orientation="vertical"` 后，方向键导航变为上下键；
-   `TabsList` 需要自行改为纵向排列（`flex flex-col`），组件默认样式仍是横向 `inline-flex`。
-4. **指示条实现**：`TabsTrigger` 用 `after:` 伪元素绘制底部指示条，
-   激活态由 `data-[state=active]:after:bg-[var(--tabs-indicator)]` 控制。
-5. **自定义动画**：需要内容切换动画时，给 `TabsContent` 传 `forceMount` 并自行控制显隐与过渡。
+### 组件
+
+| 导出名             | 说明 |
+| ------------------ | ---- |
+| `Tabs`             |      |
+| `TabsContent`      |      |
+| `TabsContentProps` |      |
+| `TabsList`         |      |
+| `TabsListProps`    |      |
+| `TabsProps`        |      |
+| `TabsTrigger`      |      |
+| `TabsTriggerProps` |      |
