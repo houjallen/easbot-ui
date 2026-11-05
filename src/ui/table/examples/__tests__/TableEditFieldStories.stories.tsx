@@ -510,8 +510,12 @@ export const RowEditDialog: Story = {
   ),
 };
 
-// 行编辑示例 - 内联模式
-export const RowEditInline: Story = {
+// 行编辑示例 - 抽屉模式
+// ⚠️ 注意：EditRowPlugin 的 mode 只支持 dialog | drawer | sheet | page，
+//    **没有 inline（行内整行编辑）模式** —— 此前这里传过 mode: 'inline'，
+//    导致 EditModal 静默落入 page 分支只渲染裸触发器，点击「编辑」毫无反应。
+//    行内单元格级编辑请看 CellEdit 示例（plugin.config.cellEdit）。
+export const RowEditDrawer: Story = {
   render: () => (
     <TableProvider
       data={sampleData}
@@ -543,7 +547,7 @@ export const RowEditInline: Story = {
           config: {
             editRow: {
               enabled: true,
-              mode: 'inline',
+              mode: 'drawer',
               layout: 'grid',
               gridCols: 'auto',
               minFieldWidth: 200,

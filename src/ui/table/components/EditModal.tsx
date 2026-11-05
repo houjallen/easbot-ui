@@ -110,6 +110,14 @@ export const EditModal: React.FC<EditModalProps> = ({
   // 内部状态管理（非受控模式）
   const [internalOpen, setInternalOpen] = useState(false);
 
+  // 📌 mode 归一化兜底：渲染分支是 `if dialog / else if drawer / else if sheet / else page`，
+  //    传入未知值（如 story 里曾传 'inline'）会**静默落入 page 分支** —— 只渲染裸触发器，
+  //    不包弹层也不绑 onClick，点击毫无反应。这里统一回退 'dialog' 并告警（fail-fast 于控制台）。
+  const effectiveMode = (['dialog', 'drawer', 'sheet', 'page'] as const).includes(mode as any) ? mode : 'dialog';
+  if (effectiveMode !== mode) {
+    console.warn(`[EditModal] 无效的 mode "${mode}"，已回退为 "dialog"（支持：dialog | drawer | sheet | page）`);
+  }
+
   // 内置文案（消费方可经 locale / messages 覆盖）
   const { t } = useComponentMessage('table', { locale, messages });
 
@@ -148,18 +156,18 @@ export const EditModal: React.FC<EditModalProps> = ({
 
   // 处理页面跳转
   const handlePageNavigation = useCallback(() => {
-    if (mode === 'page' && urlGenerator) {
+    if (effectiveMode === 'page' && urlGenerator) {
       const url = urlGenerator();
       window.open(url, urlTarget);
     } else {
       handleOpenChange(true);
     }
-  }, [mode, urlGenerator, urlTarget, handleOpenChange]);
+  }, [effectiveMode, urlGenerator, urlTarget, handleOpenChange]);
 
   // 渲染触发器
   const renderTrigger = () => {
     // 如果是页面模式，直接绑定点击事件
-    if (mode === 'page') {
+    if (effectiveMode === 'page') {
       return React.cloneElement(
         trigger as React.ReactElement,
         {
@@ -196,7 +204,7 @@ export const EditModal: React.FC<EditModalProps> = ({
   };
 
   // 根据模式渲染不同的组件
-  if (mode === 'dialog') {
+  if (effectiveMode === 'dialog') {
     return (
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>{renderTrigger()}</DialogTrigger>
@@ -226,7 +234,7 @@ export const EditModal: React.FC<EditModalProps> = ({
         </DialogContent>
       </Dialog>
     );
-  } else if (mode === 'drawer') {
+  } else if (effectiveMode === 'drawer') {
     return (
       <Drawer open={isOpen} onOpenChange={handleOpenChange}>
         <DrawerTrigger asChild>{renderTrigger()}</DrawerTrigger>
@@ -239,7 +247,7 @@ export const EditModal: React.FC<EditModalProps> = ({
         </DrawerContent>
       </Drawer>
     );
-  } else if (mode === 'sheet') {
+  } else if (effectiveMode === 'sheet') {
     return (
       <Sheet open={isOpen} onOpenChange={handleOpenChange}>
         <SheetTrigger asChild>{renderTrigger()}</SheetTrigger>
