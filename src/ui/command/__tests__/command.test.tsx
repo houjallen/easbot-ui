@@ -63,4 +63,51 @@ describe('Command 组件', () => {
       expect(await screen.findByText('没有匹配结果')).toBeVisible();
     });
   });
+
+  /**
+   * 弹层选项鼠标指针（cmdk 与 Radix 的禁用态差异）
+   *
+   * @description
+   * cmdk 的 Command.Item 输出 `"data-disabled": !!disabled` ——
+   * **可用项也会渲染 `data-disabled="false"`**（属性恒存在）。
+   * 因此禁用样式必须用 `data-[disabled=true]:` 按属性值精确匹配；
+   * 若误用 `data-[disabled]:`（属性存在即匹配），禁用样式会误伤所有可用项。
+   */
+  describe('弹层选项鼠标指针', () => {
+    it('可用项应是 cursor-pointer，且不被恒存在的 data-disabled 属性误伤', () => {
+      render(
+        <Command>
+          <CommandList>
+            <CommandItem>可用命令</CommandItem>
+          </CommandList>
+        </Command>,
+      );
+
+      const item = screen.getByRole('option');
+      // cmdk 对可用项也输出 data-disabled="false"（属性恒存在）
+      expect(item).toHaveAttribute('data-disabled', 'false');
+      expect(item).toHaveClass('cursor-pointer');
+      expect(item.className).not.toContain('cursor-default');
+      // 关键：不得使用「属性存在即匹配」的裸 data-[disabled]: 禁用样式
+      expect(item.className).not.toMatch(/(^|\s)data-\[disabled\]:(cursor|opacity)/);
+    });
+
+    it('禁用项应精确匹配 data-disabled=true 并显示 not-allowed', () => {
+      render(
+        <Command>
+          <CommandList>
+            <CommandItem disabled>禁用命令</CommandItem>
+          </CommandList>
+        </Command>,
+      );
+
+      const item = screen.getByRole('option');
+      expect(item).toHaveAttribute('data-disabled', 'true');
+      expect(item).toHaveAttribute('aria-disabled', 'true');
+      expect(item).toHaveClass('data-[disabled=true]:cursor-not-allowed');
+      expect(item).toHaveClass('data-[disabled=true]:opacity-50');
+      // 禁用态不得屏蔽指针事件（规范 css-standard.md §4.9）
+      expect(item.className).not.toMatch(/data-\[disabled([^\]]*)\]:pointer-events-none/);
+    });
+  });
 });

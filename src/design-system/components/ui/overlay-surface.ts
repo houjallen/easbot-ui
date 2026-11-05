@@ -91,7 +91,7 @@ export const overlayCloseButtonPositionClass = 'absolute top-4 right-4';
  *    该规则是历史遗留且语义错误，移除以免误判为「选中态」。
  */
 export const overlayCloseButtonClass =
-  'absolute top-4 right-4 inline-flex size-6 items-center justify-center rounded-xs p-0 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0';
+  'absolute top-4 right-4 inline-flex size-6 items-center justify-center rounded-xs p-0 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0';
 
 /**
  * `CloseButton` 组件场景的关闭按钮类名

@@ -76,6 +76,12 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
           'relative inline-flex items-center justify-center transition-opacity',
           // 📌 ghost 风格 —— 无静态背景 / 边框 / 阴影，仅 hover 时反馈（对齐全库图标按钮约定）
           'hover:bg-accent hover:text-accent-foreground',
+          // 📌 **禁用态必须显式关掉 hover 反馈** —— `:hover` 伪类对 `button:disabled`
+          //    依然命中：事件被拦住了，但鼠标悬停仍会浮出 `bg-accent` 背景、文字变
+          //    `accent-foreground`，看起来「禁用还亮着」。
+          //    用 `disabled:hover:*`（特异性 0,2,0）压过调用方 `className` 里的
+          //    自定义 hover 类（0,1,0，如 Tree 箭头的 `hover:bg-muted-foreground/20`）。
+          'disabled:hover:bg-transparent disabled:hover:text-current',
           // 📌 焦点指示 —— 用 `outline`（绘制在元素**之外**）而非 `ring`（紧贴边缘）。
           //    圆形按钮上 `ring` 会与 `border-radius` 重合成一圈「描边」，被误读为选中态。
           'outline-none focus-visible:outline-2 focus-visible:outline-ring/70 focus-visible:outline-offset-2',

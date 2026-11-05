@@ -100,11 +100,13 @@ const [value, setValue] = useState<string>();
 - **占位符有内置双语文案**：未传 `placeholder` 时使用内置文案表（zh-CN「请选择」/ en-US「Please select」），可通过 `locale` / `messages` 覆盖。
 - **`options` 与 `groups` 可同时传入**：两者都会渲染到下拉面板中（`options` 在前，`groups` 在后）。
 - **状态优先级**：`error > success > 默认`。同时传 `error` 与 `success` 时按错误态渲染。
+- **右侧箭头的悬停反馈**：触发器带 `group`，箭头为 `opacity-50 transition-opacity` + `group-hover:opacity-100` —— 正常态悬停提亮，`disabled` 时不拼该 hover 类（无反馈）。之所以不能给箭头直接写 `hover:opacity-100`：触发器基类有 `[&_svg]:pointer-events-none`，svg 自身收不到 `:hover`（见 `spec/css-standard.md` §4.9.5）。
 - **表单内会自动感知校验状态**：在 `<Form>` + `<FormField>` 内使用时，未显式传 `error` / `success` 会自动读取表单状态 —— `error = !!invalid`，`success = isTouched && !invalid`；显式传入的值优先级更高。
 - **`contentClassName` 与 `popoverContentClassName` 作用一致**：两者都会合并到下拉面板的 `className` 上。
 - **`className` 作用于触发器**，`popoverContentStyle` 作用于下拉面板（行内样式）。
 - **`size` 只有两档**：`'sm'`（`h-8`）与 `'default'`（`h-9`），默认 `'default'`。
 - **`SelectOption` / `SelectGroup` 是类型**：`SelectOption` 含 `label` / `value` / `disabled?`，`SelectGroup` 含 `label` / `options`。
+- **弹层鼠标指针**：选项与滚动按钮使用 `cursor-pointer`（与 Combobox 的选项一致）；禁用选项使用 `data-[disabled]:cursor-not-allowed`，**不得**使用 `data-[disabled]:pointer-events-none` —— 元素对鼠标透明后命中的是下层 `body`，`not-allowed` 光标永不生效（见 `spec/css-standard.md` §4.9）。Radix 已在 `onClick` / `onPointerUp` 中拦截禁用项，移除指针事件屏蔽不会导致误选。
 
 ## 主题变量
 

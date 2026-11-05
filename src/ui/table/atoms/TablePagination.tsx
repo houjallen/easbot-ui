@@ -290,13 +290,28 @@ export const TablePagination: React.FC<TablePaginationProps> = ({ pagination, co
           return (
             <React.Fragment key="pager">
               <PaginationItem>
-                <PaginationPrevious onClick={() => handlePageChange(pageNo - 1)} className={cn('eas-pagination-button', pageNo <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer')}>
+                {/* 📌 边界禁用用 `cursor-not-allowed`，不得用 `pointer-events-none`
+                    （规范 css-standard.md §4.9：鼠标穿透会让禁止光标永不生效） */}
+                {/* 📌 边界禁用用 `cursor-not-allowed`，不得用 `pointer-events-none`
+                    （规范 css-standard.md §4.9：鼠标穿透会让禁止光标永不生效）。
+                    📌 另需压掉 hover 反馈：`PaginationLink` 是 `<a>`，没有原生 `:disabled`，
+                    `buttonVariants` 的 hover 对它恒生效 —— 所以用 `!` 强制透明，
+                    否则「禁用」的上一页悬停仍浮出 `bg-accent`。 */}
+                <PaginationPrevious
+                  onClick={() => handlePageChange(pageNo - 1)}
+                  aria-disabled={pageNo <= 1 || undefined}
+                  className={cn('eas-pagination-button', pageNo <= 1 ? 'cursor-not-allowed opacity-50 hover:bg-transparent! hover:text-current!' : 'cursor-pointer')}
+                >
                   &nbsp;
                 </PaginationPrevious>
               </PaginationItem>
               {renderPager()}
               <PaginationItem>
-                <PaginationNext onClick={() => handlePageChange(pageNo + 1)} className={cn('eas-pagination-button', pageNo >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer')}>
+                <PaginationNext
+                  onClick={() => handlePageChange(pageNo + 1)}
+                  aria-disabled={pageNo >= totalPages || undefined}
+                  className={cn('eas-pagination-button', pageNo >= totalPages ? 'cursor-not-allowed opacity-50 hover:bg-transparent! hover:text-current!' : 'cursor-pointer')}
+                >
                   &nbsp;
                 </PaginationNext>
               </PaginationItem>
@@ -346,9 +361,13 @@ export const TablePagination: React.FC<TablePaginationProps> = ({ pagination, co
                     }
                   }}
                   suffix={
-                    <Icon
-                      name="arrow-right"
-                      className="eas-pagination-icon cursor-pointer text-primary"
+                    // 📌 跳页图标改用原生 button：裸 SVG 带独立 onClick 时
+                    //    键盘不可达（`tabIndex` / Enter / Space 全无），与全库
+                    //    「配合图标用 IconButton / button」的契约不一致。
+                    <button
+                      type="button"
+                      aria-label={t('pagination.goto')}
+                      className="inline-flex cursor-pointer items-center justify-center"
                       onClick={() => {
                         const input = pageInputRef.current;
                         const value = Number(input?.value);
@@ -356,7 +375,9 @@ export const TablePagination: React.FC<TablePaginationProps> = ({ pagination, co
                           handlePageChange(value);
                         }
                       }}
-                    />
+                    >
+                      <Icon name="arrow-right" className="eas-pagination-icon text-primary" />
+                    </button>
                   }
                 />
               </PaginationItem>

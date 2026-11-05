@@ -137,7 +137,8 @@ export const Dropzone: React.FC<DropzoneProps> = ({ enabled = true, text, hint, 
     <div
       className={cn(
         'relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors',
-        isDragOver ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-muted-foreground/50',
+        // 禁用时不得再拼 `hover:border-*` —— 悬停边框变深会让禁用拖拽区看起来可交互
+        isDragOver ? 'border-primary bg-primary/5' : disabled ? 'border-muted-foreground/25' : 'border-muted-foreground/25 hover:border-muted-foreground/50',
         disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-muted/50',
         className,
       )}

@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useComponentMessage } from '../../../utils/use-component-message';
 import type { UiMessageProps } from '../../../utils/ui-message';
 import { cn } from '../../lib/utils';
+import { cmdkItemInteraction } from '../../lib/overlay-item-interaction';
 
 function Command({ className, ...props }: React.ComponentProps<typeof CommandPrimitive>) {
   return <CommandPrimitive data-slot="command" className={cn('flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground', className)} {...props} />;
@@ -83,7 +84,12 @@ function CommandItem({ className, ...props }: React.ComponentProps<typeof Comman
     <CommandPrimitive.Item
       data-slot="command-item"
       className={cn(
-        'relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground',
+        'relative flex select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground',
+        // 📌 弹层选项统一指针契约 —— cmdk 版本：
+        //    Command.Item 输出 `"data-disabled": !!disabled`，可用项也会渲染
+        //    `data-disabled="false"`（属性恒存在），故必须用 `data-[disabled=true]:`
+        //    按属性值精确匹配，否则禁用样式会误伤所有可用项。
+        cmdkItemInteraction,
         className,
       )}
       {...props}

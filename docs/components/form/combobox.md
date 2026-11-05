@@ -140,6 +140,8 @@ const [selected, setSelected] = useState<string[]>([]);
 - **`label` / `description` / `error` 由组件自绘**：使用原生 `<label htmlFor={id}>`，其中 `id` 由 `React.useId()` 生成。
 - **触发器不用 `Button` 组件**：源码注释说明 `Button` 会把 children 包进 `justify-center` 容器，导致左右分布布局失效 —— 因此直接用原生 `<button>`。
 - **弹层宽度跟随触发器**：使用 `w-[var(--radix-popover-trigger-width)]`。
+- **右侧箭头的悬停反馈**：触发器带 `group`，箭头为 `opacity-50 transition-opacity` + `group-hover:opacity-100`（正常态悬停提亮），`disabled` / `loading` 时不拼该 hover 类。不能给箭头直接写 `hover:opacity-100`：`selectVariants` 有 `[&_svg]:pointer-events-none`，svg 自身收不到 `:hover`（见 `spec/css-standard.md` §4.9.5）。
+- **`disabled` / `loading` 时多选标签的移除 X 同步禁用**：触发器是 `<button>`，移除控件不能嵌套 button，因此是 `<span role="button">`；禁用态须显式 `aria-disabled`、`tabIndex={-1}`、`cursor-not-allowed` 并在 click / keydown 内早退，否则键盘 Enter/Space 仍能改值（见 `spec/css-standard.md` §4.9.2）。
 
 ## 主题变量
 

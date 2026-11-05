@@ -147,7 +147,9 @@ describe('BaseTable 组件', () => {
     it('应该在开启展开列时渲染展开按钮', () => {
       renderTable(<BaseTable columns={sampleColumns} data={sampleData} />, { expandable: true });
 
-      expect(screen.getAllByRole('button')).toHaveLength(2);
+      // 📌 按可访问名称精确查询展开按钮：分页跳页图标已改为原生 button，
+      //    用 `getAllByRole('button')` 总数会被其它交互元素扰动（见 css-standard.md §4.9.2）
+      expect(screen.getAllByRole('button', { name: '展开行' })).toHaveLength(2);
     });
 
     it('应该在开启行操作列时渲染操作列表头', () => {

@@ -95,6 +95,9 @@ import { Button } from '@easbot/ui';
 
 本表只列组件自有属性；此外还透传 `<button>` 的全部原生属性（`id` / `type` / `onClick` / `aria-*` / `data-*` 等）。
 
+- **各变体的悬停反馈必须肉眼可辨**：hover 强度与 `Button` / `IconButton` 同基准 —— `default` / `outline` / `ghost` 为 `bg-accent`，`secondary` 为 `bg-secondary/80`，`destructive` 为 `bg-destructive/20`，语义色（success / warning / info）为浅色 100 档，`link` 为下划线。此前 default/secondary/outline 用 `bg-accent/20`（约 2% 灰，白底上不可见）、destructive 用 `/10`，悬停时用户以为「没有 mouse over」。
+- **hover 均带 `not-disabled:` 前缀**：`:hover` 对 `button:disabled` 依然命中，裸 `hover:` 会让禁用关闭按钮悬停仍浮出背景（见 `spec/css-standard.md` §4.9.3）。
+
 ## 无障碍
 
 - 组件统一注入 `role="button"`、`aria-disabled`（等于 `disabled || loading`）与 `aria-busy`（等于 `loading`）。
@@ -107,6 +110,7 @@ import { Button } from '@easbot/ui';
 
 - **`loading` 会强制禁用**：`disabled={disabled || loading}`，无法通过 `disabled={false}` 覆盖。
 - **尺寸由令牌系统生成**：`size` 的实际类名来自 `src/ui/button/size-tokens.ts` 的 `buttonSizeTokens`，`cva` 的 `size` 分组本身为空串。
+- **所有 variant 的 hover 都带 `not-disabled:` 前缀**：`:hover` 对 `button:disabled` 依然命中，裸 `hover:bg-primary/90` 会让禁用按钮悬停时背景仍变化（视觉上「禁用还亮着」）。用 `not-disabled:hover:` 而非 `enabled:hover:`，是为了让 `asChild` 渲染的 `<a>` 链接按钮保留 hover（见 `spec/css-standard.md` §4.9.3）。
 - **未知尺寸会回退**：传入未登记的 `size` 时输出 `console.warn` 并回退到 `md`。
 - **`asChild` 会替换根元素**：此时不渲染 `<button>`，`role="button"` 等属性注入到子元素，子元素需自行处理 `disabled`。
 - **`className` 合并到末位**，自定义类名优先级最高。

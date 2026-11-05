@@ -52,7 +52,7 @@ const [value, setValue] = useState([20, 80]);
 - 底层 Radix Slider 渲染为 `role="slider"` 的 `<span>`，并注入 `aria-valuemin` / `aria-valuemax` / `aria-valuenow` / `aria-orientation` / `aria-disabled`。
 - 键盘操作：方向键按 `step` 递增 / 递减，`PageUp` / `PageDown` 按较大步长跳转，`Home` / `End` 跳到区间端点。
 - 区间模式（`value` / `defaultValue` 传入两个数字）会渲染**两个**滑块圆点，各自可独立键盘操作。
-- 禁用态使用原生 `disabled`，圆点不可聚焦；同时整条轨道附加 `data-[disabled]:opacity-50`。
+- 禁用态由 Radix 注入 `data-disabled` / `aria-disabled`，圆点不可聚焦；同时整条轨道附加 `data-[disabled]:opacity-50`。Root / Track / Thumb 均为 `<span>`，**没有**原生 `disabled` 属性，故禁用态样式一律使用 `data-[disabled]:` 变体（`disabled:` 变体的 `:disabled` 伪类在这里永不匹配）。
 - 焦点样式使用 `focus-visible:ring-4`，仅键盘可见焦点才显示。
 
 ## 注意事项
@@ -63,6 +63,7 @@ const [value, setValue] = useState([20, 80]);
 - **`variant` 只改配色**：通过 `[&_[data-slot=slider-range]]` / `[&_[data-slot=slider-thumb]]` 选择器覆盖内部子元素，不改变结构。
 - **垂直方向需要显式高度**：源码注释说明垂直模式下容器高度依赖 `h-full` 与最小高度 `min-h-44`，需由调用方通过 `className` 提供。
 - **`src/ui` 层是薄封装**：内部结构（轨道 / 已选区间 / 圆点）由设计系统层 `DSSlider` 渲染。
+- **鼠标指针**：可用态轨道与圆点统一 `cursor-pointer`（全库交互控件同一语义，不使用 `cursor-grab`）；禁用态为 `data-[disabled]:cursor-not-allowed`，并关闭圆点的 `hover:ring-4` 反馈。禁用态保留 `pointer-events`，不使用 `pointer-events-none`（见 `spec/css-standard.md` §4.9）。
 
 ## 导出
 

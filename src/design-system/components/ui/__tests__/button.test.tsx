@@ -55,7 +55,9 @@ describe('Button 组件', () => {
       render(<Button variant="ghost">幽灵</Button>);
 
       const button = screen.getByRole('button', { name: '幽灵' });
-      expect(button).toHaveClass('hover:bg-accent');
+      // hover 带 `not-disabled:` 前缀 —— `:hover` 对 `button:disabled` 仍命中，
+      // 裸 `hover:bg-accent` 会让禁用按钮悬停仍浮背景（spec/css-standard.md §4.9.3）
+      expect(button).toHaveClass('not-disabled:hover:bg-accent');
     });
 
     it('应该正确应用 link 变体类名', () => {

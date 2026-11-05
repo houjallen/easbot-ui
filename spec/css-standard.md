@@ -1039,6 +1039,156 @@ default: 'border-gray-400 hover:border-gray-600 hover:bg-accent/20 active:bg-acc
 （图标本身 `[_svg]:pointer-events-none`、遮罩层、渐变遮罩、动画层），
 此时元素**不承担交互语义**，不涉及 cursor 表达。
 
+#### 4.9.1 弹层选项的统一指针契约（菜单项 / 选项列表项）
+
+弹层可选项（DropdownMenu / ContextMenu / Menubar / Select / Command 的 Item）
+渲染的都是 `<div>`，全局 `prefix.css` 只覆盖 `button` / `[role=button]`，
+**不受兜底** —— 必须显式声明光标。统一契约：
+
+| 状态    | 类名                                                                |
+| ------- | ------------------------------------------------------------------- |
+| 可用项  | `cursor-pointer`                                                    |
+| 禁用项  | `data-[disabled]:cursor-not-allowed` + `data-[disabled]:opacity-50` |
+| ⛔ 禁止 | `data-[disabled]:pointer-events-none`（鼠标穿透 → 光标失效）        |
+
+**禁用态变体的两套差异**（按底层库选择，不得混用）：
+
+1. **Radix 系**（Menu / Select 的 Item）：`"data-disabled": disabled ? "" : void 0`
+   —— 可用项**没有**该属性 → `data-[disabled]:` 安全。
+2. **cmdk**（Command 的 Item）：`"data-disabled": !!disabled`
+   —— **可用项也渲染 `data-disabled="false"`**（属性恒存在）→
+   必须用 `data-[disabled=true]:` 按**属性值**精确匹配，
+   否则禁用样式会**误伤所有可用项**。
+
+📌 **真值源**：`src/design-system/lib/overlay-item-interaction.ts`
+（`overlayItemInteraction` / `cmdkItemInteraction`）—— 弹层选项组件一律引用
+该常量，不得内联重复字符串。
+
+📌 禁用项**不会被 focus**（Radix RovingFocusGroup `focusable: !disabled`），
+`focus:bg-accent` 高亮天然不出现在禁用项上，无需逐项关闭；
+Radix / cmdk 均已在**事件层**拦截禁用项（`if (disabled) return`），
+CSS 层不需要、也不得再屏蔽指针事件。
+
+#### 4.9.2 主体禁用时，配合图标必须同步禁用
+
+> 常见缺陷：组件主体 `disabled` 了，但前置/后缀的展开箭头、节点图标、
+> 移除 X、预览/下载/删除图标、日历图标仍可点击、仍 `cursor-pointer`，
+> 甚至能通过键盘改值。根因是「禁用态只作用于主体，未下发给图标」。
+
+**按元素类型选择统一模式**（三选一，不得混用）：
+
+| 图标元素形态                                      | 统一做法                                                                                                                                                                                      |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 可点击图标按钮                                    | 用 `IconButton` / 原生 `<button>` 并**下传 `disabled`** —— 浏览器直接阻断点击、键盘激活与聚焦；`IconButton` 同时提供 ghost 无边框 + `focus-visible:outline` + `cursor-not-allowed`            |
+| 非 button（`<span role="button">` / Badge / div） | `aria-disabled` + `tabIndex={-1}` + 事件处理**早退** + `cursor-not-allowed`（可用态才拼 `cursor-pointer`）；这类元素没有原生 `disabled`，必须自己拦                                           |
+| `PopoverTrigger asChild` 包 `<div>`               | 在 `Popover` 层守卫：`open={!disabled && open}` 且 `onOpenChange` 内 `if (!disabled) setOpen(...)`。Radix 把打开事件合并到外层 div，图标点击会冒泡触发，**组件内部的 `!disabled` 守卫拦不住** |
+
+⛔ **禁止**：
+
+- 裸 `<svg>` / `<Icon>` 直接挂 `onClick` + `tabIndex=0`：无按钮语义、
+  无原生禁用、浏览器默认焦点框会被误读成 border；
+- 只用「回调内 `if (disabled) return`」表达禁用：拦得住业务逻辑，
+  拦不住事件派发、hover 高亮、focus 与光标反馈；
+- 禁用态仍拼接 `cursor-pointer`，或给禁用项留 `hover:bg-accent`。
+
+**扫描维度（新增）**：
+
+```bash
+# ① 找出带 onClick 的裸 Icon / svg（应改为 button / IconButton）
+rg -n '<Icon[^>]*onClick|<svg[^>]*onClick' -g 'src/ui/**/*.tsx' --no-heading
+
+# ② 找出 PopoverTrigger asChild 包 div 但 Popover 未做禁用守卫
+rg -n '<Popover open=\{open\} onOpenChange=\{setOpen\}>' -g 'src/ui/**/*.tsx' --no-heading
+
+# ③ 找出禁用态仍带 pointer-events-none 的图标
+rg -n 'disabled.*pointer-events-none|cursor-not-allowed.*pointer-events-none' -g 'src/ui/**/*.tsx' --no-heading
+
+# ④ 找出「裸 hover」与禁用态共存（应改 not-disabled: 或加 disabled:hover: 兜底）
+rg -n 'hover:bg-(accent|primary|destructive|muted|secondary)' -g 'src/**/*.tsx' --no-heading | rg -v 'not-disabled|aria-disabled:hover|disabled:hover'
+
+# ⑤ 找出把「不可选中」写进 aria-disabled 的位置（应为 data-unselectable）
+rg -n 'aria-disabled=\{[^}]*\|\|[^}]*!' -g 'src/**/*.tsx' --no-heading
+```
+
+**判定**：① ② ③ 命中项需逐一核对是否已按上表处理；`[_svg]:pointer-events-none`
+等装饰性用法豁免。
+
+📌 ② 的**合规例外**：`DatePicker` / `Combobox` 的 `PopoverTrigger asChild`
+合并到的是**原生 `<button disabled>`**，浏览器已阻断事件派发，
+无需在 Popover 层再加守卫；只有合并到 `<div>` 的 `Input*` / `ListEditor` /
+`ObjectEditor` 才需要。
+
+#### 4.9.3 禁用态不得保留 hover 反馈（`:hover` 对 `:disabled` 仍命中）
+
+> 常见缺陷：点击与键盘都拦住了，但鼠标悬停仍浮出背景 / 文字变色 / 变亮，
+> 用户看到「禁用还亮着」，于是继续点。根因是 `:hover` 伪类**不会**因为
+> `disabled` 而失效。
+
+**统一写法（按元素形态）**：
+
+| 元素形态                                                                            | 统一做法                                                                                                                                                               |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 原生 `<button>`（含 `Button` / `IconButton` / `CloseButton` / `Toggle` / 日历按钮） | hover 类一律加 `not-disabled:` 前缀，如 `not-disabled:hover:bg-primary/90`；不能用 `enabled:hover:` —— `asChild` 渲染成 `<a>` 时 `:enabled` 不成立，链接按钮会丢 hover |
+| 第三方类名拼接（`className` 可能带自定义 hover）                                    | 组件内部再加 `disabled:hover:bg-transparent disabled:hover:text-current`（特异性 0,2,0，压过调用方 0,1,0）                                                             |
+| `aria-disabled` 的 `<a>` / `div[role=button]`（如 `PaginationLink`）                | 无原生 `:disabled`，hover 恒生效；在禁用分支用 `hover:bg-transparent! hover:text-current!`（`!` 压过 variant 的 `not-disabled:` 类）                                   |
+| 仅装饰的图标（`suffix` 里的 `<Icon>`）                                              | 不要把 `hover:opacity-100` 写进基础串；按条件二选一 `disabled ? 'cursor-not-allowed opacity-30' : 'cursor-pointer opacity-50 hover:opacity-100'`                       |
+
+⛔ **禁止**：
+
+- 用 `disabled:pointer-events-none` 实现「不响应 hover」—— 指针事件被关掉后
+  `cursor: not-allowed` 也不再生效（见 §4.9）；
+- 只拦事件不拦视觉：`onClick` 里 `if (disabled) return` 不能阻止浏览器画出
+  hover 背景。
+
+#### 4.9.4 「不可选中」≠「禁用」
+
+两者是**独立状态**，不得共用一个表达：
+
+| 状态                                                             | 语义/无障碍                                                  | 光标                                       | 视觉                   |
+| ---------------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------ | ---------------------- |
+| 真禁用（`disabled` / `node.disabled`）                           | `aria-disabled="true"`，读屏播报「不可用」                   | `not-allowed`                              | `opacity-50`，无 hover |
+| 不可选中（如树父节点未开 `allowNonLeafSelection`、多选模式的行） | **不写** `aria-disabled`；用 `data-unselectable="true"` 表达 | `default`（既非 pointer 也非 not-allowed） | 正常文字色，无 hover   |
+
+> 反例（已修）：`Tree` 曾用 `aria-disabled={isDisabled || !isSelectable}`，
+> 于是「有子节点的父节点」被读成禁用 —— 光标变 `not-allowed`，
+> 宿主若按 `aria-disabled` 上禁用样式，整行 label 会灰成禁用色。
+
+`src/theme/styles/prefix.css` 已内置：`[role='button'][data-unselectable='true'] { cursor: default; }`
+（必须写在 `[role='button']:not([aria-disabled='true']) { cursor: pointer; }` **之后**，
+两者特异性相同，靠源顺序覆盖）。
+
+#### 4.9.5 触发器内指示图标：悬停反馈必须由祖先驱动
+
+> 现象：`Select` / `Combobox` 右侧的下拉箭头在正常态悬停时**毫无变化**，
+> 用户拿不到「可展开」的反馈；而直接给箭头写 `hover:opacity-100` 依然没反应。
+
+**根因**：触发器基类通常带 `[&_svg]:pointer-events-none`（指针事件统一由触发器处理），
+svg 自身**永远收不到 `:hover`** —— 写在 svg 上的 `hover:*` 是死代码。
+
+**统一做法**（基准：`DatePicker` 的日历图标，正常态 `opacity-50 → 100`）：
+
+| 角色     | 写法                                                                                                              |
+| -------- | ----------------------------------------------------------------------------------------------------------------- |
+| 触发器   | 加 `group`（`<button className={cn('group', ...)}>`）                                                             |
+| 指示图标 | `opacity-50 transition-opacity` + **正常态**拼 `group-hover:opacity-100`；`disabled` / `loading` 时不拼（无反馈） |
+
+- 用 React 条件（`!disabled && 'group-hover:opacity-100'`）而不是 `group-disabled:` 反压：
+  两者特异性相同（0,2,0），同时命中时先后顺序不可控。
+- 行级已有 hover 反馈的容器**不必**给图标单独加（如 `AccordionTrigger` 的 `hover:underline`、
+  `NavigationMenuTrigger` 的 `hover:bg-accent`）。
+
+⛔ **禁止**：给 `pointer-events-none` 的 svg 直接写 `hover:*`（永不触发，且误导后人以为已实现反馈）。
+
+**扫描维度**：
+
+```bash
+# ① 容器内指示图标是否已接入 group-hover（应为「有 group + 条件 group-hover:opacity-100」）
+rg -n 'ChevronDown className|<ChevronDownIcon className' -g 'src/**/*.tsx' --no-heading
+
+# ② 找出 svg 上直接写 hover 的死代码（父级含 [&_svg]:pointer-events-none）
+rg -n '\[&_svg\]:pointer-events-none' -g 'src/**/*.tsx' --no-heading -l
+```
+
 ---
 
 ## M. 17 项扫描维度（评审必跑）
@@ -1588,6 +1738,13 @@ rg -n "disabled:pointer-events-none|aria-disabled:pointer-events-none" \
 
 # ② 禁止用内联 style 写 cursor（优先级最高，会覆盖禁用态的 cursor）
 rg -n "cursor:\s*'pointer'" -g "src/**/*.tsx" -g "!*stories.tsx" --no-heading
+
+# ③ 禁止用 data-[disabled]:pointer-events-none 表达弹层选项禁用态（§4.9.1）
+rg -n "data-\[disabled\]:pointer-events-none" \
+  -g "src/design-system/**/*.tsx" -g "!*stories.tsx" --no-heading
+
+# ④ 弹层选项不得用 cursor-default（全局规则不覆盖 div，默认箭头无从判断可点）
+rg -n "cursor-default" -g "src/design-system/components/ui/{dropdown-menu,context-menu,menubar,command,select}.tsx" --no-heading
 ```
 
 **判定规则**：
@@ -1595,7 +1752,9 @@ rg -n "cursor:\s*'pointer'" -g "src/**/*.tsx" -g "!*stories.tsx" --no-heading
 - ❌ 违规 1：出现 `disabled:pointer-events-none` / `aria-disabled:pointer-events-none`
   —— 禁用态必须用 `cursor-not-allowed`
 - ❌ 违规 2：出现内联 `style={{ cursor: 'pointer' }}` —— 会覆盖禁用态光标
-- ✅ 合规：两条均通过（`[_svg]:pointer-events-none` 等装饰性用法**豁免**）
+- ❌ 违规 3：出现 `data-[disabled]:pointer-events-none`（弹层选项禁用态屏蔽）
+- ❌ 违规 4：弹层选项组件出现 `cursor-default`
+- ✅ 合规：四条均通过（`[_svg]:pointer-events-none` 等装饰性用法**豁免**）
 
 **修正模式**：
 

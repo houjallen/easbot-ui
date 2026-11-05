@@ -439,6 +439,7 @@ export default function App() {
 ## 注意事项
 
 - **`TableRow` 依赖 `TableProvider`**：内部调用 `useTableConfig()` 读取 `contextMenuable`，无 Provider 会抛错。
+- **分页边界与跳页图标的指针契约**：`TablePagination` 首页/末页的前后页按钮用 `cursor-not-allowed` + `aria-disabled`（不用 `pointer-events-none`，否则禁止光标不生效，见 `spec/css-standard.md` §4.9）；跳页图标改为原生 `<button>`，裸 `<svg onClick>` 无键盘可达性。`RowContextMenu` 的自定义渲染分支与默认分支一致补 `cursor-not-allowed opacity-50`。
 - **`TableContainer` 会切换滚动实现**：`fillContainer` 为 true，或 `scroll.x` / `scroll.y` 是数字 / 非 `'auto'` 字符串时，用 `ScrollArea` 包裹（`data-scroll-mode="custom"`）；否则用原生 `overflow`（`data-scroll-mode="native"`）。
 - **`TableContainer` 的滚动尺寸会写死内联样式**：`scroll.x` 为数字时同时设置 `width` / `minWidth` / `maxWidth`；`scroll.y` 为数字时同时设置 `height` / `minHeight` / `maxHeight`。
 - **`TableContainer` 在分页变化时自动滚回顶部**：仅当 `scroll.scrollToFirstRowOnChange`（默认 `true`）且处于自定义滚动模式时生效。

@@ -456,6 +456,7 @@ import { LocaleProvider } from '@easbot/ui';
 ## 注意事项
 
 - **所有值都是字符串**：`InputDate` 的 `onChange` 回传的是**已格式化的字符串**（如 `'2026-11-04'`），不是 `Date` 对象；只有 `InputDateTimeRange` 回传 `Date` 对象数组。
+- **`disabled` 时点击日历图标不会打开弹层**：6 个 `Input*` 组件都用 `<PopoverTrigger asChild>` 包外层 `<div>`，Radix 的打开事件合并到该 div，图标点击会冒泡触发。因此禁用态在 `Popover` 层做受控守卫（`open={!disabled && open}` + `onOpenChange` 内早退），光靠 `<Input disabled>` 与 suffix span 内的守卫拦不住；触发器容器另附 `aria-disabled` + `cursor-not-allowed`（见 `spec/css-standard.md` §4.9.2）。
 - **受控 + 内部 state 双轨**：`value` 变化会同步进内部状态；组件同时通过 `onChange` 回传 —— 典型写法是 `value={date} onChange={setDate}`。
 - **`format` 决定一切**：`format`（`dayjs` 格式串）同时用于「输入框显示」「解析输入」「回传值」三处。默认 `YYYY-MM-DD`（日期）/ `HH:mm:ss`（时间）/ `YYYY-MM-DD HH:mm:ss`（日期时间）。`InputTime` 的默认格式**由 `showMinutes` / `showSeconds` 动态推导**（`HH` / `HH:mm` / `HH:mm:ss`）。
 - **`InputDate` / `InputDateTime` 用严格解析**：`dayjs(str, format, true)`，格式不匹配**不会**触发 `onChange`，失焦时显示「日期格式不正确，格式示例 YYYY-MM-DD」。

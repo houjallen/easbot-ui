@@ -49,6 +49,24 @@ button:disabled,
   cursor: not-allowed;
 }
 
+/* 「不可选中」≠「禁用」—— 两种状态的光标必须区分
+ *
+ * 📌 典型场景：Tree 的父节点有子节点、且未开启 `allowNonLeafSelection` 时
+ *    「本身不可被选中」，但它**没有禁用**（仍可展开、仍可读）。
+ *    此前用 `aria-disabled` 表达「不可选中」，导致：
+ *    ① 光标变 `not-allowed`（像禁用）；② 屏幕阅读器播报「不可用」；
+ *    ③ 宿主若按 `aria-disabled` 上禁用样式，label 会整行灰化。
+ *
+ *    现在「不可选中」用 `data-unselectable` 单独表达 —— 光标为 default
+ *    （点击无动作，不该显示 pointer 误导，也不该显示 not-allowed 谎称禁用）。
+ *
+ * ⚠️ 必须写在上面 `[role='button']:not([aria-disabled='true'])` 之后：
+ *    两者特异性相同（0,2,0），靠源顺序覆盖。
+ */
+[role='button'][data-unselectable='true'] {
+  cursor: default;
+}
+
 /* ⚠️ **禁用态的元素不得禁用指针事件** ——
  * 见上方说明：`pointer-events: none` 会让 `cursor: not-allowed` 失效。
  * 组件层应使用 `disabled:cursor-not-allowed` 而非 `disabled:pointer-events-none`。

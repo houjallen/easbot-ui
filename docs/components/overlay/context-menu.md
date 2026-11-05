@@ -78,7 +78,7 @@ import {
 - 底层 Radix ContextMenu 渲染为 `<div role="menu">`，菜单项渲染为 `<div role="menuitem">`；复选项为 `role="menuitemcheckbox"`，单选项为 `role="menuitemradio"`，分组为 `role="group"`。
 - 触发区域渲染为 `<span>`（Radix 默认 `ContextMenuTrigger` 不渲染 `<button>`），并注入 `data-state`（`open` / `closed`）。
 - 键盘操作：菜单打开后方向键在菜单项之间移动，`Enter` 触发选中项，`Esc` 关闭；子菜单用 `→` / `←` 展开 / 收起。
-- 菜单项支持 `disabled`，此时注入 `data-disabled` 并附加 `pointer-events-none` + `opacity-50`。
+- 菜单项支持 `disabled`，此时注入 `data-disabled` 并附加 `cursor-not-allowed` + `opacity-50`（不屏蔽指针事件，禁用光标才能真正显示，见 `spec/css-standard.md` §4.9）。
 - 复选 / 单选状态由 `data-state`（`checked` / `unchecked`）与 `ItemIndicator` 表达，指示图标为纯装饰。
 - 焦点样式使用 `focus:bg-accent`，键盘与指针焦点均有可见反馈。
 
@@ -93,6 +93,7 @@ import {
 - **`ContextMenuSubTrigger` 自带右箭头**（`ChevronRightIcon`），无需自行添加。
 - **与 DropdownMenu 的差异**：触发方式不同（右键 vs 点击），其余能力（分组 / 复选 / 单选 / 子菜单 / 快捷键提示）完全一致。
 - **不提供 `ContextMenuTrigger` 的 `asChild` 语义说明**：Radix 的 `ContextMenuTrigger` 支持 `asChild`，可用于自定义触发区域。
+- **菜单项鼠标指针统一 `cursor-pointer`**（禁用项 `data-[disabled]:cursor-not-allowed`，与 Combobox / Select 选项共用一套契约，真值源 `src/design-system/lib/overlay-item-interaction.ts`，见 `spec/css-standard.md` §4.9.1）。
 
 ## 导出
 

@@ -109,7 +109,10 @@ const [selected, setSelected] = useState<TreeNodeData | undefined>(undefined);
 - **`data` 变化会重建节点索引表**：`flatDataMap` 由 `useMemo` 依赖 `data` 重算，用于 id → 节点的查找。
 - **`id` 必须唯一**：`id` 是展开、选中与查找的唯一依据，重复会导致状态错乱。
 - **`iconName` 取自全局图标注册表**：需使用 `Icon` 组件已注册的图标名（如 `folder` / `file`）；未注册的名称不会渲染图标（不报错）。
-- **`disabled` 节点不可交互**：点击节点、点击图标、拖拽与多选都会被忽略，并显示 `opacity-50` + `cursor-not-allowed`。
+- **`disabled` 节点不可交互**：点击节点、点击图标、拖拽与多选都会被忽略，并显示 `opacity-50` + `cursor-not-allowed`；禁用节点不再带 `cursor-pointer` 与 `hover:bg-accent` 高亮。
+- **两个前置图标统一使用 `IconButton`**：展开箭头（`CollapsibleTrigger asChild`）与节点图标都是原生 `<button>`，禁用时透传 `disabled` —— 浏览器直接阻断点击、键盘激活与聚焦。与 `IconButton` 契约一致：ghost 默认**无边框**、焦点用 `focus-visible:outline`（鼠标点击不出现方框）、禁用态 `cursor-not-allowed`，且 `disabled:hover:bg-transparent` 保证悬停不浮背景。此前节点图标是带 `tabIndex=0` 的裸 SVG，鼠标点击后浏览器默认焦点框看起来像 border，且禁用时仍可点击/聚焦（见 `spec/css-standard.md` §4.9.2）。
+- **「不可选中」不等于「禁用」**：节点行只在**真禁用**时写 `aria-disabled`；父节点因为 `allowNonLeafSelection=false` 而「不可选中」时，改用 `data-unselectable="true"`（光标 `default`、文字色正常、无 hover）。此前两者共用 `aria-disabled`，导致「有子节点的父节点」被读成禁用 —— 光标变 `not-allowed`，宿主按 `aria-disabled` 上禁用样式时整行 label 会灰成禁用色（见 `spec/css-standard.md` §4.9.4）。
+- **只有可选中的行才有 hover 高亮**：`hover:bg-accent` 与 `cursor-pointer` 仅在 `isNodeSelectableInSingleMode` 为真时拼接；不可选中的行点击无动作，给悬停反馈会误导。
 - **展开 / 收起用 `Collapsible` 实现**：因此收起时子树内容会从 DOM 中卸载。
 - **子节点缩进固定为 `pl-6`**（24px），不随层级变化计算。
 - **节点行无内边距偏移**：`flex items-center rounded-md py-1.5 pr-2`，左侧不留白，靠图标位置对齐。

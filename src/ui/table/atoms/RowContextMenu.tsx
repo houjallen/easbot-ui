@@ -181,14 +181,14 @@ const ContextMenuItemComponent: React.FC<{
         },
       };
       return (
-        <ContextMenuItem disabled={isDisabled} className={cn('eas-table-context-menu-item cursor-pointer', className)} asChild>
+        <ContextMenuItem disabled={isDisabled} className={cn('eas-table-context-menu-item', className, isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer')} asChild>
           {action.pluginRender(record, pluginContext, action, column) as React.ReactNode}
         </ContextMenuItem>
       );
     } else if (action.render) {
       // 普通action使用原始context
       return (
-        <ContextMenuItem disabled={isDisabled} className={cn('eas-table-context-menu-item cursor-pointer', className)} asChild>
+        <ContextMenuItem disabled={isDisabled} className={cn('eas-table-context-menu-item', className, isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer')} asChild>
           {action.render(record, context, action, column)}
         </ContextMenuItem>
       );
@@ -197,7 +197,7 @@ const ContextMenuItemComponent: React.FC<{
 
   // 默认菜单项渲染 - 统一使用button样式
   return (
-    <ContextMenuItem disabled={isDisabled} className={cn('eas-table-context-menu-item cursor-pointer', className, isDisabled && 'cursor-not-allowed opacity-50')} asChild>
+    <ContextMenuItem disabled={isDisabled} className={cn('eas-table-context-menu-item', className, isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer')} asChild>
       <Button
         variant="ghost"
         size={size}

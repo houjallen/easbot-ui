@@ -26,8 +26,11 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: R
         [UI.MonthCaption]: 'flex justify-center pt-1 relative items-center w-full',
         [UI.CaptionLabel]: 'text-sm font-medium',
         [UI.Nav]: 'flex items-center gap-1',
-        [UI.PreviousMonthButton]: cn(buttonVariants({ variant: 'outline' }), 'size-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute left-1'),
-        [UI.NextMonthButton]: cn(buttonVariants({ variant: 'outline' }), 'size-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1'),
+        // 📌 `not-disabled:hover:opacity-100` —— 到达可选月份边界时 react-day-picker
+        //    会给导航按钮加原生 `disabled`，裸 `hover:opacity-100` 会让它悬停变实，
+        //    看起来仍可点击。
+        [UI.PreviousMonthButton]: cn(buttonVariants({ variant: 'outline' }), 'size-7 bg-transparent p-0 opacity-50 not-disabled:hover:opacity-100 absolute left-1'),
+        [UI.NextMonthButton]: cn(buttonVariants({ variant: 'outline' }), 'size-7 bg-transparent p-0 opacity-50 not-disabled:hover:opacity-100 absolute right-1'),
         [UI.MonthGrid]: 'w-full border-collapse space-x-1',
         [UI.Weekdays]: 'flex',
         [UI.Weekday]: 'text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]',
@@ -41,7 +44,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: R
         [UI.DayButton]: cn(buttonVariants({ variant: 'ghost' }), 'size-8 p-0 font-normal aria-selected:opacity-100'),
         [SelectionState.range_start]: 'day-range-start aria-selected:bg-primary aria-selected:text-primary-foreground',
         [SelectionState.range_end]: 'day-range-end aria-selected:bg-primary aria-selected:text-primary-foreground',
-        [SelectionState.selected]: 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground',
+        [SelectionState.selected]: 'bg-primary text-primary-foreground not-disabled:hover:bg-primary not-disabled:hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground',
         [DayFlag.today]: 'bg-accent text-accent-foreground',
         [DayFlag.outside]: 'day-outside text-muted-foreground aria-selected:text-muted-foreground',
         [DayFlag.disabled]: 'text-muted-foreground opacity-50',

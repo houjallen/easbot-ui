@@ -22,6 +22,7 @@ function SelectTrigger({
   className,
   size = 'default',
   children,
+  disabled,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: 'sm' | 'default';
@@ -30,15 +31,20 @@ function SelectTrigger({
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       data-size={size}
+      disabled={disabled}
       className={cn(
-        'flex w-fit items-center justify-between gap-2 whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[size=default]:h-9 data-[size=sm]:h-8 data-[placeholder]:text-muted-foreground *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 dark:bg-input-background/30 dark:aria-invalid:ring-destructive/40 dark:hover:bg-input-background/50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground',
+        // 📌 `group` 供右侧箭头做悬停反馈 —— `[&_svg]:pointer-events-none` 让箭头
+        //    自身收不到 `:hover`，只能由触发器的 `:hover`（group-hover）驱动。
+        'group flex w-fit items-center justify-between gap-2 whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[size=default]:h-9 data-[size=sm]:h-8 data-[placeholder]:text-muted-foreground *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 dark:bg-input-background/30 dark:aria-invalid:ring-destructive/40 dark:not-disabled:hover:bg-input-background/50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground',
         className,
       )}
       {...props}
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDownIcon className="size-4 opacity-50" />
+        {/* 📌 箭头悬停反馈与 `DatePicker` 的日历图标同基准：
+            正常态悬停 `opacity-50 → 100`；禁用态不拼 hover 类，无反馈。 */}
+        <ChevronDownIcon className={cn('size-4 opacity-50 transition-opacity', !disabled && 'group-hover:opacity-100')} />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
@@ -76,7 +82,13 @@ function SelectItem({ className, children, ...props }: React.ComponentProps<type
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        'relative flex w-full cursor-default select-none items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2',
+        // 📌 弹层选项统一 `cursor-pointer`（与 Combobox 的 option 一致）——
+        //    原 `cursor-default` 让可点选项显示成默认箭头，用户无从判断能否点击。
+        // ⚠️ 禁用项**不得**用 `data-[disabled]:pointer-events-none`（规范 css-standard.md §4.9）：
+        //    元素对鼠标透明后命中的是下层 `body`，`cursor-not-allowed` 永不生效。
+        //    Radix 已在 `onClick` / `onPointerUp` 中拦截 `disabled` 项，
+        //    移除 pointer-events 屏蔽不会导致禁用项被选中。
+        'relative flex w-full cursor-pointer select-none items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden focus:bg-accent focus:text-accent-foreground data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2',
         className,
       )}
       {...props}
@@ -97,7 +109,7 @@ function SelectSeparator({ className, ...props }: React.ComponentProps<typeof Se
 
 function SelectScrollUpButton({ className, ...props }: React.ComponentProps<typeof SelectPrimitive.ScrollUpButton>) {
   return (
-    <SelectPrimitive.ScrollUpButton data-slot="select-scroll-up-button" className={cn('flex cursor-default items-center justify-center py-1', className)} {...props}>
+    <SelectPrimitive.ScrollUpButton data-slot="select-scroll-up-button" className={cn('flex cursor-pointer items-center justify-center py-1', className)} {...props}>
       <ChevronUpIcon className="size-4" />
     </SelectPrimitive.ScrollUpButton>
   );
@@ -105,7 +117,7 @@ function SelectScrollUpButton({ className, ...props }: React.ComponentProps<type
 
 function SelectScrollDownButton({ className, ...props }: React.ComponentProps<typeof SelectPrimitive.ScrollDownButton>) {
   return (
-    <SelectPrimitive.ScrollDownButton data-slot="select-scroll-down-button" className={cn('flex cursor-default items-center justify-center py-1', className)} {...props}>
+    <SelectPrimitive.ScrollDownButton data-slot="select-scroll-down-button" className={cn('flex cursor-pointer items-center justify-center py-1', className)} {...props}>
       <ChevronDownIcon className="size-4" />
     </SelectPrimitive.ScrollDownButton>
   );

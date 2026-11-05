@@ -155,6 +155,7 @@ export const FileList: React.FC<FileListProps> = ({
             <Button
               variant="ghost"
               size="sm"
+              disabled={disabled}
               onClick={() => onPreview?.(file)}
               className="h-8 w-8 p-0"
               aria-label={processUiMessage('preview', { locale, messages: fileMessages })}
@@ -166,6 +167,7 @@ export const FileList: React.FC<FileListProps> = ({
             <Button
               variant="ghost"
               size="sm"
+              disabled={disabled}
               onClick={() => onDownload?.(file)}
               className="h-8 w-8 p-0"
               aria-label={processUiMessage('download', { locale, messages: fileMessages })}
@@ -177,6 +179,7 @@ export const FileList: React.FC<FileListProps> = ({
             <Button
               variant="ghost"
               size="sm"
+              disabled={disabled}
               onClick={() => onRemove?.(file)}
               className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
               aria-label={processUiMessage('remove', { locale, messages: fileMessages })}
@@ -194,6 +197,8 @@ export const FileList: React.FC<FileListProps> = ({
     }
 
     const handleTagClick = () => {
+      // 组件 disabled 时标签本身不得再触发下载（Badge 不是 button，需显式早退）
+      if (disabled) return;
       if (showDownload && file.url && file.status === 'success') {
         onDownload?.(file);
       }
@@ -217,15 +222,19 @@ export const FileList: React.FC<FileListProps> = ({
         key={file.id}
         variant={getTagVariant()}
         className={cn(
-          'flex max-w-xs cursor-pointer items-center gap-2 transition-colors',
-          file.status === 'uploading' && 'cursor-not-allowed',
-          showDownload && file.url && file.status === 'success' && 'hover:bg-primary/80',
+          'flex max-w-xs items-center gap-2 transition-colors',
+          // 禁用态统一：not-allowed 光标 + 透明度，且不给 hover 反馈
+          !disabled && 'cursor-pointer',
+          (disabled || file.status === 'uploading') && 'cursor-not-allowed',
+          disabled && 'opacity-50',
+          showDownload && !disabled && file.url && file.status === 'success' && 'hover:bg-primary/80',
         )}
-        role={showDownload && file.url && file.status === 'success' && !file.status.startsWith('upload') ? 'button' : undefined}
-        tabIndex={showDownload && file.url && file.status === 'success' ? 0 : undefined}
+        aria-disabled={disabled || undefined}
+        role={!disabled && showDownload && file.url && file.status === 'success' && !file.status.startsWith('upload') ? 'button' : undefined}
+        tabIndex={!disabled && showDownload && file.url && file.status === 'success' ? 0 : undefined}
         onClick={handleTagClick}
         onKeyDown={
-          showDownload && file.url && file.status === 'success'
+          !disabled && showDownload && file.url && file.status === 'success'
             ? (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
@@ -251,6 +260,7 @@ export const FileList: React.FC<FileListProps> = ({
           <Button
             variant="ghost"
             size="sm"
+            disabled={disabled}
             onClick={(e) => {
               e.stopPropagation();
               onRemove?.(file);
@@ -300,17 +310,28 @@ export const FileList: React.FC<FileListProps> = ({
           </div>
         )}
 
-        {/* 操作按钮（右上角） */}
+        {/* 操作按钮（右上角）
+            ⚠️ 必须下传 `disabled`：此前组件禁用时这三个 ghost 图标仍可点击、仍 pointer，
+            只隐藏了追加上传入口，属于「主体禁用、配合图标未禁用」缺陷。 */}
         <div className="absolute top-1 right-1 flex gap-1">
           {showPreview && imageUrl && (
-            <IconButton variant="default" size={20} onClick={() => onPreview?.(file)} icon="eye" aria-label={processUiMessage('preview', { locale, messages: fileMessages })} />
+            <IconButton variant="default" size={20} disabled={disabled} onClick={() => onPreview?.(file)} icon="eye" aria-label={processUiMessage('preview', { locale, messages: fileMessages })} />
           )}
 
           {showDownload && file.url && (
-            <IconButton variant="default" size={20} onClick={() => onDownload?.(file)} icon="download" aria-label={processUiMessage('download', { locale, messages: fileMessages })} />
+            <IconButton
+              variant="default"
+              size={20}
+              disabled={disabled}
+              onClick={() => onDownload?.(file)}
+              icon="download"
+              aria-label={processUiMessage('download', { locale, messages: fileMessages })}
+            />
           )}
 
-          {showRemove && <IconButton variant="destructive" size={20} onClick={() => onRemove?.(file)} icon="x" aria-label={processUiMessage('remove', { locale, messages: fileMessages })} />}
+          {showRemove && (
+            <IconButton variant="destructive" size={20} disabled={disabled} onClick={() => onRemove?.(file)} icon="x" aria-label={processUiMessage('remove', { locale, messages: fileMessages })} />
+          )}
         </div>
 
         {/* 文件名 */}

@@ -88,7 +88,7 @@ import {
 - 底层 Radix DropdownMenu 渲染为 `<div role="menu">`，菜单项渲染为 `<div role="menuitem">`；复选项为 `role="menuitemcheckbox"`，单选项为 `role="menuitemradio"`，分组为 `role="group"`，标签为 `role="presentation"`。
 - 触发器渲染为原生 `<button type="button">`，并注入 `aria-haspopup="menu"` / `aria-expanded` / `aria-controls` / `data-state`。
 - 键盘操作：`Enter` / `Space` 打开菜单，`Esc` 关闭，方向键在菜单项之间移动，`Enter` 触发选中项；子菜单用 `→` / `←` 展开 / 收起。
-- 菜单项支持 `disabled`，此时注入 `data-disabled` 并附加 `pointer-events-none` + `opacity-50`。
+- 菜单项支持 `disabled`，此时注入 `data-disabled` 并附加 `cursor-not-allowed` + `opacity-50`（不屏蔽指针事件，禁用光标才能真正显示，见 `spec/css-standard.md` §4.9）。
 - 复选 / 单选状态由 `data-state`（`checked` / `unchecked`）与 `ItemIndicator` 表达，指示图标为纯装饰。
 - 焦点样式使用 `focus:bg-accent`，键盘与指针焦点均有可见反馈。
 
@@ -103,6 +103,7 @@ import {
 - **`DropdownMenuSeparator` 渲染为 `<div role="separator">`**，仅作视觉分隔。
 - **`DropdownMenuSubTrigger` 自带右箭头**（`ChevronRightIcon`），无需自行添加。
 - **Storybook 中的 `size` / `variant`（content 级）不存在**：源码未在 `DropdownMenuContent` 上定义这两项，Story 里的用法带有 `@ts-expect-error` 注释，属于演示代码而非真实 API。
+- **菜单项鼠标指针统一 `cursor-pointer`**（禁用项 `data-[disabled]:cursor-not-allowed`，与 Combobox / Select 选项共用一套契约，真值源 `src/design-system/lib/overlay-item-interaction.ts`，见 `spec/css-standard.md` §4.9.1）。
 
 ## 导出
 

@@ -282,6 +282,7 @@ import {
 ## 注意事项
 
 - **默认是拖拽模式，不是按钮模式**：想用「选择文件」按钮需显式传 `dropzone={{ enabled: false }}`。
+- **`disabled` 会同步禁用所有配合图标**：text / tag / picture-card 三种列表的预览、下载、移除按钮都下传原生 `disabled`（`cursor-not-allowed`）；tag 的 Badge 不是 button，用 `aria-disabled` + 事件早退兜底，禁用时不再触发下载。此前只隐藏了追加上传入口，已有文件的操作图标仍可点击（见 `spec/css-standard.md` §4.9.2）。
 - ⚠️ **`dropzone={{}}` 会退回按钮模式**：`dropzone = { enabled: true }` 是**默认参数**（仅在 prop 为 `undefined` 时生效）。一旦传入 `dropzone={{ text: '...' }}`，`enabled` 变成 `undefined` → `isDragMode` 为假 → 组件认为「不是拖拽模式」。想保留拖拽区又改文案，必须显式写 `dropzone={{ enabled: true, text: '...' }}`。
 - **追加模式需要显式打开**：`fileList.showUploadButton` 默认为 `undefined`（false），因此默认配置下**没有「+」追加入口**。
 - **`InputImage` 为 `fileList` 填了默认值，但默认值可以被覆盖**：`InputImage` 内部按「内置默认 → 消费方 `fileList`」的顺序展开，因此 `listType` 只是**默认**为 `'picture-card'`（类型上被 `ImageFileListConfig` 收窄为只能是该值），消费方显式传的 `fileList` 依然生效。

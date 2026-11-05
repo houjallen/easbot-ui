@@ -58,7 +58,7 @@ export default function App() {
 - 底层 Radix Menubar 渲染为 `<div role="menubar">`，每个顶级菜单为 `<div role="menu">`，菜单项为 `<div role="menuitem">`；复选项为 `role="menuitemcheckbox"`，单选项为 `role="menuitemradio"`，分组为 `role="group"`。
 - 触发器渲染为原生 `<button type="button">`，并注入 `aria-haspopup="menu"` / `aria-expanded` / `aria-controls` / `data-state`。
 - 键盘操作：`Enter` / `Space` 打开菜单，方向键在菜单项之间移动，`Esc` 关闭；`Alt`（Windows 为 `Alt`、macOS 为 `Ctrl`）可快速聚焦菜单栏。
-- 菜单项支持 `disabled`，此时注入 `data-disabled` 并附加 `pointer-events-none` + `opacity-50`。
+- 菜单项支持 `disabled`，此时注入 `data-disabled` 并附加 `cursor-not-allowed` + `opacity-50`（不屏蔽指针事件，禁用光标才能真正显示，见 `spec/css-standard.md` §4.9）。
 - 复选 / 单选状态由 `data-state`（`checked` / `unchecked`）与 `ItemIndicator` 表达，指示图标为纯装饰。
 - 焦点样式使用 `focus:bg-accent`，键盘与指针焦点均有可见反馈。
 
@@ -74,6 +74,7 @@ export default function App() {
 - **`MenubarSubTrigger` 自带右箭头**（`ChevronRightIcon`），无需自行添加。
 - **菜单栏本体有固定高度 `h-9`**，内边距 `p-1`，圆角 `rounded-md`。
 - **与 DropdownMenu 的差异**：`Menubar` 是常驻在页面顶部的多顶级菜单结构（`Menubar` → `MenubarMenu` → `MenubarTrigger`），而 `DropdownMenu` 是单个触发器的下拉菜单。
+- **菜单项鼠标指针统一 `cursor-pointer`**（禁用项 `data-[disabled]:cursor-not-allowed`，与 Combobox / Select 选项共用一套契约，真值源 `src/design-system/lib/overlay-item-interaction.ts`，见 `spec/css-standard.md` §4.9.1）。
 
 ## 导出
 

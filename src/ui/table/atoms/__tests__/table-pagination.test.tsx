@@ -124,13 +124,15 @@ describe('TablePagination 组件', () => {
     it('应该在首页时禁用上一页按钮', () => {
       renderPagination(<TablePagination pagination={paginationState} config={paginationConfig} />);
 
-      expect(screen.getByLabelText('转到上一页')).toHaveClass('pointer-events-none', 'opacity-50');
+      // 📌 禁用态用 `cursor-not-allowed` 而非 `pointer-events-none`（规范 css-standard.md §4.9：
+      //    鼠标穿透会让禁止光标永不生效）
+      expect(screen.getByLabelText('转到上一页')).toHaveClass('cursor-not-allowed', 'opacity-50');
     });
 
     it('应该在末页时禁用下一页按钮', () => {
       renderPagination(<TablePagination pagination={{ ...paginationState, pageNo: 4 }} config={paginationConfig} />);
 
-      expect(screen.getByLabelText('转到下一页')).toHaveClass('pointer-events-none', 'opacity-50');
+      expect(screen.getByLabelText('转到下一页')).toHaveClass('cursor-not-allowed', 'opacity-50');
     });
   });
 

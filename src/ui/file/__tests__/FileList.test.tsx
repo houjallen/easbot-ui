@@ -229,6 +229,64 @@ describe('FileList 组件', () => {
     });
   });
 
+  /**
+   * 禁用态与配合图标
+   *
+   * @description
+   * 回归背景：组件 disabled 时只隐藏了追加上传入口，各列表样式的
+   * 移除 / 预览 / 下载图标仍可点击、仍显示 pointer —— 「主体禁用、
+   * 配合图标未禁用」。修复后 `disabled` 统一下传给所有操作按钮，
+   * tag 的 Badge（非 button）用 aria-disabled + 事件早退兜底。
+   */
+  describe('禁用态与配合图标', () => {
+    it('text 列表禁用时所有操作按钮应不可点击', () => {
+      const onRemove = vi.fn();
+      const onPreview = vi.fn();
+      const onDownload = vi.fn();
+      render(<FileList files={[successFile]} disabled onRemove={onRemove} onPreview={onPreview} onDownload={onDownload} />);
+
+      for (const name of ['移除', '预览', '下载文件']) {
+        const button = screen.getByRole('button', { name });
+        expect(button).toBeDisabled();
+        // Button 用 `disabled:` 变体表达禁用光标（picture-card 的 IconButton 是裸条件类）
+        expect(button).toHaveClass('disabled:cursor-not-allowed');
+        fireEvent.click(button);
+      }
+
+      expect(onRemove).not.toHaveBeenCalled();
+      expect(onPreview).not.toHaveBeenCalled();
+      expect(onDownload).not.toHaveBeenCalled();
+    });
+
+    it('picture-card 禁用时右上角图标应 disabled 且不可触发回调', () => {
+      const onRemove = vi.fn();
+      const imageFile: FileInfo = { ...successFile, id: 'img', name: 'photo.jpg', type: 'image/jpeg', thumbUrl: 'https://example.com/thumb.jpg' };
+      render(<FileList files={[imageFile]} listType="picture-card" disabled onRemove={onRemove} />);
+
+      const removeButton = screen.getByRole('button', { name: '移除' });
+      expect(removeButton).toBeDisabled();
+      expect(removeButton).toHaveClass('cursor-not-allowed');
+
+      fireEvent.click(removeButton);
+      expect(onRemove).not.toHaveBeenCalled();
+    });
+
+    it('tag 禁用时 Badge 不应触发下载且应标记 aria-disabled', () => {
+      const onDownload = vi.fn();
+      render(<FileList files={[successFile]} listType="tag" disabled onDownload={onDownload} />);
+
+      const badge = screen.getByText('report.pdf').closest('[data-slot="badge"]');
+      expect(badge).toHaveAttribute('aria-disabled', 'true');
+      expect(badge).toHaveClass('cursor-not-allowed');
+
+      // Badge 不是 button，靠 handleTagClick 早退兜底
+      if (badge) fireEvent.click(badge);
+      expect(onDownload).not.toHaveBeenCalled();
+
+      expect(screen.getByRole('button', { name: '移除' })).toBeDisabled();
+    });
+  });
+
   describe('itemRender 接管', () => {
     it('提供 itemRender 时应完全替换内置单项渲染', () => {
       const onRemove = vi.fn();

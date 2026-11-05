@@ -68,3 +68,40 @@ describe('Menubar 组件', () => {
     expect(item).toHaveAttribute('aria-disabled', 'true');
   });
 });
+
+/**
+ * 弹层选项鼠标指针
+ *
+ * @description
+ * 回归背景：MenubarItem 原为 `cursor-default` + 禁用项
+ * `data-[disabled]:pointer-events-none`（违反规范 css-standard.md §4.9，
+ * 鼠标穿透导致 not-allowed 光标永不生效）。
+ * 统一契约与 Combobox option / SelectItem / DropdownMenuItem 一致。
+ */
+describe('弹层选项鼠标指针', () => {
+  test('可用菜单项应是 cursor-pointer，禁用项是 not-allowed 且不屏蔽指针事件', async () => {
+    const user = userEvent.setup();
+    render(
+      <Menubar>
+        <MenubarMenu>
+          <MenubarTrigger>视图</MenubarTrigger>
+          <MenubarContent>
+            <MenubarItem>可用项</MenubarItem>
+            <MenubarItem disabled>禁用项</MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
+      </Menubar>,
+    );
+
+    await user.click(screen.getByText('视图'));
+    const enabled = (await screen.findByText('可用项')).closest('[role="menuitem"]');
+    const disabled = screen.getByText('禁用项').closest('[role="menuitem"]');
+
+    expect(enabled).toHaveClass('cursor-pointer');
+    expect(enabled?.className).not.toContain('cursor-default');
+    expect(disabled).toHaveClass('data-[disabled]:cursor-not-allowed');
+    expect(disabled).toHaveClass('data-[disabled]:opacity-50');
+    // 禁用态不得屏蔽指针事件；`[&_svg]:pointer-events-none` 属装饰性豁免
+    expect(disabled).not.toHaveClass('data-[disabled]:pointer-events-none');
+  });
+});

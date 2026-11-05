@@ -45,6 +45,34 @@ const groupedOptions = [
 ];
 
 describe('Combobox 组件', () => {
+  /**
+   * 触发器箭头悬停反馈
+   *
+   * @description
+   * 回归背景：`selectVariants` 有 `[&_svg]:pointer-events-none`，右侧箭头
+   * 自身**收不到 `:hover`** —— 悬停反馈必须由触发器的 `group-hover` 驱动。
+   * 基准与 `DatePicker` 的日历图标一致：正常态悬停 `opacity-50 → 100`，
+   * disabled / loading 态无任何反馈。
+   */
+  describe('触发器箭头悬停反馈', () => {
+    it('正常态右侧箭头应带 group-hover 提亮类', () => {
+      const { container } = render(<Combobox options={options} />);
+
+      const chevron = container.querySelector('button[role="combobox"] svg');
+      expect(chevron).toHaveClass('opacity-50');
+      expect(chevron).toHaveClass('transition-opacity');
+      expect(chevron).toHaveClass('group-hover:opacity-100');
+    });
+
+    it('禁用态右侧箭头不应有悬停反馈', () => {
+      const { container } = render(<Combobox options={options} disabled />);
+
+      const chevron = container.querySelector('button[role="combobox"] svg');
+      expect(chevron).not.toHaveClass('group-hover:opacity-100');
+      expect(container.querySelector('button[role="combobox"]')).toBeDisabled();
+    });
+  });
+
   // 渲染测试
   describe('渲染测试', () => {
     it('应该正确渲染基础Combobox', () => {
@@ -158,6 +186,41 @@ describe('Combobox 组件', () => {
       await user.keyboard('{Enter}');
 
       expect(handleChange).toHaveBeenLastCalledWith([]);
+    });
+
+    /**
+     * 禁用态与配合图标
+     * @description 回归背景：触发器 `disabled` 时多选标签里的移除 X
+     * 仍是 `tabIndex=0` + 恒 `cursor-pointer` 的 `<span role=button>`，
+     * 键盘 Enter/Space 与鼠标点击都能改值。
+     */
+    it('disabled 时移除控件应不可聚焦、不可点击且显示 not-allowed', async () => {
+      const user = userEvent.setup();
+      const handleChange = vi.fn();
+      render(<Combobox options={options} multiple value={['1']} onChange={handleChange} disabled />);
+
+      const removeControl = screen.getByRole('button', { name: '移除选项' });
+      expect(removeControl).toHaveAttribute('aria-disabled', 'true');
+      expect(removeControl).toHaveAttribute('tabindex', '-1');
+      expect(removeControl).toHaveClass('cursor-not-allowed');
+
+      await user.click(removeControl);
+      removeControl.focus();
+      await user.keyboard('{Enter}');
+
+      expect(handleChange).not.toHaveBeenCalled();
+    });
+
+    it('loading 时移除控件同样应被禁用', async () => {
+      const user = userEvent.setup();
+      const handleChange = vi.fn();
+      render(<Combobox options={options} multiple value={['1']} onChange={handleChange} loading />);
+
+      const removeControl = screen.getByRole('button', { name: '移除选项' });
+      expect(removeControl).toHaveAttribute('aria-disabled', 'true');
+
+      await user.click(removeControl);
+      expect(handleChange).not.toHaveBeenCalled();
     });
   });
 

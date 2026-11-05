@@ -199,7 +199,9 @@ describe('Pagination 组件', () => {
       );
 
       const link = screen.getByRole('link', { name: '2' });
-      expect(link).toHaveClass('hover:bg-accent');
+      // hover 带 `not-disabled:` 前缀（`<a>` 无原生 `:disabled`，恒匹配 → 仍生效）；
+      // 裸 `hover:` 会让禁用按钮悬停仍浮背景（spec/css-standard.md §4.9.3）
+      expect(link).toHaveClass('not-disabled:hover:bg-accent');
     });
 
     it('应该在自定义类名与基础类名冲突时保留自定义类名', () => {

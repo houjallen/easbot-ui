@@ -186,6 +186,7 @@ iconfontClassNames.map((name) => <Icon key={name} type="class" clazzName={`iconf
 - **`variant` 不会透传到 DOM**：`IconProps` 的索引签名 `[key: string]: any` 会让解构出的 `variant` 退化为 `any`，源码在解构处**显式标注类型**并把它从 `restProps` 中剔除 —— 因此不会触发 React 未知属性告警。消费方自定义 `Icon` 封装时也应遵循同样做法。
 - **`locale` / `messages` 同样不会透传到普通 SVG**：普通 lucide / radix 图标不接收这两个属性（否则 React 会告警），只有 i18n 注册表里的图标会收到。
 - **`IconButton` 默认是 ghost 风格**：无静态背景 / 边框 / 阴影，仅 `hover` 时给出 `bg-accent` 反馈 —— 与全库 `CloseButton` / `Button variant="ghost"` 保持一致。需要实体背景请用 `className="bg-muted"` 覆盖（`cn()` 为 twMerge，末位类名优先级最高）。
+- **`IconButton` 禁用态不响应悬停**：内置 `disabled:hover:bg-transparent disabled:hover:text-current`。`:hover` 对 `button:disabled` **依然命中**，若只写 `hover:bg-accent`，禁用的图标按钮悬停时仍会浮出背景、文字变色（用户看到「禁用还亮着」）。该写法特异性为 0,2,0，可压过调用方 `className` 里的自定义 hover（0,1,0，如 Tree 箭头的 `hover:bg-muted-foreground/20`）。
 - **`IconButton` 的 `size` 是像素 / CSS 长度**（默认 `32`），**不是** `Button` 的尺寸 token（`sm` / `md` / `lg`）。
 - **`IconButton` 的 `icon` 可以是任意 React 节点**：此时 `variant` 与 `iconType` 对该节点**无效**（只对字符串 `icon` 生效）。
 - **`Icon` 的 `children` 只在 `class` 模式有意义**：`name` / `url` 模式下 `children` 被忽略。

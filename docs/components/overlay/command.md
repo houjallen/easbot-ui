@@ -107,6 +107,7 @@ export default function App() {
 - **`CommandInput` 自带包裹容器**：外层是 `flex h-9 items-center gap-2 border-b px-3`（含搜索图标），内层 `<input>` 才是实际的输入控件 —— 自定义样式时请区分 `data-slot="command-input-wrapper"` 与 `data-slot="command-input"`。
 - **`CommandList` 高度上限 `max-h-[300px]`** 并可滚动。
 - **`CommandShortcut` 是纯文本**（`<span>` + `ml-auto`），仅作快捷键提示，不绑定任何按键。
+- **命令项的鼠标指针契约（cmdk 特例）**：可用项 `cursor-pointer`；禁用项用 `data-[disabled=true]:cursor-not-allowed` + `data-[disabled=true]:opacity-50` 按**属性值**精确匹配 —— cmdk 对**可用项也渲染 `data-disabled="false"`**（属性恒存在），若用「属性存在即匹配」的 `data-[disabled]:` 会把禁用样式误伤到所有可用项（见 `spec/css-standard.md` §4.9.1 与 `src/design-system/lib/overlay-item-interaction.ts`）。
 - **过滤由 `cmdk` 内置完成**：默认按 `value` / `keywords` 匹配，命中规则由 `cmdk` 决定；如需自定义请使用 `Command` 的 `shouldFilter` / `filter` 属性。
 
 ## 导出

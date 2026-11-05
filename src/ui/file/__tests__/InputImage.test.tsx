@@ -12,6 +12,7 @@
  */
 
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { InputImage } from '../InputImage';
@@ -59,7 +60,10 @@ describe('InputImage 组件', () => {
       await waitFor(() => {
         expect(screen.getByText('a.png')).toBeInTheDocument();
       });
-      expect(onChange).toHaveBeenCalled();
+      // 上传链路是 async（内部 await beforeUpload 等），回调落地可能晚于 DOM 更新
+      await waitFor(() => {
+        expect(onChange).toHaveBeenCalled();
+      });
     });
 
     /**
@@ -106,7 +110,11 @@ describe('InputImage 组件', () => {
   });
 
   describe('受控删除（穿透 InputFile 壳）', () => {
+    // 📌 删除链路 `handleRemove` 是 async（内部 `await onRemove`），
+    //    `fireEvent.click` 不会 flush 微任务 / act，导致断言随机超时（flaky）。
+    //    用 `userEvent.click`（内部 await + act）保证状态更新落地后再断言。
     it('点击移除应从列表删除图片', async () => {
+      const user = userEvent.setup();
       const { container } = render(<ControlledImage />);
 
       fireEvent.change(getFileInput(container), { target: { files: [new File(['x'], 'b.png', { type: 'image/png' })] } });
@@ -114,7 +122,7 @@ describe('InputImage 组件', () => {
         expect(screen.getByText('b.png')).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByRole('button', { name: '移除' }));
+      await user.click(screen.getByRole('button', { name: '移除' }));
 
       await waitFor(() => {
         expect(screen.queryByText('b.png')).not.toBeInTheDocument();
@@ -122,6 +130,7 @@ describe('InputImage 组件', () => {
     });
 
     it('onRemove 返回 void 时不应阻止删除', async () => {
+      const user = userEvent.setup();
       const onRemove = vi.fn();
       const { container } = render(<ControlledImage onRemove={onRemove} />);
 
@@ -130,7 +139,7 @@ describe('InputImage 组件', () => {
         expect(screen.getByText('c.png')).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByRole('button', { name: '移除' }));
+      await user.click(screen.getByRole('button', { name: '移除' }));
 
       await waitFor(() => {
         expect(screen.queryByText('c.png')).not.toBeInTheDocument();

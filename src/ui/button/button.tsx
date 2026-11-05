@@ -41,18 +41,23 @@ const buttonVariants = cva(
   'inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-md font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 motion-reduce:transition-none [&_svg]:pointer-events-none [&_svg]:shrink-0 border border-transparent',
   {
     variants: {
+      // ⚠️ 所有 hover 一律用 `not-disabled:hover:` 而非裸 `hover:` ——
+      //    `:hover` 对 `button:disabled` 依然命中，禁用按钮悬停时背景色仍会变化
+      //    （`hover:bg-primary/90` 把静态 `bg-primary` 换成半透明版），
+      //    视觉上「禁用还亮着」。用 `not-disabled:`（即 `:not(:disabled):hover`）
+      //    而非 `enabled:hover:` —— 后者不匹配 `asChild` 渲染的 `<a>`（链接按钮会丢 hover）。
       variant: {
-        default: 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90',
-        secondary: 'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80',
-        destructive: 'bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40',
-        outline: 'border-input bg-background hover:bg-accent hover:text-accent-foreground dark:border-input',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
-        link: 'text-primary underline-offset-4 hover:underline',
+        default: 'bg-primary text-primary-foreground shadow-xs not-disabled:hover:bg-primary/90',
+        secondary: 'bg-secondary text-secondary-foreground shadow-xs not-disabled:hover:bg-secondary/80',
+        destructive: 'bg-destructive text-destructive-foreground shadow-xs not-disabled:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40',
+        outline: 'border-input bg-background not-disabled:hover:bg-accent not-disabled:hover:text-accent-foreground dark:border-input',
+        ghost: 'not-disabled:hover:bg-accent not-disabled:hover:text-accent-foreground',
+        link: 'text-primary underline-offset-4 not-disabled:hover:underline',
         success:
-          'border-green-400 bg-green-50 text-green-700 hover:bg-green-100 focus-visible:ring-green-500/30 dark:border-green-600 dark:bg-green-700/20 dark:text-green-400 dark:hover:bg-green-700/30',
+          'border-green-400 bg-green-50 text-green-700 not-disabled:hover:bg-green-100 focus-visible:ring-green-500/30 dark:border-green-600 dark:bg-green-700/20 dark:text-green-400 dark:not-disabled:hover:bg-green-700/30',
         warning:
-          'border-yellow-400 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 focus-visible:ring-yellow-500/30 dark:border-yellow-600 dark:bg-yellow-700/20 dark:text-yellow-400 dark:hover:bg-yellow-700/30',
-        info: 'border-blue-400 bg-blue-50 text-blue-700 hover:bg-blue-100 focus-visible:ring-blue-500/30 dark:border-blue-600 dark:bg-blue-700/20 dark:text-blue-400 dark:hover:bg-blue-700/30',
+          'border-yellow-400 bg-yellow-50 text-yellow-700 not-disabled:hover:bg-yellow-100 focus-visible:ring-yellow-500/30 dark:border-yellow-600 dark:bg-yellow-700/20 dark:text-yellow-400 dark:not-disabled:hover:bg-yellow-700/30',
+        info: 'border-blue-400 bg-blue-50 text-blue-700 not-disabled:hover:bg-blue-100 focus-visible:ring-blue-500/30 dark:border-blue-600 dark:bg-blue-700/20 dark:text-blue-400 dark:not-disabled:hover:bg-blue-700/30',
       },
       // 使用统一的尺寸令牌系统
       size: {

@@ -248,10 +248,17 @@ export const ListEditor: React.FC<ListEditorProps> = ({
     </div>
   );
 
+  // 📌 禁用态必须在 Popover 层兜底：`PopoverTrigger asChild` 的事件合并到外层 div，
+  //    点击图标会冒泡到该 div 触发 Radix 打开弹层，仅靠 Input 守卫拦不住 Trigger。
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={!disabled && open}
+      onOpenChange={(nextOpen) => {
+        if (!disabled) setOpen(nextOpen);
+      }}
+    >
       <PopoverTrigger asChild>
-        <div className={cn('relative', className)}>
+        <div className={cn('relative', disabled && 'cursor-not-allowed', className)} aria-disabled={disabled || undefined}>
           <Input
             name={name}
             value={formatDisplayValue()}
@@ -259,7 +266,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
             disabled={disabled}
             readOnly={true}
             className="cursor-pointer"
-            suffix={<Icon className={cn('cursor-pointer opacity-50 hover:opacity-100', disabled && 'cursor-not-allowed opacity-30')} name="function" size={16} />}
+            suffix={<Icon className={cn('opacity-50', disabled ? 'cursor-not-allowed opacity-30' : 'cursor-pointer hover:opacity-100')} name="function" size={16} />}
             onClick={() => !disabled && setOpen(true)}
           />
         </div>

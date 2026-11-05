@@ -273,10 +273,17 @@ export const InputDateTime = React.forwardRef<HTMLInputElement, InputDateTimePro
 
     const currentDateTime = parseDateTime(inputValue);
 
+    // 📌 禁用态必须在 Popover 层兜底：`PopoverTrigger asChild` 的事件合并到外层 div，
+    //    点击图标会冒泡到该 div 触发 Radix 打开弹层，仅靠 suffix 守卫拦不住 Trigger。
     return (
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover
+        open={!disabled && open}
+        onOpenChange={(nextOpen) => {
+          if (!disabled) setOpen(nextOpen);
+        }}
+      >
         <PopoverTrigger asChild>
-          <div className={cn('relative', className)}>
+          <div className={cn('relative', disabled && 'cursor-not-allowed', className)} aria-disabled={disabled || undefined}>
             <Input
               ref={ref}
               name={name}
@@ -296,8 +303,9 @@ export const InputDateTime = React.forwardRef<HTMLInputElement, InputDateTimePro
                   aria-label={pickerLocale.selectDateTime}
                   aria-disabled={disabled || undefined}
                   className={cn(
-                    'inline-flex cursor-pointer opacity-50 outline-offset-2 hover:opacity-100 focus-visible:outline-2 focus-visible:outline-ring',
-                    disabled && 'cursor-not-allowed opacity-30',
+                    'inline-flex outline-offset-2 focus-visible:outline-2 focus-visible:outline-ring',
+                    // 禁用时不拼 `hover:opacity-100` —— 否则悬停反而变亮（禁用还像可用）
+                    disabled ? 'cursor-not-allowed opacity-30' : 'cursor-pointer opacity-50 hover:opacity-100',
                   )}
                   onClick={() => !disabled && setOpen(true)}
                   onKeyDown={(e) => {

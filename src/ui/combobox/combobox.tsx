@@ -326,28 +326,41 @@ const EunCombobox = React.forwardRef<EunComboboxRef, EunComboboxProps>(
     //    SSR 场景还会触发 hydration 错误。
     //    改用 `<span role="button">` + `tabIndex` + `onKeyDown`，
     //    既规避非法嵌套，又保持键盘可达（满足无障碍的语义与键盘可达要求）。
-    const renderRemoveControl = (option: SelectOption) => (
-      <span
-        role="button"
-        tabIndex={0}
-        aria-label={t('removeOption')}
-        className="ml-1 inline-flex items-center justify-center"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          handleSelect(option.value);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
+    // 📌 触发器禁用态的统一判定（`disabled` 与 `loading` 等价）——
+    //    右侧箭头的悬停反馈与多选标签的移除控件都依赖它。
+    const isTriggerDisabled = disabled || loading;
+
+    const renderRemoveControl = (option: SelectOption) => {
+      // ⚠️ 主体触发器已有 `disabled={disabled || loading}`，但移除控件是
+      //    `<span role="button">`（不能嵌套 button），必须**同步**禁用态：
+      //    否则键盘 Enter/Space 仍可改值，且图标恒显示 `cursor-pointer`。
+      const isRemoveDisabled = isTriggerDisabled;
+      return (
+        <span
+          role="button"
+          tabIndex={isRemoveDisabled ? -1 : 0}
+          aria-label={t('removeOption')}
+          aria-disabled={isRemoveDisabled || undefined}
+          className={cn('ml-1 inline-flex items-center justify-center', isRemoveDisabled && 'cursor-not-allowed opacity-50')}
+          onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
+            if (isRemoveDisabled) return;
             handleSelect(option.value);
-          }
-        }}
-      >
-        <X className="h-3 w-3 cursor-pointer hover:text-primary-foreground/80" aria-hidden="true" />
-      </span>
-    );
+          }}
+          onKeyDown={(e) => {
+            if (isRemoveDisabled) return;
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSelect(option.value);
+            }
+          }}
+        >
+          <X className={cn('h-3 w-3 hover:text-primary-foreground/80', isRemoveDisabled ? 'cursor-not-allowed' : 'cursor-pointer')} aria-hidden="true" />
+        </span>
+      );
+    };
 
     // 渲染选中值的显示
     const renderSelectedValue = () => {
@@ -447,6 +460,10 @@ const EunCombobox = React.forwardRef<EunComboboxRef, EunComboboxProps>(
               aria-haspopup="dialog"
               role="combobox"
               className={cn(
+                // 📌 `group` 供右侧箭头做悬停反馈 —— `selectVariants` 里有
+                //    `[&_svg]:pointer-events-none`，箭头自身收不到 `:hover`，
+                //    只能由触发器的 `:hover`（group-hover）驱动。
+                'group',
                 selectVariants({
                   variant: !error && !success ? (variant as any) : error ? 'error' : 'success',
                 }),
@@ -455,7 +472,15 @@ const EunCombobox = React.forwardRef<EunComboboxRef, EunComboboxProps>(
               {...props}
             >
               <span className="min-w-0 flex-1 truncate text-left">{renderSelectedValue()}</span>
-              <span className="ml-2 shrink-0">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ChevronDown className="h-4 w-4 text-muted-foreground opacity-50" />}</span>
+              <span className="ml-2 shrink-0">
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  // 📌 箭头悬停反馈与 `DatePicker` 的日历图标同基准：
+                  //    正常态悬停 `opacity-50 → 100`；禁用态不拼 hover 类，无反馈。
+                  <ChevronDown className={cn('h-4 w-4 text-muted-foreground opacity-50 transition-opacity', !isTriggerDisabled && 'group-hover:opacity-100')} />
+                )}
+              </span>
             </button>
           </PopoverTrigger>
           <PopoverContent

@@ -219,6 +219,11 @@ describe('IconButton', () => {
       expect(button).toHaveClass('cursor-not-allowed');
       expect(button).not.toHaveClass('pointer-events-none');
       expect(button).toHaveClass('opacity-50');
+      // 📌 禁用态必须显式压掉 hover 反馈：`:hover` 对 `button:disabled` 依然命中，
+      //    否则「禁用 + 悬停」仍会浮出 `bg-accent` 背景、文字变 `accent-foreground`。
+      //    `disabled:hover:*`（0,2,0）也能压过调用方 className 里的自定义 hover（0,1,0）。
+      expect(button).toHaveClass('disabled:hover:bg-transparent');
+      expect(button).toHaveClass('disabled:hover:text-current');
       await user.click(button);
       expect(onClick).not.toHaveBeenCalled();
     });
