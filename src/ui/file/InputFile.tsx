@@ -79,7 +79,13 @@ export const InputFile: React.FC<InputFileProps> = ({
   });
 
   // 检查是否达到最大文件数
-  const isMaxFiles = validation?.maxCount ? files.length >= validation.maxCount : false;
+  // 有效上限：单选模式（multiple=false）隐式为 1 —— 选满即应隐藏追加入口（+ 号区域）；
+  // 多选模式取 validation.maxCount（未设置则不限）。
+  // ⚠️ 仅用于 UI 判定（隐藏 + 号 / 禁用 input / 禁用拖拽区）；
+  //    选择时的数量拦截（validateFileCount）仍以显式 maxCount 为准——
+  //    单选是「替换」语义，不能被隐式上限 1 误拦。
+  const effectiveMaxCount = multiple ? validation?.maxCount : (validation?.maxCount ?? 1);
+  const isMaxFiles = effectiveMaxCount ? files.length >= effectiveMaxCount : false;
 
   // 判断上传模式
   const isDragMode = dropzone.enabled;
@@ -209,10 +215,12 @@ export const InputFile: React.FC<InputFileProps> = ({
         }
 
         // 上传前回调
+        // ⚠️ 与 `onRemove` 同一纪律：**仅显式 `false` 否决上传**——
+        //    `void` / `undefined`（常见于「只做副作用、不否决」的用法）一律放行。
         if (beforeUpload) {
           try {
             const canUpload = await beforeUpload(file, selectedFiles);
-            if (!canUpload) {
+            if (canUpload === false) {
               continue;
             }
           } catch (error) {
@@ -290,12 +298,17 @@ export const InputFile: React.FC<InputFileProps> = ({
   }, [disabled]);
 
   // 移除文件
+  // ⚠️ `onRemove` 的返回值**仅显式 `false`（或 `Promise<false>`）阻止删除**——
+  //    `void` / `undefined` 一律视为允许。
+  //    背景：Storybook 的 `actions.argTypesRegex` 会向所有 `on*` props 自动注入
+  //    action 函数（返回 `undefined`），若把 `undefined` 当作「阻止」，
+  //    任何未手动声明 `onRemove` 的 story 里删除按钮都会失效。
   const handleRemove = useCallback(
     async (fileInfo: FileInfo) => {
       if (onRemove) {
         try {
           const canRemove = await onRemove(fileInfo);
-          if (!canRemove) return;
+          if (canRemove === false) return;
         } catch (error) {
           return;
         }

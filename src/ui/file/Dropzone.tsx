@@ -91,9 +91,11 @@ export const Dropzone: React.FC<DropzoneProps> = ({ enabled = true, text, hint, 
   );
 
   const handleClick = useCallback(() => {
-    if (disabled) return;
+    // ⚠️ 点击路径与键盘 / 拖拽路径的拦截条件必须一致 ——
+    //    `enabled=false` 时不响应（否则会出现「无 button 语义但点击仍触发」的矛盾行为）。
+    if (disabled || !enabled) return;
     onUpload?.();
-  }, [disabled, onUpload]);
+  }, [disabled, enabled, onUpload]);
 
   if (children) {
     return (

@@ -103,7 +103,7 @@ import { Dropzone, FileList } from '@easbot/ui';
 
 - **数量校验**：超出 `validation.maxCount` 时**不加入任何文件**，只触发 `onError`（传一个占位 `FileInfo`：`name` 为空字符串、`size` 为 0）。
 - **单文件校验失败**：该文件**仍会进入列表**，但 `status` 置为 `'error'`、`error` 写入错误文案，并触发 `onError`。
-- **`beforeUpload` 返回 `false`**：该文件**被丢弃**（不入列表、不触发 `onError`）；**抛错**则该文件入列表并标记为 `'error'`。
+- **`beforeUpload` 返回 `false`**：该文件**被丢弃**（不入列表、不触发 `onError`）；返回 `void` / `undefined` / `true` 均视为**放行**（常见于「只做副作用、不否决」的用法）；**抛错**则该文件入列表并标记为 `'error'`。
 - **上传触发条件**：`autoUpload`（默认 `true`）**且**传入了 `upload` 配置。
 
 ### 上传配置（`UploadConfig`）
@@ -270,11 +270,11 @@ import {
 ## 无障碍
 
 - `InputFile` / `InputImage` 内部使用一个**视觉隐藏**的原生 `<input type="file">`（`className="hidden"`）承接选择行为 —— 它带 `name` / `accept` / `multiple` / `disabled` 原生属性，但**没有关联的 `<label>`**；如需无障碍名称，请在消费方自行用 `<label>` 包裹或补充 `aria-label`。
-- `Dropzone` 的容器是 `<div>`，**不是 `<button>`**，也**没有 `role="button"`** —— 它**不响应键盘**（`Enter` / `Space` 均无效），仅响应点击与拖拽。拖拽区内的 `<input type="file">` 同样是 `hidden` 且 `disabled` 跟随组件状态。**键盘用户必须使用「按钮模式」**（`dropzone={{ enabled: false }}`）走原生 `<input type="file">` 的焦点路径。
+- `Dropzone` 的容器是 `<div role="button" tabindex="0">`：**支持键盘**（`Enter` / `Space` 触发上传点击）、点击与拖拽。`enabled === false` 或 `disabled` 时会移除 `role` / `tabIndex` 并标记 `aria-disabled="true"`，同时**点击 / 键盘 / 拖放三条路径均不触发回调**（三条路径的拦截条件一致）。拖拽区内的 `<input type="file">` 是 `hidden` 且 `disabled` 跟随组件状态。
 - `Dropzone` 拖拽悬停时渲染的「释放文件开始上传」覆盖层是纯视觉提示（`<div>` + 图标 + 文本），不注入 `aria-live`。
 - `FileList` 的操作按钮是原生 `<button type="button">`，天然键盘可达：
-  - `text` 样式下预览 / 下载 / 删除是三个独立按钮，**没有 `aria-label`**（只有图标），读屏只能读到空名称 —— 建议通过 `itemRender` 自定义渲染时补上 `aria-label`。
-  - `picture-card` 样式下的三个操作按钮是 `IconButton`（同样**无 `aria-label`**）。
+  - `text` 样式下预览 / 下载 / 删除是三个独立按钮，均带 `aria-label`（内置文案：`预览` / `下载文件` / `移除`）。
+  - `picture-card` 样式下的三个操作按钮是 `IconButton`，同样带 `aria-label`（与 `text` 样式一致的内置文案）。
   - `tag` 样式下点击整个 `Badge` 会触发下载（仅当 `status === 'success'` 且有 `url`），删除按钮会 `stopPropagation` 避免误触下载。
 - `FileList` 的状态图标（`Loader2` / `CheckCircle` / `AlertCircle`）是纯装饰，**无文本替代**；但 `text` 样式下会同时显示进度百分比或错误文案。
 - `InputImage` 的预览弹窗使用 `Dialog`（Radix primitives），具备焦点陷阱、`Escape` 关闭与关闭后的焦点回收。

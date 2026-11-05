@@ -176,16 +176,24 @@ export interface BaseUploadProps {
   autoUpload?: boolean;
   /** 组件样式类名 */
   className?: string;
-  /** 上传前回调 */
-  beforeUpload?: (file: File, fileList: File[]) => boolean | Promise<boolean>;
+  /**
+   * 上传前回调
+   * @description 返回 `false`（或 `Promise<false>`）阻止上传；`void` / `undefined` 视为允许
+   */
+  // biome-ignore lint/suspicious/noConfusingVoidType: 回调合法用法包含「只做副作用、不否决」——同步 void 与异步 Promise<void> 均需兼容，此处 void 表达「忽略返回值」语义
+  beforeUpload?: (file: File, fileList: File[]) => boolean | Promise<boolean | void> | undefined;
   /** 上传进度回调 */
   onProgress?: (file: FileInfo, progress: number) => void;
   /** 上传成功回调 */
   onSuccess?: (file: FileInfo, response: UploadResponse) => void;
   /** 上传失败回调 */
   onError?: (file: FileInfo, error: Error) => void;
-  /** 文件移除回调 */
-  onRemove?: (file: FileInfo) => boolean | Promise<boolean>;
+  /**
+   * 文件移除回调
+   * @description 返回 `false`（或 `Promise<false>`）阻止删除；`void` / `undefined` 视为允许
+   */
+  // biome-ignore lint/suspicious/noConfusingVoidType: 回调合法用法包含「只做副作用、不否决」——同步 void 与异步 Promise<void> 均需兼容，此处 void 表达「忽略返回值」语义
+  onRemove?: (file: FileInfo) => boolean | Promise<boolean | void> | undefined;
   /** 文件预览回调 */
   onPreview?: (file: FileInfo) => void;
   /** 文件下载回调 */

@@ -70,9 +70,10 @@ export const InputImage: React.FC<InputImageProps> = ({
       if (!isImageFile(file)) {
         throw new Error(getMessage('onlyImageFiles'));
       }
-      // 调用原始的beforeUpload
+      // 调用原始的beforeUpload —— 消费方返回 `void` 视为放行
+      // （与 `InputFile` 的判定纪律一致：仅显式 `false` 否决）
       if (props.beforeUpload) {
-        return props.beforeUpload(file, fileList);
+        return (await props.beforeUpload(file, fileList)) !== false;
       }
 
       return true;
